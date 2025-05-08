@@ -4,6 +4,7 @@
 
 #include "efuse.h"
 
+#include <ctype.h>
 #include <soc/efuse_reg.h>
 #include <string.h>
 
@@ -47,6 +48,11 @@ Efuse::Efuse() {
                               ESP_EFUSE_USER_DATA_DOCK_HW_FEAT[0]->bit_count);
     if (device_desc.serial[0] == 0) {
         strncpy(device_desc.serial, "00000000", sizeof(device_desc.serial));
+    }
+    // workaround for the first docks
+    char* model = device_desc.model;
+    while ((*model = toupper(*model))) {
+        ++model;
     }
     if (device_desc.version == 0) {
         device_desc.features.charging = 1;
