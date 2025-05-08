@@ -13,6 +13,7 @@
 #include "driver/uart.h"
 
 #include "ext_port_mode.h"
+#include "net_config.h"
 #include "preferences.h"
 #include "uart_config.h"
 
@@ -125,6 +126,24 @@ class Config {
     std::string getNtpServer1();
     std::string getNtpServer2();
 
+    // -- Static network configuration
+
+    /// @brief Set static network
+    /// @param cfg
+    /// @return true if configuration could be stored
+    bool          setNetwork(network_cfg_t cfg);
+    network_cfg_t getNetwork();
+
+    /// @brief Set static DNS server addresses
+    /// @param server1 main DNS. Max length is 32 characters.
+    /// @param server2 backup DNS. Max length is 32 characters.
+    /// @return true if server addresses could be stored
+    bool setDnsServer(const std::string& server1, const std::string& server2);
+    /// @brief Get main DNS server address.
+    std::string getDnsServer1();
+    /// @brief Get backupt DNS server address.
+    std::string getDnsServer2();
+
     // -- Sound settings
 
     /// @brief Get speaker volume.
@@ -186,6 +205,7 @@ class Config {
     uint8_t     getUCharSetting(const char* partition, const char* key, uint8_t defaultValue = 0);
     uint16_t    getUShortSetting(const char* partition, const char* key, uint16_t defaultValue = 0);
     int         getIntSetting(const char* partition, const char* key, int defaultValue = 0);
+    uint32_t    getUIntSetting(const char* partition, const char* key, uint32_t defaultValue = 0);
 
     Preferences m_preferences;
     int         m_defaultLedBrightness = 50;

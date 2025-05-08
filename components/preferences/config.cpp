@@ -271,6 +271,56 @@ std::string Config::getNtpServer2() {
     return getStringSetting(m_prefGeneral, "ntp_server2", "");
 }
 
+bool Config::setNetwork(network_cfg_t cfg) {
+    if (!m_preferences.begin(m_prefGeneral, false)) {
+        return false;
+    }
+    m_preferences.putBool("ip_dhcp", cfg.dhcp);
+    m_preferences.putUInt("ip_addr", cfg.ip.ip.addr);
+    m_preferences.putUInt("ip_mask", cfg.ip.netmask.addr);
+    m_preferences.putUInt("ip_gw", cfg.ip.gw.addr);
+
+    m_preferences.end();
+    return true;
+}
+
+network_cfg_t Config::getNetwork() {
+    esp_netif_ip_info_t ip;
+    memset(&ip, 0, sizeof(esp_netif_ip_info_t));
+    ip.ip.addr = getUIntSetting(m_prefGeneral, "ip_addr", 0);
+    ip.netmask.addr = getUIntSetting(m_prefGeneral, "ip_mask", 0);
+    ip.gw.addr = getUIntSetting(m_prefGeneral, "ip_gw", 0);
+
+    network_cfg_t cfg;
+    cfg.dhcp = getBoolSetting(m_prefGeneral, "ip_dhcp", true);
+    cfg.ip = ip;
+
+    return cfg;
+}
+
+bool Config::setDnsServer(const std::string& server1, const std::string& server2) {
+    if (server1.length() > 32 || server2.length() > 32) {
+        ESP_LOGW(m_ctx, "Ignoring dns server: name too long");
+        return false;
+    }
+    if (!m_preferences.begin(m_prefGeneral, false)) {
+        return false;
+    }
+    m_preferences.putString("dns_server1", server1);
+    m_preferences.putString("dns_server2", server2);
+
+    m_preferences.end();
+    return true;
+}
+
+std::string Config::getDnsServer1() {
+    return getStringSetting(m_prefGeneral, "dns_server1", "");
+}
+
+std::string Config::getDnsServer2() {
+    return getStringSetting(m_prefGeneral, "dns_server2", "");
+}
+
 uint8_t Config::getVolume() {
     return getUCharSetting(m_prefGeneral, "volume", 0);
 }
@@ -489,6 +539,14 @@ uint16_t Config::getUShortSetting(const char* partition, const char* key, uint16
 int Config::getIntSetting(const char* partition, const char* key, int defaultValue) {
     m_preferences.begin(partition, false);
     auto value = m_preferences.getInt(key, defaultValue);
+    m_preferences.end();
+
+    return value;
+}
+
+uint32_t Config::getUIntSetting(const char* partition, const char* key, uint32_t defaultValue) {
+    m_preferences.begin(partition, false);
+    auto value = m_preferences.getUInt(key, defaultValue);
     m_preferences.end();
 
     return value;

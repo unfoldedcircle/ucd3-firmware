@@ -98,6 +98,16 @@ esp_err_t eth_pwm_led_init(void);
 /// @return ESP_OK if successful
 esp_err_t set_eth_led_brightness(int value);
 
+/// @brief Configure network interface with static IPv4 address.
+///
+/// The DHCP client is stopped and the configured IPv4 address applied, including netmask, gateway and DNS server(s).
+/// @param netif network interface
+/// @param ip network addresses
+/// @param dns1 main DNS server. Use 0 for not set.
+/// @param dns2 backup DNS server. Use 0 for not set.
+/// @return ESP_OK if successful
+esp_err_t set_static_ip(esp_netif_t* netif, esp_netif_ip_info_t ip, uint32_t dns1, uint32_t dns2);
+
 #ifdef __cplusplus
 }
 #endif

@@ -481,6 +481,64 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             }
         }
         code = ok ? 200 : 400;
+    } else if (command == "set_network") {
+        // ‼️ Work in progress: API not finalized & static ip configuration is not yet implemented!
+        bool          ok = true;
+        network_cfg_t net_cfg;
+        net_cfg.dhcp = cjson_get_bool(root, "dhcp", &ok);
+        if (ok) {
+            std::string value = cjson_get_string(root, "ip", "");
+            if (value.empty()) {
+                ok = false;
+            } else {
+                net_cfg.ip.ip.addr = ipaddr_addr(value.c_str());
+            }
+            value = cjson_get_string(root, "mask", "255.255.255.0");
+            if (value.empty()) {
+                ok = false;
+            } else {
+                net_cfg.ip.netmask.addr = ipaddr_addr(value.c_str());
+            }
+            value = cjson_get_string(root, "gw", "");
+            if (value.empty()) {
+                ok = false;
+            } else {
+                net_cfg.ip.gw.addr = ipaddr_addr(value.c_str());
+            }
+
+            if (ok) {
+                ok = config_->setNetwork(net_cfg);
+            }
+        }
+        code = ok ? 200 : 400;
+    } else if (command == "get_network") {
+        // ‼️ Work in progress: API not finalized & static ip configuration is not yet implemented!
+        network_cfg_t net_cfg = config_->getNetwork();
+
+        cJSON_AddBoolToObject(responseDoc, "dhcp", net_cfg.dhcp);
+        if (!net_cfg.dhcp && net_cfg.ip.ip.addr && (net_cfg.ip.ip.addr != IPADDR_NONE)) {
+            cJSON_AddStringToObject(responseDoc, "ip", ip4addr_ntoa((ip4_addr_t *)&net_cfg.ip.ip));
+            cJSON_AddStringToObject(responseDoc, "mask", ip4addr_ntoa((ip4_addr_t *)&net_cfg.ip.netmask));
+            cJSON_AddStringToObject(responseDoc, "gw", ip4addr_ntoa((ip4_addr_t *)&net_cfg.ip.gw));
+        }
+        std::string server = config_->getDnsServer1();
+        if (!server.empty()) {
+            cJSON_AddStringToObject(responseDoc, "dns1", server.c_str());
+        }
+        server = config_->getDnsServer2();
+        if (!server.empty()) {
+            cJSON_AddStringToObject(responseDoc, "dns2", server.c_str());
+        }
+        code = 200;
+    } else if (command == "set_dns") {
+        // ‼️ Work in progress: API not finalized & static ip configuration is not yet implemented!
+        bool ok = true;
+        if (cJSON_HasObjectItem(root, "dns1") || cJSON_HasObjectItem(root, "dns2")) {
+            std::string server1 = cjson_get_string(root, "dns1", "");
+            std::string server2 = cjson_get_string(root, "dns2", "");
+            ok = config_->setDnsServer(server1, server2);
+        }
+        code = ok ? 200 : 400;
     } else if (command == "get_port_modes") {
         code = processGetPortModes(responseDoc);
     } else if (command == "get_port_mode") {

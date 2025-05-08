@@ -445,3 +445,31 @@ esp_err_t network_get_ip_info_for_netif(esp_netif_t *netif, esp_netif_ip_info_t 
     }
     return err;
 }
+
+static esp_err_t set_dns_server(esp_netif_t *netif, uint32_t addr, esp_netif_dns_type_t type) {
+    if (addr && (addr != IPADDR_NONE)) {
+        esp_netif_dns_info_t dns;
+        dns.ip.u_addr.ip4.addr = addr;
+        dns.ip.type = IPADDR_TYPE_V4;
+        return esp_netif_set_dns_info(netif, type, &dns);
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t set_static_ip(esp_netif_t *netif, esp_netif_ip_info_t ip, uint32_t dns1, uint32_t dns2) {
+    esp_err_t ret = ESP_OK;
+
+    ret = esp_netif_dhcpc_stop(netif);
+    if (ret != ESP_OK && ret != ESP_ERR_ESP_NETIF_DHCP_ALREADY_STOPPED) {
+        ESP_LOGE(TAG, "Failed to stop dhcp client: %s", esp_err_to_name(ret));
+        return ret;
+    }
+
+    ESP_RETURN_ON_ERROR(esp_netif_set_ip_info(netif, &ip), TAG, "Failed to set ip info");
+
+    ESP_RETURN_ON_ERROR(set_dns_server(netif, dns1, ESP_NETIF_DNS_MAIN), TAG, "Failed to set DNS server");
+    ESP_RETURN_ON_ERROR(set_dns_server(netif, dns2, ESP_NETIF_DNS_BACKUP), TAG, "Failed to set backup DNS server");
+
+    return ESP_OK;
+}
