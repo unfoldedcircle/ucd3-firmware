@@ -49,13 +49,8 @@ jobs:
       matrix:
         config:
           - {
-            name: "Rev 3",
-            # must match CONFIG_UCD_HW_REVISION
-            revision: "3",
-            sdkconfig_defaults: "sdkconfig.defaults;sdkconfig.rev3"
-          }
-          - {
             name: "Rev 4",
+            # must match CONFIG_UCD_HW_REVISION
             revision: "4",
             sdkconfig_defaults: "sdkconfig.defaults"
           }
