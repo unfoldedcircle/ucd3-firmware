@@ -1,0 +1,205 @@
+menu "UC Dock Network Configuration"
+
+	orsource "$IDF_PATH/examples/common_components/env_caps/$IDF_TARGET/Kconfig.env_caps"
+
+	choice UCD_ETHERNET_TYPE_SPI
+		prompt "Ethernet SPI"
+		default UCD_USE_KSZ8851SNL
+		help
+			Select which kind of Ethernet will be used in the example.
+
+		config UCD_USE_DM9051
+			bool "DM9051 Module"
+			select ETH_SPI_ETHERNET_DM9051
+			help
+				Select external SPI-Ethernet module (DM9051).
+
+		config UCD_USE_KSZ8851SNL
+			bool "KSZ8851SNL Module"
+			select ETH_SPI_ETHERNET_KSZ8851SNL
+			help
+				Select external SPI-Ethernet module (KSZ8851SNL).
+
+		config UCD_USE_W5500
+			bool "W5500 Module"
+			select ETH_SPI_ETHERNET_W5500
+			help
+				Select external SPI-Ethernet module (W5500).
+	endchoice
+
+	config UCD_ETH_SPI_HOST
+		int "SPI Host Number"
+		range 0 2
+		default 1
+		help
+			Set the SPI host used to communicate with the SPI Ethernet Controller.
+
+	config UCD_ETH_SPI_SCLK_GPIO
+		int "SPI SCLK GPIO number"
+		range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+		default 12
+		help
+			Set the GPIO number used by SPI SCLK.
+
+	config UCD_ETH_SPI_MOSI_GPIO
+		int "SPI MOSI GPIO number"
+		range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+		default 11
+		help
+			Set the GPIO number used by SPI MOSI.
+
+	config UCD_ETH_SPI_MISO_GPIO
+		int "SPI MISO GPIO number"
+		range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
+		default 13
+		help
+			Set the GPIO number used by SPI MISO.
+
+	config UCD_ETH_SPI_CLOCK_MHZ
+		int "SPI clock speed (MHz)"
+		range 5 80
+		default 50
+		help
+			Set the clock speed (MHz) of SPI interface.
+
+	config UCD_ETH_SPI_CS0_GPIO
+		int "SPI CS0 GPIO number for SPI Ethernet module"
+		range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+		default 6
+		help
+			Set the GPIO number used by SPI CS0, i.e. Chip Select associated with the first SPI Eth module.
+
+	config UCD_ETH_SPI_INT0_GPIO
+		int "Interrupt GPIO number SPI Ethernet module"
+		range -1 ENV_GPIO_IN_RANGE_MAX
+		default 46
+		help
+			Set the GPIO number used by the first SPI Ethernet module interrupt line.
+			Set -1 to use SPI Ethernet module in polling mode.
+
+	config UCD_ETH_SPI_POLLING0_MS_VAL
+		depends on UCD_ETH_SPI_INT0_GPIO < 0
+		int "Polling period in msec of SPI Ethernet Module"
+		default 10
+		help
+			Set SPI Ethernet module polling period.
+
+	# Hidden variable to ensure that polling period option is visible only when interrupt is set disabled and
+	# it is set to known value (0) when interrupt is enabled at the same time.
+	config UCD_ETH_SPI_POLLING0_MS
+		int
+		default UCD_ETH_SPI_POLLING0_MS_VAL if UCD_ETH_SPI_POLLING0_MS_VAL > 0
+		default 0
+
+	config UCD_ETH_SPI_PHY_RST0_GPIO
+		int "PHY Reset GPIO number of SPI Ethernet Module"
+		range -1 ENV_GPIO_OUT_RANGE_MAX
+		default -1
+		help
+			Set the GPIO number used to reset PHY chip on the first SPI Ethernet module.
+			Set to -1 to disable PHY chip hardware reset.
+
+	config UCD_ETH_SPI_PHY_ADDR0
+		int "PHY Address of SPI Ethernet Module"
+		range 0 31
+		default 1
+		help
+			Set the first SPI Ethernet module PHY address according your board schematic.
+
+	config NETWORK_MANAGER_TASK_PRIORITY
+		int "RTOS task priority for the network manager"
+		default 5
+		help
+		Tasks spawn by the manager will have a priority of NETWORK_MANAGER_TASK_PRIORITY-1. For this particular reason, minimum recommended task priority is 2.
+
+	config NETWORK_MANAGER_MAX_RETRY
+		int "Max retry for failed WiFi connections"
+		default 10
+		help
+		Number of retries for a failed WiFi connection, or if the connection is lost, before giving up.
+
+	config NETWORK_MANAGER_ETH_LINK_UP_TIMEOUT
+		int "Ethernet link up timeout in seconds"
+		default 6
+		help
+		Timeout for ethernet link up after driver initialization.
+	
+	config NETWORK_MANAGER_ETH_LINK_DOWN_REBOOT_TIMEOUT
+		int "Ethernet link down reboot timeout in seconds"
+		default 30
+		help
+		Reboot device if ethernet is down for that many seconds without having a wifi configuration.
+	
+	config NETWORK_MANAGER_DHCP_TIMEOUT
+		int "DHCP timeout in seconds"
+		default 15
+		help
+		Timeout to get an IP assignement from the DHCP server.
+
+	config NETWORK_MANAGER_STA_POLLING_MIN
+		int "Min WIFI STA polling in seconds"
+		default 1
+		help
+		Minimal retry interval in seconds to connect to an access point. The backoff factor is applied to further retries.
+
+	config NETWORK_MANAGER_STA_POLLING_MAX
+		int "Max WIFI STA polling in seconds"
+		default 30
+		help
+		Maximum retry interval in seconds to connect to an access point.
+
+	config NETWORK_MANAGER_RETRY_BACKOFF
+		int "Connection retry backoff factor in %"
+		default 150
+		help
+		Retry attemps will start with a delay of NETWORK_MANAGER_STA_POLLING_MIN.
+		Each further retry attempt is delayed with the backoff factor.
+		A value of 150 means 150% longer than the last one. For example: if the last duration was 10s, the next will be 15s.
+
+	config NETWORK_MANAGER_WIFI_CONNECTED_TIMEOUT
+		int "WIFI connected timeout in seconds"
+		default 15
+		help
+		Safeguard timeout for WIFI connections if neither a CONNECTED or CONNECTION_LOST event is received.
+	
+	config IMPROV_WIFI_CAPABILITY_IDENTIFY
+		bool "Device supports the identify command"
+		default n
+
+	config IMPROV_WIFI_AUTHENTICATION_BUTTON
+		bool "Device supports authentication button"
+		default n
+		help
+			Use a GPIO button for authentication.
+
+	config IMPROV_WIFI_PROVISIONED_URL
+		string "Redirect URL after successful provisioning"
+		default "https://www.unfoldedcircle.com/"
+		help
+			The URL to return after a successfull provisioning.
+
+	menu "improv-wifi authorization configuration"
+		visible if IMPROV_WIFI_AUTHENTICATION_BUTTON
+
+		config IMPROV_WIFI_BUTTON_GPIO
+			depends on IMPROV_WIFI_AUTHENTICATION_BUTTON
+			int "Authentication button GPIO number"
+			range 0 GPIO_RANGE_MAX
+			default  9 if IDF_TARGET_ESP32C6
+			default  0
+			help
+				GPIO number (IOxx) to use for the authentication button.
+				Use the "Component config, IoT Button" settings to configure button press timings.
+
+		config IMPROV_WIFI_AUTHENTICATION_TIMEOUT
+			depends on IMPROV_WIFI_AUTHENTICATION_BUTTON
+			int "Authorization timeout in seconds"
+			range 1 1000
+			default 60
+			help
+				If an Improv service has been authorized by a user interaction,
+				the authorization should be automatically revoked after a timeout.
+
+	endmenu
+		
+endmenu

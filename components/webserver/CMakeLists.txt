@@ -1,0 +1,13 @@
+idf_component_register(
+    SRCS
+    "WebServer.cpp"
+    INCLUDE_DIRS
+    "."
+    REQUIRES
+    esp_eth
+    esp_netif
+    esp_wifi
+    esp_http_server
+    vfs
+    log
+)

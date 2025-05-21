@@ -1,0 +1,14 @@
+menu "UC Dock preferences"
+
+	choice UCD_HW_REVISION
+		prompt "Choose hardware model"
+		default UCD_HW_REVISION_4
+		help
+			Select the hardware board revision
+		config UCD_HW_REVISION_3
+			bool "Test revision 3"
+		config UCD_HW_REVISION_4
+			bool "Production revision 4"
+	endchoice
+
+endmenu

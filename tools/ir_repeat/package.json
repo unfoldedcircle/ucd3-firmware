@@ -1,0 +1,9 @@
+{
+  "name": "ir_repeat",
+  "version": "1.0.0",
+  "main": "repeat.js",
+  "dependencies": {
+    "log-timestamp": "^0.3.0",
+    "ws": "^8.18.0"
+  }
+}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>		
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="ucd.css">
+		<title>Remote 3 - Smart Charging Dock</title>
+	</head>
+	<body>	 
+		<div class="wrapper">
+			<div class="header">
+				<img width="60px" src="logo.svg" alt="UC logo">
+				<h1>Remote 3 - Smart Charging Dock</h1>
+			</div>
+			<div class="line-break"></div>
+			<ul id="contentList"></ul>
+			<p style="width: 100%; text-align: center;">
+				For more information and support, visit <a href="https://support.unfoldedcircle.com">support.unfoldedcircle.com</a>
+			</p>
+		</div>
+		<script id="rowTemplate" type="text/template">
+			<li>
+				<div class="title">{{title}}</div>
+				<div class="content">{{content}}</div>
+			</li>
+		</script>
+		<script>
+			const container = document.getElementById('contentList');
+			const row = document.getElementById('rowTemplate').innerHTML;
+
+			function getRow(template, title, content) {
+				if (content) {
+					return template.replace('{{title}}', title).replace('{{content}}', content)
+				} else {
+					return ''
+				}
+			}
+			function fetchInfo() {
+				const {location} = window
+
+				fetch(`${location.protocol}//${location.host}/api/pub/info`)
+				.then(response => response.json())
+				.then(info => {
+					container.innerHTML = 
+					getRow(row, 'Name', info.name) +
+					getRow(row, 'Hostname', info.hostname) +
+					getRow(row, 'Version', info.version) +
+					getRow(row, 'Serial', info.serial) +
+					getRow(row, 'Model', info.model) +
+					getRow(row, 'Revision', info.revision) +
+					getRow(row, 'Free heap', info.free_heap) +
+					getRow(row, 'Reset reason', info.reset_reason) +
+					getRow(row, 'Uptime', info.uptime) +
+					getRow(row, 'Time', new Date(info.time).toLocaleString())
+				})
+				.catch(err => {
+					console.error(err)
+					container.innerHTML = '<li>Failed to fetch dock information.</li>'
+				})
+			}
+
+			fetchInfo();
+		</script>
+	</body>
+</html>

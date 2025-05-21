@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+    "adc_unit.cpp"
+    "adc_channel.cpp"
+    INCLUDE_DIRS
+    "."
+    REQUIRES
+    esp_adc
+    log
+    common
+)

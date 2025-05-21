@@ -1,0 +1,33 @@
+menu "UC display state machine preferences"
+
+	config UCD_UISM_BOOTUP_TIMEOUT_SEC
+		int "Bootup timer animation timeout in sec"
+		range 0 60
+		default 3
+
+	config UCD_UISM_RUNNING_TIMEOUT_SEC
+		int "Running timer timeout in sec"
+		range 1 60
+		default 4
+
+	config UCD_UISM_OTA_TIMEOUT_SEC
+		int "OTA timer timeout in sec"
+		range 1 60
+		default 20
+
+	config UCD_UISM_IRLEARN_TIMEOUT_SEC
+		int "IR learning timer timeout in sec"
+		range 1 180
+		default 60
+
+	config UCD_UISM_IMPROV_TIMEOUT_SEC
+		int "Improv-wifi timer timeout in sec"
+		range 1 180
+		default 60
+
+	config UCD_UISM_FACTORY_RESET_TIMOUT_SEC
+		int "Factory reset countdown in sec"
+		range 1 20
+		default 8
+	
+endmenu

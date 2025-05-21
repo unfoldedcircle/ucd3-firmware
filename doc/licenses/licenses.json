@@ -1,0 +1,65 @@
+{
+    "esp-idf": {
+        "Repository": "https://github.com/espressif/esp-idf",
+        "Description": "Espressif IoT Development Framework. Official development framework for Espressif SoCs.  \nFor detailed copyrights and licenses see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/COPYRIGHT.html>",
+        "License": "Apache-2.0",
+        "Version": "5.3.1",
+        "licenseFile": "LICENSE"
+    },
+    "espressif/esp_lvgl_port": {
+        "Repository": "https://github.com/espressif/esp-bsp/tree/master/components/esp_lvgl_port",
+        "License": "Apache-2.0",
+        "Version": "2.4.4",
+        "licenseFile": "license.txt"
+    },
+    "espressif/led_indicator": {
+        "Repository": "https://github.com/espressif/esp-iot-solution/tree/master/components/led/led_indicator",
+        "License": "Apache-2.0",
+        "Version": "1.0.0",
+        "licenseFile": "license.txt"
+    },
+    "espressif/led_strip": {
+        "Repository": "https://github.com/espressif/idf-extra-components/tree/master/led_strip",
+        "License": "Apache-2.0",
+        "Version": "2.5.5",
+        "licenseFile": "LICENSE"
+    },
+    "espressif/mdns": {
+        "Repository": "https://github.com/espressif/esp-protocols/tree/master/components/mdns",
+        "License": "Apache-2.0",
+        "Version": "1.7.0",
+        "licenseFile": "LICENSE"
+    },
+    "improv-wifi": {
+        "Repository": "https://github.com/improv-wifi/sdk-cpp",
+        "Description": "C++ SDK for Improv Wi-Fi",
+        "License": "Apache-2.0",
+        "Version": "1.2.4",
+        "licenseFile": "LICENSE"
+    },
+    "IRremoteESP8266": {
+        "Repository": "https://github.com/zehnm/IRremoteESP8266/tree/ucd3-idf",
+        "Description": "Infrared remote library for ESP8266/ESP32: send and receive infrared signals with multiple protocols.\n- Original project: <https://github.com/crankyoldgit/IRremoteESP8266>",
+        "License": "LGPL-2.1",
+        "Version": "7b952831b233f3d0df110b90293d8c94245fb9c4",
+        "licenseFile": "LICENSE.txt"
+    },
+    "jkent/frogfs": {
+        "Repository": "https://github.com/jkent/frogfs",
+        "License": "MPL-2.0",
+        "Version": "5.3.0",
+        "licenseFile": "LICENSE.txt"
+    },
+    "joltwallet/littlefs": {
+        "Repository": "https://github.com/joltwallet/esp_littlefs",
+        "License": "MIT",
+        "Version": "1.16.4",
+        "licenseFile": "LICENSE"
+    },
+    "lvgl/lvgl": {
+        "Repository": "https://github.com/lvgl/lvgl",
+        "License": "MIT",
+        "Version": "8.4.0",
+        "licenseFile": "LICENCE.txt"
+    }
+}

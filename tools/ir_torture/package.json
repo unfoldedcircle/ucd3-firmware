@@ -1,0 +1,9 @@
+{
+  "name": "dock_ir_torture",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "log-timestamp": "^0.3.0",
+    "ws": "^8.18.0"
+  }
+}

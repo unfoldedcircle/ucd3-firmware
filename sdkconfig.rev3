@@ -1,0 +1,11 @@
+# Pre-production version. Only used for internal testing & verifying multi-revision builds.
+
+CONFIG_UCD_HW_REVISION_3=y
+CONFIG_UCD_HW_REVISION_4=n
+
+# different ethernet chip
+CONFIG_UCD_USE_KSZ8851SNL=n
+CONFIG_UCD_USE_W5500=y
+
+# RGB output is not inverted
+CONFIG_LED_PATTERN_STRIP_INVERT=n

@@ -1,0 +1,28 @@
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+BasedOnStyle: Google
+
+SortIncludes: true
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html#includecategories
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Headers in <> with extension.
+  - Regex:           '<([A-Za-z0-9\Q/-_\E])+(.h|.hpp)>'
+    Priority:        1
+  # Headers in <> without extension.
+  - Regex:           '<([A-Za-z0-9\Q/-_\E])+>'
+    Priority:        2
+  # IDF SDK headers in "" with extension.
+  - Regex:           '"(esp|esp_adc/|driver/|freertos/|hal|host/|nimble/|services/|soc/|lwip/)'
+    Priority:        3
+  # Project file headers in "" with extension.
+  - Regex:           '"([A-Za-z0-9.\Q/-_\E])+"'
+    Priority:        4
+
+IndentWidth: 4
+ColumnLimit: 120
+
+AccessModifierOffset: -3
+AlignConsecutiveDeclarations: true
+
+AllowShortFunctionsOnASingleLine: Inline

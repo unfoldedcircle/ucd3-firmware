@@ -1,0 +1,13 @@
+idf_component_register(
+    SRCS
+    "external_port.cpp"
+    INCLUDE_DIRS
+    "."
+    REQUIRES
+    esp_driver_uart
+    esp_timer
+    log
+    adc
+    common
+    preferences
+)

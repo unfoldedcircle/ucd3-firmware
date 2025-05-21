@@ -1,0 +1,217 @@
+menu "LED pattern configuration"
+	config GPIO_LED_RANGE_MAX
+		int
+		default 33 if IDF_TARGET_ESP32
+		default 46 if IDF_TARGET_ESP32S2
+		default 48 if IDF_TARGET_ESP32S3
+		default 18 if IDF_TARGET_ESP32C2
+		default 19 if IDF_TARGET_ESP32C3
+		default 30 if IDF_TARGET_ESP32C6
+
+	choice LED_PATTERN
+		prompt "Choose LED identification option"
+		default LED_PATTERN_GPIO
+		help
+			Select identify method:
+			- GPIO LED: simple LED on a GPIO output
+			- PWN LED: Use LEDC to control a LED. Supports brightness.
+			- PWN RGB LED: Use LEDC to control an RGB LED. Supports brightness and color.
+			- WS2812 LED strip: Espressif led_strip component using SPI or an RMT channel
+		config LED_PATTERN_NONE
+			bool "Disabled"
+		config LED_PATTERN_GPIO
+			bool "GPIO LED"
+			help
+				Set a GPIO to low / high to turn on a LED.
+		config LED_PATTERN_PWN
+			bool "PWN LED"
+			help
+				Use LEDC to control a LED. Supports brightness.
+		config LED_PATTERN_RGB
+			bool "PWN RGB LED"
+			help
+				Use LEDC to control an RGB LED. Supports brightness and color.
+		config LED_PATTERN_STRIP
+			bool "WS2812 LED strip using SPI or RMT"
+			help
+				Use led_strip for notification. Supports brightness, color and multiple LEDs.
+	endchoice
+
+	menu "GPIO LED"
+		visible if LED_PATTERN_GPIO
+
+		config LED_PATTERN_GPIO_NUM
+			depends on LED_PATTERN_GPIO
+			int "Identify LED GPIO number"
+			range 0 GPIO_LED_RANGE_MAX
+			default 21 if IDF_TARGET_ESP32
+			default 11 if IDF_TARGET_ESP32S2
+			default 11 if IDF_TARGET_ESP32S3
+			default  5 # C3 and others
+			help
+				GPIO number (IOxx) to use for LED identification.
+
+		config LED_PATTERN_ACTIVE_LEVEL
+			depends on LED_PATTERN_GPIO
+			bool "GPIO active level"
+			default y
+			help
+				GPIO active level.
+	endmenu
+
+	menu "PWN LED"
+		visible if LED_PATTERN_PWN
+
+		config LED_PATTERN_PWN_GPIO
+			depends on LED_PATTERN_PWN
+			int "Identify PWN LED GPIO number"
+			range 0 GPIO_LED_RANGE_MAX
+			default 21 if IDF_TARGET_ESP32
+			default 11 if IDF_TARGET_ESP32S2
+			default 11 if IDF_TARGET_ESP32S3
+			default  5 # C3 and others
+			help
+				GPIO number (IOxx) to use for LED identification.
+
+		config LED_PATTERN_PWN_CHANNEL
+			depends on LED_PATTERN_PWN
+			int "LED channel"
+			default 0
+			help
+				LED channel to use for example.
+	
+		config LED_PATTERN_PWN_ACTIVE_LEVEL
+			depends on LED_PATTERN_PWN
+			bool "GPIO active level"
+			default y
+			help
+				GPIO active level.
+	endmenu
+
+	menu "RGB LED"
+		visible if LED_PATTERN_RGB
+
+		config LED_PATTERN_RED_GPIO
+			depends on LED_PATTERN_RGB
+			int "Identify RGB LED GPIO red number"
+			range 0 GPIO_LED_RANGE_MAX
+			default 25 if IDF_TARGET_ESP32
+			default 1
+			help
+				GPIO number (IOxx) to use for red LED identification.
+
+		config LED_PATTERN_GREEN_GPIO
+			depends on LED_PATTERN_RGB
+			int "Identify RGB LED GPIO green number"
+			range 0 GPIO_LED_RANGE_MAX
+			default 26 if IDF_TARGET_ESP32
+			default 2
+			help
+				GPIO number (IOxx) to use for green LED identification.
+
+		config LED_PATTERN_BLUE_GPIO
+			depends on LED_PATTERN_RGB
+			int "Identify RGB LED GPIO blue number"
+			range 0 GPIO_LED_RANGE_MAX
+			default 27 if IDF_TARGET_ESP32
+			default 3
+			help
+				GPIO number (IOxx) to use for blue LED identification.
+	
+		config LED_PATTERN_RED_CHANNEL
+			depends on LED_PATTERN_RGB
+			int "LED red channel"
+			default 0
+			help
+				LED channel to use for red.
+
+		config LED_PATTERN_GREEN_CHANNEL
+			depends on LED_PATTERN_RGB
+			int "LED green channel"
+			default 1
+			help
+				LED channel to use for green.
+
+		config LED_PATTERN_BLUE_CHANNEL
+			depends on LED_PATTERN_RGB
+			int "LED blue channel"
+			default 2
+			help
+				LED channel to use for blue.
+							
+		config LED_PATTERN_RGB_ACTIVE_LEVEL
+			depends on LED_PATTERN_RGB
+			bool "GPIO active level"
+			default n
+			help
+				GPIO active level.
+	endmenu
+
+	menu "WS2812 LED strip"
+		visible if LED_PATTERN_STRIP
+
+		config LED_PATTERN_STRIP_GPIO
+			depends on LED_PATTERN_STRIP
+			int "LED strip data line GPIO"
+			range 0 GPIO_LED_RANGE_MAX
+			default 23
+			help
+				GPIO number (IOxx) to use for LED strip data line.
+
+		config LED_PATTERN_STRIP_RMT
+			depends on LED_PATTERN_STRIP
+			bool "Use RMT"
+			default n
+			help
+				Whether to use an RMT channel instead of SPI
+
+		
+		config LED_PATTERN_STRIP_NUMBER
+			depends on LED_PATTERN_STRIP
+			int "Number of LEDs"
+			range 1 100
+			default 1
+			help
+				The number of LEDs in the strip.
+
+		choice LED_PATTERN_STRIP_PIXEL_FORMAT
+			prompt "Pixel format"
+			default LED_PATTERN_STRIP_PIXEL_FORMAT_GRB
+			help
+				Select the pixel format of the LED strip.
+				GRB is mostly used for surface mounted LEDs.
+			config LED_PATTERN_STRIP_PIXEL_FORMAT_GRB
+				bool "GRB"
+			config LED_PATTERN_STRIP_PIXEL_FORMAT_GRBW
+				bool "GRBW"
+		endchoice
+
+		config LED_PATTERN_STRIP_PIXEL_FORMAT
+			int
+			default 0 if LED_PATTERN_STRIP_PIXEL_FORMAT_GRB
+			default 1 if LED_PATTERN_STRIP_PIXEL_FORMAT_GRBW
+
+		config LED_PATTERN_STRIP_RESOLUTION
+			depends on LED_PATTERN_STRIP
+			int "RMT tick resolution"
+			default 10000000
+			help
+				RMT tick resolution, if set to zero, a default resolution (10MHz) will be applied
+	
+		config LED_PATTERN_STRIP_INVERT
+			depends on LED_PATTERN_STRIP
+			bool "Invert output signal"
+			default y
+			help
+				Whether to invert the output signal
+
+		config LED_PATTERN_STRIP_DMA
+			depends on LED_PATTERN_STRIP
+			bool "Use DMA feature"
+			default n
+			help
+				DMA feature is available on ESP target like ESP32-S3
+
+	endmenu
+
+endmenu

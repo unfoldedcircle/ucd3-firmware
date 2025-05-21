@@ -1,0 +1,28 @@
+# GitHub Action that verifies C++ source compliance with clang-format
+
+name: Code Guidelines
+on:
+  push:
+    paths:
+      - .clang-format*
+      - components/**.c*
+      - components/**.h
+      - main/**.c*
+      - main/**.h
+  pull_request:
+    paths:
+      - .clang-format*
+      - components/**.c*
+      - components/**.h
+      - main/**.c*
+      - main/**.h
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install clang-format
+      - name: clang-format
+        run: |
+          ./code_style.sh --check

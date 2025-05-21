@@ -1,0 +1,128 @@
+menu "UC Dock"
+	config GPIO_RANGE_MAX
+		int
+		default 33 if IDF_TARGET_ESP32
+		default 46 if IDF_TARGET_ESP32S2
+		default 48 if IDF_TARGET_ESP32S3
+		default 18 if IDF_TARGET_ESP32C2
+		default 19 if IDF_TARGET_ESP32C3
+		default 30 if IDF_TARGET_ESP32C6
+
+	config UCD_EMBEDDED_MOUNT_POINT
+		string "Embedded RO FS mount point in VFS"
+		default "/ro"
+		help
+			Specify the mount point of the embedded read-only FrogFS in VFS.		
+
+	config UCD_WEB_SERVER_PORT
+		int "Web server port"
+		range 1 65535
+		default 80
+		help
+			The same port is used for REST and WebSockets
+
+	config UCD_WEB_MOUNT_POINT
+		string "Website mount point in VFS"
+		default "/ro/webroot"
+		help
+			Specify the mount point in VFS.	
+
+	config UCD_OTA_PSRAM_BUFSIZE
+		int "OTA upload PSRAM buffer size"
+		range 512 65536
+		default 4096
+		help
+			OTA image upload buffer size for reading POST request. The buffer will be allocated in PSRAM.
+
+	config UCD_OTA_UPLOAD_DELAY
+		int "OTA upload task delay"
+		range 0 100
+		default 10
+		help
+			Task delay in ms after each OTA image upload buffer read. Use 0 to disable the delay.
+			This allows lower priority tasks to run while the OTA image is being uploaded.
+
+	config UCD_PORT_CHECK_BLASTER_ADC_THRESHOLD
+		int "Port check voltage threshold in mV for IR-blasters"
+		range 0 100
+		default 10
+		help
+			ADC reading value threshold to consider peripheral to be an IR blaster.
+			5V is switched on, GND path is switched off. There must be no short!
+			The reading should be 0mV, but due to noise and ADC accuracy it might be a few millivolts.
+
+	config UCD_PORT_CHECK_MONO_EMITTER_ADC_THRESHOLD_MIN
+		int "Port check min voltage threshold in mV for mono IR-emitters"
+		range 1900 2500
+		default 2300
+		help
+			Minimal ADC reading value threshold to consider peripheral to be an old mono IR emitter.
+			5V is switched on, GND path is switched off. There should be a short.
+			The reading should be around 2570mV.
+		
+	config UCD_PORT_CHECK_MONO_EMITTER_ADC_THRESHOLD_MAX
+		int "Port check max voltage threshold in mV for mono IR-emitters"
+		range 2500 3100
+		default 2900
+		help
+			Maximal ADC reading value threshold to consider peripheral to be an old mono IR emitter.
+			5V is switched on, GND path is switched off. There should be a short.
+			The reading should be around 2570mV.
+
+	config UCD_CHARGER_PERIOD
+		int "Charger monitor polling in ms"
+		range 20 10000
+		default 100
+		help
+			Polling interval in ms of the charger monitor.
+
+	config UCD_CHARGER_LOG_INTERVAL
+		int "Charger monitor logging interval in ms"
+		range 300 60000
+		default 10000
+		help
+			Logging interval in ms of the charger monitor. Logs the measured values.
+
+	config UCD_CHARGER_STATE_MEASURE_COUNT
+		int "Charger monitor state measure count"
+		range 1 10
+		default 3
+		help
+			Number of consecutive readings in the same voltage range to trigger a new charging state.
+			Note that the overcurrent remeasure count is defined in UCD_CHARGER_OVERCURRENT_REMEASURE.
+			This setting is only for charging <-> idle transitions.
+
+	config UCD_CHARGER_OVERCURRENT_REMEASURE
+		int "Charger monitor overcurrent measure count"
+		range 0 10
+		default 2
+		help
+			Number of remeasurements to detirme an overcurrent situation.
+			An overcurrent detection will only be triggered if all readings detect an overcurrent.
+			A single reading will not trigger it, except if the value is set to 0.
+
+	config UCD_CHARGER_MAX_CURRENT_MA
+		int "Maximum charging curent in mA"
+		range 1000 2000 
+		default 1500
+		help
+			Overcurrent protection to shut off charging.
+		
+	config UCD_CHARGER_ADC_THRESHOLD
+		int "ADC idle reading threshold in mV"
+		range 0 100 
+		default 12
+		help
+			ADC reading value threshold to consider as not-charging.
+
+	menu "BLE DeviceInfo configuration"
+		config BLE_DEVICE_INFO_MANUFACTURER_NAME
+			string "Manufacturer name"
+			default "Unfolded Circle ApS"
+		config BLE_DEVICE_NAME
+			string "Device name"
+			default "Dock 3"
+	endmenu
+
+
+endmenu

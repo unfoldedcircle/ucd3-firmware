@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="../ucd.css">
+		<title>Dock OTA Update</title>
+		<script>
+			function startUpload() {
+				var otafile = document.getElementById("otafile").files
+
+				if (otafile.length == 0) {
+					document.getElementById("progressBar").style.display = "none"
+					alert("No file selected!")
+				} else {
+					document.getElementById("otafile").disabled = true
+					document.getElementById("upload").disabled = true
+					document.getElementById("progressBar").style.display = "block"
+
+					var file = otafile[0]
+					var xhr = new XMLHttpRequest()
+					xhr.onreadystatechange = function() {
+						if (xhr.readyState == 4) {
+							if (xhr.status == 200) {
+								document.open()
+								document.write(xhr.responseText)
+								document.close()
+							} else if (xhr.status == 0) {
+								alert("Dock closed the connection!")
+								location.reload()
+							} else {
+								alert("Error code: " + xhr.status + "\n" + xhr.responseText)
+								location.reload()
+							}
+						}
+					}
+
+					xhr.upload.onprogress = function (e) {
+						var progress = document.getElementById("progress")
+						progress.textContent = "Progress: " + (e.loaded / e.total * 100).toFixed(0) + "%"
+						var progress = document.getElementById("progressBar")
+						progress.value = (e.loaded / e.total * 100).toFixed(0)
+					}
+					xhr.open("POST", "/update", true)
+					xhr.send(file)
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<div class="wrapper">
+			<div class="header">
+				<img width="60px" src="/logo.svg" alt="UC logo">
+				<h1>Remote 3 - Smart Charging Dock</h1>
+				<h2>OTA Firmware Update</h2>
+			</div>
+			<div class="line-break"></div>
+			<div>
+				<label for="otafile">Firmware file:</label>
+				<input type="file" id="otafile" name="otafile" autofocus/>
+			</div>
+			<div class="line-break"></div>
+			<div>
+				<button id="upload" type="button" onclick="startUpload()">Upload</button>
+			</div>
+			<div class="line-break"></div>
+			<div>
+				<div id="progress"></div>
+				<progress id="progressBar" class="hidden" max="100" value="0"></progress>
+			</div>
+			<div class="line-break"></div>
+			<p style="width: 100% text-align: center">
+				<a href="/">Main page</a> | For more information and support, visit <a href="https://support.unfoldedcircle.com">support.unfoldedcircle.com</a>
+			</p>
+		</div>
+</body>
+</html>

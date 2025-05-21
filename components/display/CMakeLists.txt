@@ -1,0 +1,17 @@
+idf_component_register(
+    SRC_DIRS
+    "src"
+    INCLUDE_DIRS
+    "include"
+    PRIV_INCLUDE_DIRS
+    "src"
+    REQUIRES
+    esp_lcd
+    esp_lvgl_port
+    esp_eth
+    esp_wifi
+    common
+    infrared
+    network
+    preferences
+)

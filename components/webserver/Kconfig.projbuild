@@ -1,0 +1,31 @@
+menu "UC Dock webserver"
+
+	config UCD_WEB_TASK_STACKSIZE
+		int "Stacksize of the httpd task"
+		range 3072 8192
+		default 5120
+		help
+			Normal OTA functionality requires a higher stacksize than the default 4096, 5120 seems to work.
+
+	config UCD_WEB_MAX_OPEN_SOCKETS
+		int "Max number of sockets"
+		range 4 32
+		default 7
+		help
+			Max number of sockets/clients connected at any time
+			(3 sockets are reserved for internal working of the HTTP server)
+
+	config UCD_WEB_MAX_WS_FRAME_SIZE
+		int "Max WebSocket frame size in bytes"
+		range 128 131072
+		default 4096
+		help
+			Maximum size of a WebSocket frame that can be received.
+
+	config UCD_WEB_ENABLE_CORS
+		bool "Enable CORS"
+		default n
+		help
+			Sets Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers to *
+		
+endmenu

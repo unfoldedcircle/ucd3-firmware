@@ -1,0 +1,12 @@
+idf_component_register(
+    SRCS
+    "led_pattern.c"
+    "led_pattern_gpio.c"
+    "led_pattern_rgb.c"
+    "led_pattern_strip.c"
+    INCLUDE_DIRS
+    "."
+    REQUIRES
+    log
+    led_indicator
+)

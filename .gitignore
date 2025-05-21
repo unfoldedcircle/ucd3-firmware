@@ -1,0 +1,25 @@
+.devcontainer
+.vscode
+/bin
+build
+sdkconfig
+sdkconfig.old
+ipch
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+node_modules
+tmp
+
+.DS_Store
+*.log
+*.bak
+*.bkp
+*.img
+*.ino
+*.gz
+*.zip
+*.bin
+
+*.pem
+/issues
+/release

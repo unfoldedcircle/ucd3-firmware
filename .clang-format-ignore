@@ -1,0 +1,22 @@
+webroot/*
+
+# ignore 3rd part library
+components/IRremoteESP8266/*
+
+# ignore generated sources
+components/display/src/DisplaySm.*
+components/network/src/NetworkSm.*
+
+# hand written format :-)
+components/preferences/board.h
+
+# ignore all managed components
+managed_components/*
+
+# ignore mocks, some code is from IDF SDK
+test/mocks/*
+
+# untracked files
+.*/*
+build/*
+test/build/*

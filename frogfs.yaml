@@ -1,0 +1,14 @@
+collect:
+  - $cwd/webroot
+filter:
+  "*.DS_Store":
+    - discard
+  "*.html":
+    - html-minifier
+  # '*.css':
+  #   - uglifycss
+  #   - compress deflate
+  # '*.js':
+  #   - compress deflate
+  # '*.svg':
+  #   - compress deflate

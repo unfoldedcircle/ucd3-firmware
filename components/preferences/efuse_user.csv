@@ -1,0 +1,7 @@
+USER_DATA.VERSION,               EFUSE_BLK3,   0,  8, data version field
+USER_DATA.DOCK_SERIAL,           EFUSE_BLK3,   8, 64, serial number string
+USER_DATA.DOCK_MODEL,            EFUSE_BLK3,  72, 56, model number string
+USER_DATA.DOCK_HW_REV,           EFUSE_BLK3, 128, 24, hardware revision string
+USER_DATA.DOCK_HW_FEAT,          EFUSE_BLK3, 152,  8, hardware features
+USER_DATA.DOCK_HW_FEAT.POE,      EFUSE_BLK3, 152,  1, PoE feature
+USER_DATA.DOCK_HW_FEAT.CHARGING, EFUSE_BLK3, 153,  1, Charging feature

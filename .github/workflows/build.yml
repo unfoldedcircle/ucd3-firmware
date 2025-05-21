@@ -1,0 +1,318 @@
+name: Build
+
+on:
+  push:
+    paths:
+        - '**/CMakeLists.txt'
+        - 'main/**'
+        - 'test/**'
+        - 'components/**'
+        - 'sdkconfig*'
+        - '.github/**/*.yml'
+
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  DEBUG_OUTPUT: "true"
+  APP_NAME: UCD3-firmware
+  IDF_VERSION: v5.4.1
+  IDF_TARGET: esp32s3
+  HASH_FILENAME: UCD3-firmware.hash
+  BUILD_CHANGELOG: build-changelog.md
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run native tests
+        run: |
+          cd test
+          cmake -S . -B build
+          cmake --build build
+          ./build/common/common
+          ./build/infrared/infrared
+          ./build/improv_wifi/improv_wifi
+          ./build/preferences/preferences
+
+  build:
+    name: ${{ matrix.config.name }} firmware
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        config:
+          - {
+            name: "Rev 3",
+            # must match CONFIG_UCD_HW_REVISION
+            revision: "3",
+            sdkconfig_defaults: "sdkconfig.defaults;sdkconfig.rev3"
+          }
+          - {
+            name: "Rev 4",
+            revision: "4",
+            sdkconfig_defaults: "sdkconfig.defaults"
+          }
+  
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          # History of 200 should be more than enough to calculate commit count since last release tag.
+          fetch-depth: 200
+
+      # make sure there's no latest tag, otherwise git-semver fails!
+      - id: version
+        name: Fetch all tags to determine version with git-semver
+        run: |
+          git fetch origin +refs/tags/v*:refs/tags/v*
+          git tag -d latest || true
+          FW_VERSION=$(./tools/git-version.sh)
+          echo "Version: $FW_VERSION"
+          echo "FW_VERSION=$FW_VERSION" >> $GITHUB_ENV
+
+      - name: Prepare firmware signing key
+        run: |
+          pwd
+          ls -lah
+          echo "${{ secrets.OTA_SIGNING_KEY }}" > ucd3_firmware_signing_key.pem
+    
+      # Adapted from https://github.com/espressif/esp-idf-ci-action/blob/v1/action.yml
+      # - disable CCACHE: throw away container, only increased build time!
+      # - disable IDF_COMPONENT_CHECK_NEW_VERSION: we don't want updated components!
+      # - install nodejs & npm, required for FrogFS
+      # TODO still not sure if that's enough for the component manager to fail the build if the registry is offline!
+      #      IDF_COMPONENT_MANAGER=0 fails the build, eventhough the managed_components folder is there!
+      - name: esp-idf build
+        run: |
+          docker run -t -e IDF_TARGET="${IDF_TARGET}" -e SDKCONFIG_DEFAULTS="${{ matrix.config.sdkconfig_defaults }}" -e IDF_COMPONENT_CHECK_NEW_VERSION=0 -e IDF_CCACHE_ENABLE=0 \
+            -v "${GITHUB_WORKSPACE}:/app/${{ github.repository }}" \
+            -w "/app/${{ github.repository }}/" \
+            espressif/idf:${IDF_VERSION} \
+            /bin/bash -c 'apt-get update && apt-get install -y nodejs npm && patch --strip=1 -d $IDF_PATH -i /app/${{ github.repository }}/patches/idf-${{ env.IDF_VERSION }}/001-lcd-ic2-timeout.diff && git config --global --add safe.directory "*" && idf.py build'
+        shell: bash
+
+      - name: Create firmware archive
+        run: |
+          cp build/*.bin ./
+          cp build/bootloader/bootloader.bin ./
+          cp build/partition_table/partition-table.bin ./
+          tar -czvf ${{ env.APP_NAME }}_r${{ matrix.config.revision }}-v${{ env.FW_VERSION }}.tar.gz *.bin
+
+      - name: Archive build output artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}_r${{ matrix.config.revision }}-v${{ env.FW_VERSION }}
+          path: ${{ env.APP_NAME }}_r${{ matrix.config.revision }}-v${{ env.FW_VERSION }}.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+
+  changelog:
+    name: Create changelog
+    needs: test
+    runs-on: ubuntu-24.04
+    outputs:
+      fw_version: ${{ steps.version.outputs.FW_VERSION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: version
+        name: Fetch all tags to determine version with git-semver
+        run: |
+          git fetch origin +refs/tags/v*:refs/tags/v*
+          git tag -d latest || true
+          FW_VERSION=$(./tools/git-version.sh)
+          echo "Version: $FW_VERSION"
+          echo "FW_VERSION=$FW_VERSION" >> $GITHUB_OUTPUT
+  
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: "Create Changelog"
+        run: |
+          npm install -g conventional-changelog-cli
+          conventional-changelog -p conventionalcommits -u -o ${{ env.BUILD_CHANGELOG }}
+          cat ${{ env.BUILD_CHANGELOG }}
+
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: ${{ env.BUILD_CHANGELOG }}
+          if-no-files-found: error
+          retention-days: 3
+        
+  release:
+    name: GitHub release
+    if: github.ref == 'refs/heads/main' || contains(github.ref, 'tags/v')
+    runs-on: ubuntu-24.04
+    needs: [test, build, changelog]
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Log
+        if: env.DEBUG_OUTPUT == 'true'
+        run: |
+          echo "--- Structure of downloaded artifacts ---"
+          ls -R
+          echo "--- Environment ---"
+          printenv
+
+      - name: Set build timestamp
+        run: |
+          echo "TIMESTAMP=$(date +"%Y%m%d_%H%M%S")" >> $GITHUB_ENV
+
+      - name: Extract tar.gz build archives from downloaded artifacts
+        run: |
+          # Files are wrapped in tar from actions/upload-artifact, then extracted into a directory by actions/download-artifact
+          ls -lah
+          for D in * 
+            do if [ -d "${D}" ]; then
+              echo "Archive directory: $D"
+              ls -lah $D/*
+              mv $D/* ./
+            fi
+          done;
+          ls -lah
+
+      # Add timestamp to development builds
+      - name: Create GitHub development build archives
+        if: "!contains(github.ref, 'tags/v')"
+        run: |
+          echo "append timestamp for development builds"
+          for filename in *.tar.gz; do mv $filename "$(basename $filename .tar.gz)-${{ env.TIMESTAMP }}.tar.gz"; done;
+          echo "create hashes"
+          for filename in *.tar.gz; do echo "sha256  `sha256sum $filename`" >> ${{ env.HASH_FILENAME }}; done;
+          ls -lah
+
+      # Checkout is required for the next `gh release delete` step
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: main
+
+      # We have to delete the "latest" release, otherwise `softprops/action-gh-release` will only append the new artifact.
+      # This simulates the old marvinpinto/action-automatic-releases action.
+      - name: Remove previous pre-release
+        run: |
+          cd main
+          gh release delete latest --cleanup-tag -y || true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Create pre-release
+        uses: softprops/action-gh-release@v2
+        if: "!contains(github.ref, 'tags/v')"
+        with:
+          prerelease: true
+          tag_name: latest
+          body_path: ${{ env.BUILD_CHANGELOG }}
+          generate_release_notes: true
+          name: "Development Build"
+          files: |
+            *.tar.gz
+            ${{ env.HASH_FILENAME }}
+
+      - name: Create GitHub release archives
+        if: "contains(github.ref, 'tags/v')"
+        run: |
+          echo "create hashes"
+          for filename in *.tar.gz; do echo "sha256  `sha256sum $filename`" >> ${{ env.HASH_FILENAME }}; done;
+          ls -lah
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: "contains(github.ref, 'tags/v')"
+        with:
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            *.tar.gz
+            ${{ env.HASH_FILENAME }}
+
+  ota:
+    name: OTA image
+    runs-on: ubuntu-24.04
+    # changelog step is required to access firmware version (see below: FW_VERSION)
+    needs: [changelog, release]
+    env:
+      # limit to single board revision
+      BOARD_REVISION: "4"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # History of 200 should be more than enough to calculate commit count since last release tag.
+          # Required by tools/ota/create_ota_update.sh
+          fetch-depth: 200
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ env.APP_NAME }}_r${{ env.BOARD_REVISION }}-*
+          path: bin
+
+      - name: Get version
+        run: |
+          echo "FW_VERSION=${{needs.changelog.outputs.fw_version}}" >> $GITHUB_ENV
+
+      - name: Log
+        if: env.DEBUG_OUTPUT == 'true'
+        run: |
+          echo "--- Structure of downloaded artifacts ---"
+          ls -R bin
+          echo "--- Environment ---"
+          printenv
+
+      # quick and dirty: this only works with a single downloaded artifact!
+      - name: Extract tar.gz build archives from downloaded artifacts
+        run: |
+          # Files are wrapped in tar from actions/upload-artifact, then extracted into a directory by actions/download-artifact
+          cd bin
+          ls -lah 
+          for D in * 
+            do if [ -d "${D}" ]; then
+              echo "Archive directory: $D"
+              ls -lah $D/*
+              mv $D/* ./
+            fi
+          done;
+          tar xzvf *.tar.gz
+          ls -lah
+
+      - name: Create OTA images
+        run: |
+          cd tools/ota
+          ./create_ota_update.sh "../../bin/ucd3-firmware.bin" ${{ env.BOARD_REVISION }} ${{ env.FW_VERSION }}
+          ls -lah release
+
+      - name: Install SSH key for OTA server deployment
+        if: "contains(github.ref, 'tags/v')"
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.OTA_SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+      - name: Upload OTA images for release builds
+        if: "contains(github.ref, 'tags/v')"
+        run: |
+          cd tools/ota
+          OTA_SERVER=${{ secrets.OTA_SERVER}} OTA_SERVER_USER=${{ secrets.OTA_SERVER_USER }} OTA_SERVER_BASEPATH=${{ secrets.OTA_SERVER_BASEPATH }} \
+              ./upload-ota.sh ${{ env.BOARD_REVISION }} ${{ env.FW_VERSION }}

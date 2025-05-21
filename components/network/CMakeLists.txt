@@ -1,0 +1,21 @@
+idf_component_register(
+    SRC_DIRS
+    "src"
+    INCLUDE_DIRS
+    "include"
+    PRIV_INCLUDE_DIRS
+    "src"
+    PRIV_REQUIRES esp_driver_gpio esp_eth
+    REQUIRES
+    esp_driver_ledc
+    esp_netif
+    esp_timer
+    esp_wifi
+    bt
+    ble
+    improv_wifi
+    led
+    log
+    common
+    preferences
+)
