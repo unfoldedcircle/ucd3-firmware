@@ -59,10 +59,10 @@ static const port_signature_t SIGNATURE_STEREO[] = {
 
 static const port_signature_t SIGNATURE_BLASTER[] = {
     {0, 1700, 3300},
-    {0, 1700, 2500}, // second value is lower then first, for future improvement
+    {0, 1700, 2900}, // second value is lower then first, for future improvement
     {1,    0,  200},
     {1,    0,  200},
-    {0,  900, 2500},
+    {0,  900, 2650},
     {1,    0,  200},
     {0,    0,  200},
     {0,    0,  200},
