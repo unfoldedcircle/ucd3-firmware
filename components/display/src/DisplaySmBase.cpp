@@ -108,6 +108,7 @@ void DisplayBase::showErrorScreen() {
 
 void DisplayBase::showChargingScreen() {
     ESP_LOGI(TAG, "showChargingScreen");
+    charging = true;
     if (display_) {
         // TODO finalize screen
         display_->showIconScreen(UI_ICON_CHARGING, "Charging", " ");
@@ -116,6 +117,7 @@ void DisplayBase::showChargingScreen() {
 
 void DisplayBase::showChargingOffScreen() {
     ESP_LOGI(TAG, "showChargingOffScreen");
+    charging = false;
     if (display_) {
         // TODO finalize screen
         display_->showIconScreen(UI_ICON_NOT_CHARGING, "", "");
