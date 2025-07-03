@@ -196,10 +196,10 @@ void NetworkBase::setTimer(uint32_t timeout_ms, const char *tag) {
     timer_tag_ = strdup_to_psram(tag);
 
     if (!state_timer_) {
-        ESP_LOGI(TAG, "Starting %s timer with period of %lums.", timer_tag_, timeout_ms);
+        ESP_LOGI(TAG, "Starting '%s' timer with period of %lums.", timer_tag_, timeout_ms);
         state_timer_ = xTimerCreate("network", pdMS_TO_TICKS(timeout_ms), pdFALSE, timer_tag_, network_timer_cb);
     } else {
-        ESP_LOGI(TAG, "Changing %s timer period to %lums.", timer_tag_, timeout_ms);
+        ESP_LOGI(TAG, "Changing '%s' timer-period to %lums.", timer_tag_, timeout_ms);
         xTimerChangePeriod(state_timer_, pdMS_TO_TICKS(timeout_ms), portMAX_DELAY);
     }
     xTimerStart(state_timer_, portMAX_DELAY);
