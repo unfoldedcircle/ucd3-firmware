@@ -1,10 +1,12 @@
 file(GLOB SRCS *.cpp)
+file(GLOB MOCK_SRCS ../mocks/*.c)
 
 enable_testing()
 
 add_executable(
   infrared
   ${SRCS}
+  ${MOCK_SRCS}
   ../../components/infrared/ir_codes.cpp
   ../../components/infrared/globalcache.cpp
 )

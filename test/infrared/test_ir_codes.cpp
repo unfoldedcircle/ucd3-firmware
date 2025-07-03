@@ -197,6 +197,19 @@ TEST(IrCodesTest, ProntoBufferToArray) {
     free(buffer);
 }
 
+TEST(IrCodesTest, ProntoBufferToArrayWithTrailingWhitespace) {
+    uint16_t    codeCount;
+    int         memError;
+    const char* msg =
+        "0000,0073,0000,000b,0020,0020,0040,0040,0040,0020,0020,0020,0020,0020,0020,0020,0020,0020,0020,0040,0020,0020,"
+        "0040,0040,0020,09b7 ";
+    auto buffer = prontoBufferToArray(msg, ',', &codeCount, &memError);
+    EXPECT_EQ(0, memError);
+    EXPECT_NE(buffer, nullptr);
+    EXPECT_NE(codeCount, 11) << "Expected 11 burst pairs";
+    free(buffer);
+}
+
 TEST(IrCodesTest, GlobalCacheBufferToArrayEmptyInput) {
     uint16_t codeCount;
     EXPECT_EQ(globalCacheBufferToArray("", &codeCount), nullptr);

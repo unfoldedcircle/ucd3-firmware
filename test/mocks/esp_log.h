@@ -1,5 +1,10 @@
 #pragma once
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Log level
  *
@@ -23,3 +28,7 @@ void test_log(int level, const char* format, ...);
 #define ESP_LOGW( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_WARN,    tag, format, ##__VA_ARGS__)
 #define ESP_LOGI( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO,    tag, format, ##__VA_ARGS__)
 #define ESP_LOGD( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_DEBUG,   tag, format, ##__VA_ARGS__)
+
+#ifdef __cplusplus
+ }
+#endif

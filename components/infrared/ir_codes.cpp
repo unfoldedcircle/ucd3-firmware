@@ -8,6 +8,10 @@
 
 #include <climits>
 
+#include "esp_log.h"
+
+static const char *TAG = "IR";
+
 uint32_t parseUint32(const char *number, int *error, int base) {
     if (number == NULL) {
         if (error != NULL) {
@@ -138,6 +142,7 @@ uint16_t *prontoBufferToArray(const char *msg, char separator, uint16_t *codeCou
     // - preamble of 4 (raw, frequency, # code pairs sequence 1, # code pairs sequence 2)
     // - 1 code pair
     if (count < 6) {
+        ESP_LOGW(TAG, "PRONTO requires at least 6 burst pairs. Parsed: %d", count);
         return NULL;
     }
 
@@ -146,6 +151,7 @@ uint16_t *prontoBufferToArray(const char *msg, char separator, uint16_t *codeCou
         if (memError) {
             *memError = 1;
         }
+        ESP_LOGE(TAG, "Error parsing PRONTO: memory error");
         return NULL;
     }
 
@@ -169,6 +175,7 @@ uint16_t *prontoBufferToArray(const char *msg, char separator, uint16_t *codeCou
     // Only raw pronto codes are supported
     if (codeArray[0] != 0) {
         free(codeArray);
+        ESP_LOGW(TAG, "Only raw pronto codes are supported! %d", codeArray[0]);
         return NULL;
     }
 
@@ -179,11 +186,13 @@ uint16_t *prontoBufferToArray(const char *msg, char separator, uint16_t *codeCou
 
     if (seq1Len > 0 && seq1Len + seq1Start > count) {
         free(codeArray);
+        ESP_LOGW(TAG, "Invalid PRONTO sequence 1: seq1Len=%d, seq1Start=%d, count=%d", seq1Len, seq1Start, count);
         return NULL;
     }
 
     if (seq2Len > 0 && seq2Len + seq2Start > count) {
         free(codeArray);
+        ESP_LOGW(TAG, "Invalid PRONTO sequence 2: seq2Len=%d, seq2Start=%d, count=%d", seq2Len, seq2Start, count);
         return NULL;
     }
 
