@@ -106,6 +106,9 @@ esp_err_t check_auth(httpd_req_t *req) {
 
     return ESP_OK;
 err:
+    FREE_AND_NULL(auth_credentials);
+    FREE_AND_NULL(buf);
+
     httpd_resp_set_hdr(req, "WWW-Authenticate", "Basic realm=\"Dock\"");
     httpd_resp_send_json_err(req, HTTPD_401_UNAUTHORIZED, "Not authorized");
     return ret;
