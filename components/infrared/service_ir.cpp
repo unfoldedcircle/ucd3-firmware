@@ -456,7 +456,7 @@ void InfraredService::send_ir_f(void *param) {
                 // operate directly on the underlaying message buffer: avoid std::string allocations from using
                 // "message.substring"!
                 auto      msg = pIrMsg->message.c_str();
-                uint16_t  count;
+                uint16_t  count = 0;
                 int       memError;
                 uint16_t *code_array = prontoBufferToArray(msg, separator, &count, &memError);
                 if (!(code_array == NULL || count == 0)) {

@@ -27,3 +27,21 @@ std::string toPrintableString(const uint8_t *buf, size_t len);
 /// @param rep replacement character
 /// @return number of characters replaced
 int replacechar(char *str, char orig, char rep);
+
+/// Trim from the start (in place)
+void ltrim(std::string &s);
+
+/// Trim from the end (in place)
+void rtrim(std::string &s);
+
+// Trim from both ends (in place)
+void trim(std::string &s);
+
+// Trim from the start (copying)
+std::string ltrim_copy(std::string s);
+
+// Trim from the end (copying)
+std::string rtrim_copy(std::string s);
+
+// Trim from both ends (copying)
+std::string trim_copy(std::string s);

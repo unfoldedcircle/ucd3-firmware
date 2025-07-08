@@ -21,6 +21,7 @@
 #include "led_pattern.h"
 #include "network.h"
 #include "service_ir.h"
+#include "string_util.h"
 #include "uc_events.h"
 
 static const char *const TAG = "API";
@@ -425,6 +426,9 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         std::string ir_code = cjson_get_string(root, "code", "");
         std::string format = cjson_get_string(root, "format", "");
         uint16_t    response = 400;
+
+        // make sure there are no leading or trailing spaces that could interfere with PRONTO parsing
+        trim(ir_code);
 
         ESP_LOGD(TAG, "IR Send, format=%s, code=%s", format.c_str(), ir_code.c_str());
 
