@@ -67,7 +67,7 @@ void fill_sysinfo_to_json(cJSON *root) {
     cJSON_AddNumberToObject(root, "eth_led_brightness", cfg.getEthLedBrightness());
 #endif
     cJSON_AddBoolToObject(root, "ir_learning", InfraredService::getInstance().isIrLearning());
-    cJSON_AddBoolToObject(root, "ethernet", is_eth_link_up());
+    cJSON_AddBoolToObject(root, "ethernet", is_eth_connected());
     cJSON_AddBoolToObject(root, "wifi", is_wifi_up());
     cJSON_AddStringToObject(root, "ssid", cfg.getWifiSsid().c_str());
     cJSON_AddNumberToObject(root, "volume", cfg.getVolume());

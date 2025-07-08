@@ -391,7 +391,8 @@ bool is_eth_connected(void) {
     if (!eth_event_group) {
         return false;
     }
-    return (xEventGroupGetBits(eth_event_group) & ETH_LINK_UP_BIT) != 0;
+    return (xEventGroupGetBits(eth_event_group) & (ETH_LINK_UP_BIT | ETH_GOT_IP_BIT)) ==
+           (ETH_LINK_UP_BIT | ETH_GOT_IP_BIT);
 }
 
 void network_set_hostname(esp_netif_t *interface) {
