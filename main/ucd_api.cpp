@@ -297,8 +297,10 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                 ret = ESP_OK;
             }
         } else {
-            // invalid token: disconnect
+            // invalid token
             cJSON_AddStringToObject(responseDoc, msgError, "Invalid token");
+            // don't disconnect, otherwise response is not sent back
+            ret = ESP_OK;
         }
 
         goto send_response;
