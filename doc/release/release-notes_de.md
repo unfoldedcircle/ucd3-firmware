@@ -1,3 +1,19 @@
+## next release
+### Fehlerbehebungen
+- Automatische Erkennung von zwei IR-Blaster.
+- Fehleranzeige auf dem Bildschirm bei Ladeabschaltung aufgrund von Überstromerkennung ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
+- PRONTO-Code-Parsing mit nachgestellten Leerzeichen ([#495](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/495)).
+- Einrichtung mit einem benutzerdefinierten Passwort auf Fernbedienungen mit einer Firmware-Version <= 2.6.1 ([#489](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/489)).
+- Rückgabe des korrekten Netzwerkverbindungstyps (Ethernet oder WiFi).
+- Anzeige der korrekten Ladeinformationen im Info-Bildschirm beim Drücken der Steuerungstaste.
+- Allgemeine Stabilitätsverbesserungen.
+
+### Neue Funktionen
+- Überprüfung des Ladegeräts auf Unterspannung.
+
+### Geändert
+- Verbesserung der Ladestrommessung und der Überstromerkennung zur Vermeidung von Ladeabschaltungen ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
+
 ## Beta Release 0.6.0
 ### Fehlerbehebungen
 - Die externen Ports 1 und 2 wurden gemäß Handbuch ausgetauscht: Port 1 befindet sich neben dem Ethernet-Port.
