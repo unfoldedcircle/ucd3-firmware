@@ -16,13 +16,15 @@ typedef enum uc_errors {
     UC_ERROR_INIT_CHARGER,
     UC_ERROR_INIT_WEBSRV,
     /// Generic port initialization error
-    UC_ERROR_INIT_PORT,
+    UC_ERROR_INIT_PORT = 8,
     UC_ERROR_INIT_PORT1,
     UC_ERROR_INIT_PORT2,
     /// Generic port ADC initialization error
-    UC_ERROR_INIT_PORT_ADC = UC_ERROR_INIT_PORT + 10,
+    UC_ERROR_INIT_PORT_ADC = 18,
     UC_ERROR_INIT_PORT1_ADC,
     UC_ERROR_INIT_PORT2_ADC,
+    /// Low input voltage detected. Measured voltage is stored in uc_event_error_t.value field.
+    UC_ERROR_VCC_LOW = 28,
     UC_ERROR_IR_LEARN_UNKNOWN = 100,
     UC_ERROR_IR_LEARN_INVALID,
     UC_ERROR_IR_LEARN_OVERFLOW

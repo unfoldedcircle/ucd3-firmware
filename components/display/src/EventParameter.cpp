@@ -29,9 +29,18 @@ EventParameter::EventParameter(ui_event_queue_message* event) : icon_(UI_ICON_NO
             icon_ = UI_ICON_ERROR;
             uc_event_error_t* event_error = static_cast<uc_event_error_t*>(event->event_data);
             if (event_error) {
-                title_ = std::to_string(event_error->error);
-                if (event_error->esp_err != ESP_FAIL) {
-                    message_ = std::to_string(event_error->esp_err);
+                if (event_error->error == UC_ERROR_VCC_LOW) {
+                    title_ = "WEAK PWR";
+                    char buf[16];
+                    // truncation is good enough, it's not a high-end ADC value
+                    snprintf(buf, sizeof(buf), "%ld.%02ld V", event_error->value / 1000,
+                             (event_error->value % 1000) / 10);
+                    message_ = buf;
+                } else {
+                    title_ = std::to_string(event_error->error);
+                    if (event_error->esp_err != ESP_FAIL) {
+                        message_ = std::to_string(event_error->esp_err);
+                    }
                 }
                 fatal_error_ = event_error->fatal;
             }

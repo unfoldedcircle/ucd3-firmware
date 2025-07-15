@@ -92,6 +92,8 @@ typedef struct {
     uc_errors_t error;
     /// optional ESP error code
     esp_err_t esp_err;
+    /// optional error value. See UC error code description for usage.
+    int32_t value;
     /// Fatal error: dock operation not possible, further processing stopped. Reboot required.
     bool fatal;
 } uc_event_error_t;

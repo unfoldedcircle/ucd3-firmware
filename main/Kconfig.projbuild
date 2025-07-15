@@ -115,6 +115,28 @@ menu "UC Dock"
 		help
 			ADC reading value threshold to consider as not-charging.
 
+	config UCD_CHARGER_MIN_VOLTAGE
+		int "Low voltage threshold for weak power supplies in mV"
+		range 4000 5000
+		default 4700
+		help
+				Threshold do detect weak power supplies.
+
+	config UCD_CHARGER_VCHECK_INTERVAL_MS
+		int "Low voltage check interval in ms"
+		range 200 60000
+		default 5000
+		help
+			Interval for periodic voltage check of charger.
+
+	config UCD_CHARGER_VCHECK_ERR_INTERVAL_MS
+		int "Low voltage error reporting interval in ms"
+		range 5000 60000
+		default 10000
+		help
+			Error reporting interval for low voltage events.
+			An error is shown for 5 seconds on the display.
+
 	menu "BLE DeviceInfo configuration"
 		config BLE_DEVICE_INFO_MANUFACTURER_NAME
 			string "Manufacturer name"

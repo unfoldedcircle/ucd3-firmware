@@ -323,26 +323,27 @@ void DisplayDriver::showErrorScreen(std::string title, std::string text, bool fa
         return;
     }
 
-    if (error_screen_) {
-        ESP_LOGW(TAG, "Old error still displaying: ignoring new error. TODO queue / alterate error display");
+    // simple multi-error handling. Could be enhanced with a queue / alternating multiple errors.
+    if (error_screen_ && !fatal) {
+        ESP_LOGW(TAG, "Old error still displaying: ignoring new non-fatal error.");
         return;
     }
     error_screen_ = true;
 
-    if (boot_up_) {
-        ESP_LOGW(TAG, "TODO handle error screen during bootup animation!");
-    }
+    // Note: incoming events are only started after the boot up screens are completed, no boot_up_ check required
 
+    ESP_LOGI(TAG, "showing %serror screen: %s / %s", fatal ? "fatal " : "", title.c_str(), text.c_str());
     if (!lvgl_port_lock(1000)) {
-        ESP_LOGE(TAG, "LVGL lock failed");
+        // TODO auto-reboot? This should never happen, or something is really wrong.
+        ESP_LOGE(TAG, "LVGL lock failed for showErrorScreen");
         error_screen_ = false;
         return;
     }
 
-    ESP_LOGI(TAG, "showing %serror screen: %s / %s", fatal ? "fatal " : "", title.c_str(), text.c_str());
-
     lv_obj_clean(main_screen_);
     createIconScreen(main_screen_, UI_ICON_ERROR, title, text);
+
+    lvgl_port_unlock();
 
     // start timer to automatically dismiss non-fatal error
     if (!fatal) {
@@ -356,8 +357,6 @@ void DisplayDriver::showErrorScreen(std::string title, std::string text, bool fa
             }
         }
     }
-
-    lvgl_port_unlock();
 }
 
 void DisplayDriver::showIconScreen(ui_icon_t icon, std::string title, std::string text) {
@@ -581,9 +580,6 @@ void DisplayDriver::dockEventHandler(void *arg, esp_event_base_t event_base, int
         case UC_EVENT_CHARGING_OFF:
             eventId = DisplaySm::EventId::CHARGING_OFF;
             break;
-        // case UC_EVENT_OVER_CURRENT:  // translate to error?
-        //     eventId = DisplaySm::EventId::;
-        //     break;
         case UC_ACTION_IDENTIFY:
             eventId = DisplaySm::EventId::IDENTIFY;
             break;
@@ -685,7 +681,9 @@ void DisplayDriver::onClearErrorScreenTimer(TimerHandle_t timer) {
     DisplayDriver *that = static_cast<DisplayDriver *>(pvTimerGetTimerID(timer));
     LV_ASSERT(that);
 
-    xTimerDelete(timer, portMAX_DELAY);
+    if (xTimerDelete(timer, pdMS_TO_TICKS(1000)) == pdFAIL) {
+        ESP_LOGE(TAG, "Failed to delete error screen timer");
+    }
 
     that->error_screen_ = false;
     that->restorePreviousScreen();

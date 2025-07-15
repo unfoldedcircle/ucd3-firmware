@@ -4,6 +4,8 @@
 
 #include "charger.h"
 
+#include <assert.h>
+
 #include "driver/gpio.h"
 #include "esp_check.h"
 #include "esp_event.h"
@@ -16,28 +18,33 @@
 
 static const char *const TAG = "CHARGE";
 
-RemoteCharger::RemoteCharger(std::unique_ptr<AdcReader> reader)
+RemoteCharger::RemoteCharger(std::unique_ptr<AdcReader> reader, std::shared_ptr<AdcReader> vcc_reader)
     : adc_reader_(std::move(reader)),
-      charge_timer(nullptr),
-      last_log_time(0),
-      last_charger_state(CHARGER_DISABLED),
-      change_state_count(0) {}
+      vcc_reader_(std::move(vcc_reader)),
+      charge_timer_(nullptr),
+      last_log_time_(0),
+      last_vcc_time_(0),
+      last_vcc_event_time_(0),
+      last_charger_state_(CHARGER_DISABLED),
+      change_state_count_(0) {
+    assert(adc_reader_);
+}
 
 esp_err_t RemoteCharger::start() {
     ESP_RETURN_ON_ERROR(gpio_set_level(CHARGING_ENABLE, 1), TAG, "Failed to enable charging");
 
-    if (!charge_timer) {
+    if (!charge_timer_) {
         ESP_LOGI(TAG, "Starting charger timer with period of %dms. Overcurrent protection: %umA",
                  CONFIG_UCD_CHARGER_PERIOD, CONFIG_UCD_CHARGER_MAX_CURRENT_MA);
-        charge_timer = xTimerCreate("charger", pdMS_TO_TICKS(CONFIG_UCD_CHARGER_PERIOD), pdTRUE, this, chargerTimerCb);
-        if (!charge_timer) {
+        charge_timer_ = xTimerCreate("charger", pdMS_TO_TICKS(CONFIG_UCD_CHARGER_PERIOD), pdTRUE, this, chargerTimerCb);
+        if (!charge_timer_) {
             ESP_LOGE(TAG, "Failed to create charging timer");
             return ESP_FAIL;
         }
     }
 
-    last_log_time = esp_timer_get_time() / 1000;
-    ESP_RETURN_ON_FALSE(xTimerStart(charge_timer, pdMS_TO_TICKS(3000)), ESP_FAIL, TAG,
+    last_log_time_ = esp_timer_get_time() / 1000;
+    ESP_RETURN_ON_FALSE(xTimerStart(charge_timer_, pdMS_TO_TICKS(3000)), ESP_FAIL, TAG,
                         "Failed to start charging timer");
 
     return ESP_OK;
@@ -71,11 +78,11 @@ bool RemoteCharger::checkOverCurrent(int voltage) {
 }
 
 void RemoteCharger::checkCharging(int voltage) {
-    uint64_t time = esp_timer_get_time() / 1000;
+    uint64_t now = esp_timer_get_time() / 1000;
     // for this simple log function we don't have to care about overflows
-    if (time - last_log_time >= CONFIG_UCD_CHARGER_LOG_INTERVAL) {
-        ESP_LOGD(TAG, "%d mV", voltage);
-        last_log_time = time;
+    if (now - last_log_time_ >= CONFIG_UCD_CHARGER_LOG_INTERVAL) {
+        ESP_LOGI(TAG, "%d mV", voltage);
+        last_log_time_ = now;
     }
 
     charger_state_t state = CHARGER_DISABLED;
@@ -86,22 +93,47 @@ void RemoteCharger::checkCharging(int voltage) {
         state = CHARGER_CHARGING;
     }
 
-    if (state != last_charger_state) {
-        ESP_LOGD(TAG, "Charging state changed: %d -> %d: %dmV", last_charger_state, state, voltage);
-        last_charger_state = state;
-        change_state_count = 1;
-    } else if (change_state_count < CONFIG_UCD_CHARGER_STATE_MEASURE_COUNT) {
-        change_state_count++;
-        ESP_LOGD(TAG, "New charging state %d active in %d/%d readings: %dmV", state, change_state_count,
+    if (state != last_charger_state_) {
+        ESP_LOGD(TAG, "Charging state changed: %d -> %d: %dmV", last_charger_state_, state, voltage);
+        last_charger_state_ = state;
+        change_state_count_ = 1;
+    } else if (change_state_count_ < CONFIG_UCD_CHARGER_STATE_MEASURE_COUNT) {
+        change_state_count_++;
+        ESP_LOGD(TAG, "New charging state %d active in %d/%d readings: %dmV", state, change_state_count_,
                  CONFIG_UCD_CHARGER_STATE_MEASURE_COUNT, voltage);
     }
 
-    if (change_state_count == CONFIG_UCD_CHARGER_STATE_MEASURE_COUNT) {
-        change_state_count++;
+    if (change_state_count_ == CONFIG_UCD_CHARGER_STATE_MEASURE_COUNT) {
+        change_state_count_++;
         ESP_LOGI(TAG, "Charging state changed: %s (%dmV)", state == CHARGER_CHARGING ? "ON" : "OFF", voltage);
         ESP_ERROR_CHECK_WITHOUT_ABORT(
             esp_event_post(UC_DOCK_EVENTS, state == CHARGER_CHARGING ? UC_EVENT_CHARGING_ON : UC_EVENT_CHARGING_OFF,
                            NULL, 0, pdMS_TO_TICKS(200)));
+    }
+
+    if (vcc_reader_) {
+        int vcc = 0;
+
+        // Only check input voltage in the configured interval, usually every 5 sec.
+        // This function gets called multiple times per second by the chargerTimerCb.
+        if (now - last_vcc_time_ >= CONFIG_UCD_CHARGER_VCHECK_INTERVAL_MS) {
+            if (vcc_reader_->read(&vcc) == ESP_OK) {
+                last_vcc_time_ = now;
+                // adjust for voltage divider
+                vcc *= 2;
+
+                if (vcc < CONFIG_UCD_CHARGER_MIN_VOLTAGE) {
+                    ESP_LOGW(TAG, "Supply voltage low: %dmV", vcc);
+                    if (now - last_vcc_event_time_ >= CONFIG_UCD_CHARGER_VCHECK_ERR_INTERVAL_MS) {
+                        last_vcc_event_time_ = now;
+                        uc_event_error_t event = {
+                            .error = UC_ERROR_VCC_LOW, .esp_err = 0, .value = vcc, .fatal = false};
+                        ESP_ERROR_CHECK_WITHOUT_ABORT(
+                            esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(200)));
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -119,7 +151,7 @@ void RemoteCharger::chargerTimerCb(TimerHandle_t timer_id) {
     }
 
     if (that->checkOverCurrent(voltage)) {
-        that->last_charger_state = CHARGER_OVERCURRENT;
+        that->last_charger_state_ = CHARGER_OVERCURRENT;
         return;
     }
 

@@ -37,7 +37,9 @@ DisplayBase::DisplayBase()
 
 DisplayBase::~DisplayBase() {
     if (state_timer_) {
-        xTimerStop(state_timer_, portMAX_DELAY);
+        if (xTimerStop(state_timer_, pdMS_TO_TICKS(1000)) == pdFAIL) {
+            ESP_LOGE(TAG, "Failed to stop state_timer");
+        }
     }
     FREE_AND_NULL(timer_tag_);
 }
@@ -411,19 +413,25 @@ void DisplayBase::setTimer(uint32_t timeout_ms, const char *tag) {
     timer_tag_ = strdup_to_psram(tag);
 
     if (!state_timer_) {
-        ESP_LOGI(TAG, "Starting %s timer with period of %lums.", timer_tag_, timeout_ms);
+        ESP_LOGI(TAG, "Starting '%s' timer with period of %lums.", timer_tag_, timeout_ms);
         state_timer_ = xTimerCreate("display", pdMS_TO_TICKS(timeout_ms), pdFALSE, timer_tag_, timerCallback);
     } else {
-        ESP_LOGI(TAG, "Changing %s timer period to %lums.", timer_tag_, timeout_ms);
-        xTimerChangePeriod(state_timer_, pdMS_TO_TICKS(timeout_ms), portMAX_DELAY);
+        ESP_LOGI(TAG, "Changing '%s' timer period to %lums.", timer_tag_, timeout_ms);
+        if (xTimerChangePeriod(state_timer_, pdMS_TO_TICKS(timeout_ms), pdMS_TO_TICKS(1000)) == pdFAIL) {
+            ESP_LOGE(TAG, "Failed to change state_timer period");
+        }
     }
-    xTimerStart(state_timer_, portMAX_DELAY);
+    if (xTimerStart(state_timer_, pdMS_TO_TICKS(1000)) == pdFAIL) {
+        ESP_LOGE(TAG, "Failed to start state_timer");
+    }
 }
 
 void DisplayBase::stopTimer() {
     if (state_timer_) {
         ESP_LOGI(TAG, "Stopping timer: %s", timer_tag_ ? timer_tag_ : "-");
-        xTimerStop(state_timer_, portMAX_DELAY);
+        if (xTimerStop(state_timer_, pdMS_TO_TICKS(1000)) == pdFAIL) {
+            ESP_LOGE(TAG, "Failed to stop state_timer");
+        }
         FREE_AND_NULL(timer_tag_);
     } else {
         ESP_LOGW(TAG, "No state timer found to stop");
