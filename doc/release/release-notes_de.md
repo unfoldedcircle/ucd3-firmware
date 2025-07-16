@@ -13,6 +13,7 @@
 
 ### Geändert
 - Verbesserung der Ladestrommessung und der Überstromerkennung zur Vermeidung von Ladeabschaltungen ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
+- Bestimmung des Ladespannungs-Offset beim Start, um ein Umschalten zwischen den Lade- und Nichtladebildschirmen zu verhindern.
 
 ## Beta Release 0.6.0
 ### Fehlerbehebungen

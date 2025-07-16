@@ -13,6 +13,7 @@
 
 ### Changed
 - Improve charging current measurement and over-current detection to prevent charging shutdowns ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
+- Determination of the charging voltage offset at startup to prevent switching between the charging and non-charging screens.
 
 ## Beta Release 0.6.0
 ### Bug Fixes

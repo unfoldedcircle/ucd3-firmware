@@ -29,6 +29,7 @@ _Changes in the next release_
 - Improve ADC reading and allow higher charging current to compensate different voltage threshold on production docks.
 - Disable IR decoding of AC protocols ([#7](https://github.com/unfoldedcircle/ucd3-firmware/pull/7)).
 - Use both internal IR outputs if no active output has been specified.
+- Determine vcc charger offset at startup to prevent toggling charging / non charging screens.
 
 ## Beta Release 0.6.0
 ### Changed
