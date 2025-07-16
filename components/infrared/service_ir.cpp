@@ -275,8 +275,9 @@ GpioPinMask InfraredService::createIrPinMask(bool internal_side, bool internal_t
 
     // default outputs if not specified
     if (!(internal_side || internal_top || ext1_gpio_signal != GPIO_NUM_NC || ext2_gpio_signal != GPIO_NUM_NC)) {
-        ESP_LOGW(irLogSend, "No output active, using side output");
+        ESP_LOGW(irLogSend, "No output active, using internal outputs");
         internal_side = true;
+        internal_top = true;
     }
 
     if (internal_side) {
