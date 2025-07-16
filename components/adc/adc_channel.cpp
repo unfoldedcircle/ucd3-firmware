@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "adc_channel.h"
+
 #include "esp_check.h"
 #include "esp_log.h"
 

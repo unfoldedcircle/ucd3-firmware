@@ -52,6 +52,7 @@ class RemoteCharger {
 
     TimerHandle_t charge_timer_;
     uint64_t      last_log_time_;
+    int           charger_adc_threshold_;
     /// Timestamp of last input voltage measurement
     uint64_t last_vcc_time_;
     /// Timestamp of last low input voltage error event

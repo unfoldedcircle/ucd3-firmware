@@ -23,6 +23,7 @@ RemoteCharger::RemoteCharger(std::unique_ptr<AdcReader> reader, std::shared_ptr<
       vcc_reader_(std::move(vcc_reader)),
       charge_timer_(nullptr),
       last_log_time_(0),
+      charger_adc_threshold_(CONFIG_UCD_CHARGER_ADC_THRESHOLD_NEW),
       last_vcc_time_(0),
       last_vcc_event_time_(0),
       last_charger_state_(CHARGER_DISABLED),
@@ -31,7 +32,19 @@ RemoteCharger::RemoteCharger(std::unique_ptr<AdcReader> reader, std::shared_ptr<
 }
 
 esp_err_t RemoteCharger::start() {
+    // Enable charging, wait to settle voltage reading, determine voltage offset for simple remote charging detection.
+    // Charging circuit in the remote has a short delay to start charging. Even with a remote in the cradle, charging
+    // doesn't immediatly start.
     ESP_RETURN_ON_ERROR(gpio_set_level(CHARGING_ENABLE, 1), TAG, "Failed to enable charging");
+    vTaskDelay(pdMS_TO_TICKS(10));
+
+    int voltage = 0;
+    if (adc_reader_->read(&voltage) == ESP_OK) {
+        ESP_LOGI(TAG, "Charging voltage offset: %d mV", voltage);
+        if (voltage < 5) {
+            charger_adc_threshold_ = CONFIG_UCD_CHARGER_ADC_THRESHOLD_OLD;
+        }
+    }
 
     if (!charge_timer_) {
         ESP_LOGI(TAG, "Starting charger timer with period of %dms. Overcurrent protection: %umA",
@@ -89,7 +102,7 @@ void RemoteCharger::checkCharging(int voltage) {
 
     charger_state_t state = CHARGER_DISABLED;
 
-    if (voltage < CONFIG_UCD_CHARGER_ADC_THRESHOLD) {
+    if (voltage < charger_adc_threshold_) {
         state = CHARGER_IDLE;
     } else {
         state = CHARGER_CHARGING;

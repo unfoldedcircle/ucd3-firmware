@@ -108,12 +108,19 @@ menu "UC Dock"
 		help
 			Overcurrent protection to shut off charging.
 		
-	config UCD_CHARGER_ADC_THRESHOLD
+	config UCD_CHARGER_ADC_THRESHOLD_OLD
 		int "ADC idle reading threshold in mV"
 		range 0 100 
 		default 12
 		help
 			ADC reading value threshold to consider as not-charging.
+
+	config UCD_CHARGER_ADC_THRESHOLD_NEW
+		int "ADC idle reading threshold in mV for new docks"
+		range 0 100 
+		default 25
+		help
+			ADC reading value threshold to consider as not-charging for latest production docks.
 
 	config UCD_CHARGER_MIN_VOLTAGE
 		int "Low voltage threshold for weak power supplies in mV"

@@ -9,5 +9,8 @@
 /// @brief ADC read interface
 class AdcReader {
  public:
+    /// @brief Read ADC and average samples if required.
+    /// @param voltage out parameter for measured voltage in mV.
+    /// @return ESP_OK if successful
     virtual esp_err_t read(int *voltage) = 0;
 };
