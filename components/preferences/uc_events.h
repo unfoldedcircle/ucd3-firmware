@@ -55,7 +55,6 @@ typedef enum {
     UC_EVENT_CHARGING_ON,
     /// Remote device charging stopped event.
     UC_EVENT_CHARGING_OFF,
-    UC_EVENT_OVER_CURRENT,  // TODO not yet fully implemented
     /// IR learning mode started event.
     UC_EVENT_IR_LEARNING_START,
     /// Sucessfully learned an IR code event. Uses event payload `uc_event_ir_t`.

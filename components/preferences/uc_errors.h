@@ -25,6 +25,8 @@ typedef enum uc_errors {
     UC_ERROR_INIT_PORT2_ADC,
     /// Low input voltage detected. Measured voltage is stored in uc_event_error_t.value field.
     UC_ERROR_VCC_LOW = 28,
+    /// Over-current detected. Measured value corresponding to mA is stored in uc_event_error_t.value field.
+    UC_ERROR_OVER_CURRENT,
     UC_ERROR_IR_LEARN_UNKNOWN = 100,
     UC_ERROR_IR_LEARN_INVALID,
     UC_ERROR_IR_LEARN_OVERFLOW
