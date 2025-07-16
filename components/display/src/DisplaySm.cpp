@@ -940,6 +940,86 @@ void DisplaySm::DISPLAY_STATE_InitialState_transition()
         } // end of behavior for DISPLAY_STATE.<History>
         
         // DISPLAY_STATE.<History> behavior
+        // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_AWAITING_AUTH_STATE_UI)] TransitionTo(IMPROV_AWAITING_AUTH_STATE_UI)
+        if (this->vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId::IMPROV_AWAITING_AUTH_STATE_UI)
+        {
+            // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+            
+            // Step 2: Transition action: ``.
+            
+            // Step 3: Enter/move towards transition target `IMPROV_AWAITING_AUTH_STATE_UI`.
+            WIFI_IMPROV_STATE_UI_enter();
+            IMPROV_AWAITING_AUTH_STATE_UI_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for DISPLAY_STATE.<History>
+        
+        // DISPLAY_STATE.<History> behavior
+        // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_STARTED_STATE)] TransitionTo(IMPROV_STARTED_STATE)
+        if (this->vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId::IMPROV_STARTED_STATE)
+        {
+            // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+            
+            // Step 2: Transition action: ``.
+            
+            // Step 3: Enter/move towards transition target `IMPROV_STARTED_STATE`.
+            WIFI_IMPROV_STATE_UI_enter();
+            IMPROV_STARTED_STATE_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for DISPLAY_STATE.<History>
+        
+        // DISPLAY_STATE.<History> behavior
+        // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_AUTHORIZED_STATE_UI)] TransitionTo(IMPROV_AUTHORIZED_STATE_UI)
+        if (this->vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId::IMPROV_AUTHORIZED_STATE_UI)
+        {
+            // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+            
+            // Step 2: Transition action: ``.
+            
+            // Step 3: Enter/move towards transition target `IMPROV_AUTHORIZED_STATE_UI`.
+            WIFI_IMPROV_STATE_UI_enter();
+            IMPROV_AUTHORIZED_STATE_UI_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for DISPLAY_STATE.<History>
+        
+        // DISPLAY_STATE.<History> behavior
+        // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_PROVISIONED_STATE_UI)] TransitionTo(IMPROV_PROVISIONED_STATE_UI)
+        if (this->vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId::IMPROV_PROVISIONED_STATE_UI)
+        {
+            // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+            
+            // Step 2: Transition action: ``.
+            
+            // Step 3: Enter/move towards transition target `IMPROV_PROVISIONED_STATE_UI`.
+            WIFI_IMPROV_STATE_UI_enter();
+            IMPROV_PROVISIONED_STATE_UI_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for DISPLAY_STATE.<History>
+        
+        // DISPLAY_STATE.<History> behavior
+        // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_PROVISIONING_STATE_UI)] TransitionTo(IMPROV_PROVISIONING_STATE_UI)
+        if (this->vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId::IMPROV_PROVISIONING_STATE_UI)
+        {
+            // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+            
+            // Step 2: Transition action: ``.
+            
+            // Step 3: Enter/move towards transition target `IMPROV_PROVISIONING_STATE_UI`.
+            WIFI_IMPROV_STATE_UI_enter();
+            IMPROV_PROVISIONING_STATE_UI_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for DISPLAY_STATE.<History>
+        
+        // DISPLAY_STATE.<History> behavior
         // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.SHOW_CONNECTED_STATE)] TransitionTo(SHOW_CONNECTED_STATE)
         if (this->vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId::SHOW_CONNECTED_STATE)
         {
@@ -2286,6 +2366,13 @@ void DisplaySm::IMPROV_AUTHORIZED_STATE_UI_enter()
         // Step 1: execute action `showImprovAuthorizedScreen();`
         showImprovAuthorizedScreen();
     } // end of behavior for IMPROV_AUTHORIZED_STATE_UI
+    
+    // IMPROV_AUTHORIZED_STATE_UI behavior
+    // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_AUTHORIZED_STATE_UI;) }
+    {
+        // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_AUTHORIZED_STATE_UI;)`
+        this->vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId::IMPROV_AUTHORIZED_STATE_UI;
+    } // end of behavior for IMPROV_AUTHORIZED_STATE_UI
 }
 
 void DisplaySm::IMPROV_AUTHORIZED_STATE_UI_exit()
@@ -2307,6 +2394,13 @@ void DisplaySm::IMPROV_AWAITING_AUTH_STATE_UI_enter()
     {
         // Step 1: execute action `showImprovConfirmationScreen();`
         showImprovConfirmationScreen();
+    } // end of behavior for IMPROV_AWAITING_AUTH_STATE_UI
+    
+    // IMPROV_AWAITING_AUTH_STATE_UI behavior
+    // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_AWAITING_AUTH_STATE_UI;) }
+    {
+        // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_AWAITING_AUTH_STATE_UI;)`
+        this->vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId::IMPROV_AWAITING_AUTH_STATE_UI;
     } // end of behavior for IMPROV_AWAITING_AUTH_STATE_UI
 }
 
@@ -2330,6 +2424,13 @@ void DisplaySm::IMPROV_PROVISIONED_STATE_UI_enter()
         // Step 1: execute action `showImprovDoneScreen();`
         showImprovDoneScreen();
     } // end of behavior for IMPROV_PROVISIONED_STATE_UI
+    
+    // IMPROV_PROVISIONED_STATE_UI behavior
+    // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_PROVISIONED_STATE_UI;) }
+    {
+        // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_PROVISIONED_STATE_UI;)`
+        this->vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId::IMPROV_PROVISIONED_STATE_UI;
+    } // end of behavior for IMPROV_PROVISIONED_STATE_UI
 }
 
 void DisplaySm::IMPROV_PROVISIONED_STATE_UI_exit()
@@ -2352,6 +2453,13 @@ void DisplaySm::IMPROV_PROVISIONING_STATE_UI_enter()
         // Step 1: execute action `showImprovConnectingScreen();`
         showImprovConnectingScreen();
     } // end of behavior for IMPROV_PROVISIONING_STATE_UI
+    
+    // IMPROV_PROVISIONING_STATE_UI behavior
+    // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_PROVISIONING_STATE_UI;) }
+    {
+        // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_PROVISIONING_STATE_UI;)`
+        this->vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId::IMPROV_PROVISIONING_STATE_UI;
+    } // end of behavior for IMPROV_PROVISIONING_STATE_UI
 }
 
 void DisplaySm::IMPROV_PROVISIONING_STATE_UI_exit()
@@ -2373,6 +2481,13 @@ void DisplaySm::IMPROV_STARTED_STATE_enter()
     {
         // Step 1: execute action `showImprovScreen();`
         showImprovScreen();
+    } // end of behavior for IMPROV_STARTED_STATE
+    
+    // IMPROV_STARTED_STATE behavior
+    // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_STARTED_STATE;) }
+    {
+        // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_STARTED_STATE;)`
+        this->vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId::IMPROV_STARTED_STATE;
     } // end of behavior for IMPROV_STARTED_STATE
 }
 

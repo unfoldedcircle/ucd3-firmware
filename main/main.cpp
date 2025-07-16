@@ -220,17 +220,16 @@ void init_gpios(void) {
 
 /// @brief Create and configure output ports.
 /// @param cfg Configuration to retrieve port settings.
+/// @param adc_unit ADC unit for measuring GND.
+/// @param vcc_channel ADC channel for measuring GND.
 /// @return A map of initialized ExternalPort instances. Key is 1-based port number.
-port_map_t init_external_ports(Config *cfg) {
-    port_map_t ports;
-    adc_unit_t unit = MEASURE_GND_1_ADC_UNIT;
+port_map_t init_external_ports(Config *cfg, std::shared_ptr<AdcUnit> adc_unit,
+                               std::shared_ptr<AdcChannel> vcc_channel) {
+    assert(cfg);
+    assert(adc_unit);
+    assert(vcc_channel);
 
-    std::shared_ptr<AdcUnit> adcUnit = AdcUnit::create(unit);
-    if (!adcUnit) {
-        ESP_LOGE(TAG, "Cannot create output ports: ADC unit %d creation failed", unit);
-        uc_error_check(ESP_FAIL, uc_errors::UC_ERROR_INIT_PORT_ADC);
-        return ports;
-    }
+    port_map_t ports;
 
     // Create ADC channels to read GND value from port
     // quick an dirty: just 2 output ports with the same ADC unit
@@ -254,20 +253,15 @@ port_map_t init_external_ports(Config *cfg) {
              .uart_port = UART_NUM_2,
          }};
 
-    std::shared_ptr<AdcChannel> channel2 = adcUnit->createChannel(adc_channel_t::ADC_CHANNEL_2);
-    if (!channel2) {
-        ESP_LOGE(TAG, "Error: vcc reference channel 2 couldnt be created!");
-    }
-
     for (uint8_t i = 1; i <= EXTERNAL_PORT_COUNT; i++) {
-        std::unique_ptr<AdcChannel> channel = adcUnit->createChannel(channels[i - 1]);
+        std::unique_ptr<AdcChannel> channel = adc_unit->createChannel(channels[i - 1]);
         if (channel == nullptr) {
             ESP_LOGE(TAG, "Cannot create output port %d: ADC channel %d creation failed", i, channels[i - 1]);
             uc_error_check(ESP_FAIL, i == 1 ? uc_errors::UC_ERROR_INIT_PORT1_ADC : uc_errors::UC_ERROR_INIT_PORT2_ADC);
             continue;
         }
 
-        ports[i] = std::make_shared<ExternalPort>(i, configs[i - 1], std::move(channel), channel2);
+        ports[i] = std::make_shared<ExternalPort>(i, configs[i - 1], std::move(channel), vcc_channel);
     }
 
     // Initialize output ports based on stored configuration
@@ -294,7 +288,9 @@ port_map_t init_external_ports(Config *cfg) {
     return ports;
 }
 
-esp_err_t init_charger() {
+esp_err_t init_charger(std::shared_ptr<AdcChannel> vcc_channel) {
+    assert(vcc_channel);
+
     adc_unit_t unit = CHARGING_CURRENT_ADC_UNIT;
     auto       adc_ch = CHARGING_CURRENT_ADC_CH;
 
@@ -304,7 +300,7 @@ esp_err_t init_charger() {
     std::unique_ptr<AdcChannel> channel = adcUnit->createChannel(adc_ch, ADC_ATTEN_DB_0);
     ESP_RETURN_ON_FALSE(channel, ESP_FAIL, TAG, "Cannot initialize charger: ADC channel %d creation failed", adc_ch);
 
-    static RemoteCharger charger(std::move(channel));
+    static RemoteCharger charger(std::move(channel), vcc_channel);
 
     return charger.start();
 }
@@ -338,9 +334,23 @@ extern "C" void app_main(void) {
     init_led();
     uc_error_check(init_fs(), uc_errors::UC_ERROR_INIT_FS);
 
-    // setup external ports
-    auto ports = init_external_ports(&cfg);
+    std::shared_ptr<AdcUnit> vcc_adc_unit = AdcUnit::create(MEASURE_GND_1_ADC_UNIT);
 
+    if (!vcc_adc_unit) {
+        ESP_LOGE(TAG, "Cannot create VCC ADC unit");
+        uc_fatal_error_check(ESP_FAIL, uc_errors::UC_ERROR_INIT_PORT_ADC);
+        return;
+    }
+
+    std::shared_ptr<AdcChannel> vcc_channel = vcc_adc_unit->createChannel(adc_channel_t::ADC_CHANNEL_2);
+    if (!vcc_channel) {
+        ESP_LOGE(TAG, "Cannot create VCC channel");
+        uc_fatal_error_check(ESP_FAIL, uc_errors::UC_ERROR_INIT_CHARGER);
+        return;
+    }
+
+    // setup external ports
+    auto ports = init_external_ports(&cfg, vcc_adc_unit, vcc_channel);
     uc_fatal_error_check(network_start(), uc_errors::UC_ERROR_INIT_NET);
     uc_error_check(init_mdns(&cfg), uc_errors::UC_ERROR_INIT_MDNS);
 
@@ -356,7 +366,7 @@ extern "C" void app_main(void) {
 
     uc_error_check(init_button(), uc_errors::UC_ERROR_INIT_BUTTON);
     if (cfg.hasChargingFeature()) {
-        uc_error_check(init_charger(), uc_errors::UC_ERROR_INIT_CHARGER);
+        uc_error_check(init_charger(vcc_channel), uc_errors::UC_ERROR_INIT_CHARGER);
     }
 
     // Initialize IR

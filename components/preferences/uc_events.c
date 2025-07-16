@@ -71,7 +71,7 @@ const char* uc_event_id_to_string(uc_event_id_t event_id) {
 
 void uc_fatal_error_check(esp_err_t ret, uc_errors_t uc_error) {
     if (ret != ESP_OK) {
-        uc_event_error_t event = {.error = uc_error, .esp_err = ret, .fatal = true};
+        uc_event_error_t event = {.error = uc_error, .esp_err = ret, .value = 0, .fatal = true};
         ESP_ERROR_CHECK_WITHOUT_ABORT(
             esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(200)));
         // TODO abort & reboot?
@@ -80,7 +80,7 @@ void uc_fatal_error_check(esp_err_t ret, uc_errors_t uc_error) {
 
 void uc_error_check(esp_err_t ret, uc_errors_t uc_error) {
     if (ret != ESP_OK) {
-        uc_event_error_t event = {.error = uc_error, .esp_err = ret, .fatal = false};
+        uc_event_error_t event = {.error = uc_error, .esp_err = ret, .value = 0, .fatal = false};
         ESP_ERROR_CHECK_WITHOUT_ABORT(
             esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(200)));
     }

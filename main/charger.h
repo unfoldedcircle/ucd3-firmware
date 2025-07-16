@@ -21,7 +21,7 @@ typedef enum ChargerState {
 
 class RemoteCharger {
  public:
-    RemoteCharger(std::unique_ptr<AdcReader> reader);
+    RemoteCharger(std::unique_ptr<AdcReader> reader, std::shared_ptr<AdcReader> vcc_reader);
 
     /// @brief Start charger monitoring and enable charging.
     /// @return ESP_OK if started, ESP_FAIL if timer could not be started.
@@ -48,9 +48,14 @@ class RemoteCharger {
 
  private:
     std::unique_ptr<AdcReader> adc_reader_;
+    std::shared_ptr<AdcReader> vcc_reader_;
 
-    TimerHandle_t   charge_timer;
-    uint64_t        last_log_time;
-    charger_state_t last_charger_state;
-    uint8_t         change_state_count;
+    TimerHandle_t charge_timer_;
+    uint64_t      last_log_time_;
+    /// Timestamp of last input voltage measurement
+    uint64_t last_vcc_time_;
+    /// Timestamp of last low input voltage error event
+    uint64_t        last_vcc_event_time_;
+    charger_state_t last_charger_state_;
+    uint8_t         change_state_count_;
 };

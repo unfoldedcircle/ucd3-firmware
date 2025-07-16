@@ -258,6 +258,8 @@ state DISPLAY_STATE {
 
                 IMPROV_PROVISIONING_STATE_UI : enter / #123; showImprovConnectingScreen()#59; #125;
 
+                state "$HC" as WIFI_IMPROV_STATE_UI.(HistoryContinue)
+
         }
 
         state IR_LEARNING_STATE {
@@ -635,8 +637,13 @@ evaluateGuard = null;
         OTA_STATE : 1,
         CONNECTING_STATE : 2,
         RUNNING_STATE : 3,
-        SHOW_CONNECTED_STATE : 4,
-        SHOW_CONNECTING_STATE : 5,
+        IMPROV_AWAITING_AUTH_STATE_UI : 4,
+        IMPROV_STARTED_STATE : 5,
+        IMPROV_AUTHORIZED_STATE_UI : 6,
+        IMPROV_PROVISIONED_STATE_UI : 7,
+        IMPROV_PROVISIONING_STATE_UI : 8,
+        SHOW_CONNECTED_STATE : 9,
+        SHOW_CONNECTING_STATE : 10,
     }
     static { Object.freeze(this.DISPLAY_STATE_HistoryId); }
 
@@ -1534,6 +1541,91 @@ evaluateGuard = null;
                 
                 // Step 3: Enter/move towards transition target `RUNNING_STATE`.
                 this.#RUNNING_STATE_enter();
+                
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for DISPLAY_STATE.<History>
+            
+            // DISPLAY_STATE.<History> behavior
+            // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_AWAITING_AUTH_STATE_UI)] / { this.tracer?.log("🕑 History: transitioning to IMPROV_AWAITING_AUTH_STATE_UI."); } TransitionTo(IMPROV_AWAITING_AUTH_STATE_UI)
+            if (this.vars.DISPLAY_STATE_history == DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_AWAITING_AUTH_STATE_UI)
+            {
+                // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+                
+                // Step 2: Transition action: `this.tracer?.log("🕑 History: transitioning to IMPROV_AWAITING_AUTH_STATE_UI.");`.
+                this.tracer?.log("🕑 History: transitioning to IMPROV_AWAITING_AUTH_STATE_UI.");
+                
+                // Step 3: Enter/move towards transition target `IMPROV_AWAITING_AUTH_STATE_UI`.
+                this.#WIFI_IMPROV_STATE_UI_enter();
+                this.#IMPROV_AWAITING_AUTH_STATE_UI_enter();
+                
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for DISPLAY_STATE.<History>
+            
+            // DISPLAY_STATE.<History> behavior
+            // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_STARTED_STATE)] / { this.tracer?.log("🕑 History: transitioning to IMPROV_STARTED_STATE."); } TransitionTo(IMPROV_STARTED_STATE)
+            if (this.vars.DISPLAY_STATE_history == DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_STARTED_STATE)
+            {
+                // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+                
+                // Step 2: Transition action: `this.tracer?.log("🕑 History: transitioning to IMPROV_STARTED_STATE.");`.
+                this.tracer?.log("🕑 History: transitioning to IMPROV_STARTED_STATE.");
+                
+                // Step 3: Enter/move towards transition target `IMPROV_STARTED_STATE`.
+                this.#WIFI_IMPROV_STATE_UI_enter();
+                this.#IMPROV_STARTED_STATE_enter();
+                
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for DISPLAY_STATE.<History>
+            
+            // DISPLAY_STATE.<History> behavior
+            // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_AUTHORIZED_STATE_UI)] / { this.tracer?.log("🕑 History: transitioning to IMPROV_AUTHORIZED_STATE_UI."); } TransitionTo(IMPROV_AUTHORIZED_STATE_UI)
+            if (this.vars.DISPLAY_STATE_history == DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_AUTHORIZED_STATE_UI)
+            {
+                // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+                
+                // Step 2: Transition action: `this.tracer?.log("🕑 History: transitioning to IMPROV_AUTHORIZED_STATE_UI.");`.
+                this.tracer?.log("🕑 History: transitioning to IMPROV_AUTHORIZED_STATE_UI.");
+                
+                // Step 3: Enter/move towards transition target `IMPROV_AUTHORIZED_STATE_UI`.
+                this.#WIFI_IMPROV_STATE_UI_enter();
+                this.#IMPROV_AUTHORIZED_STATE_UI_enter();
+                
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for DISPLAY_STATE.<History>
+            
+            // DISPLAY_STATE.<History> behavior
+            // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_PROVISIONED_STATE_UI)] / { this.tracer?.log("🕑 History: transitioning to IMPROV_PROVISIONED_STATE_UI."); } TransitionTo(IMPROV_PROVISIONED_STATE_UI)
+            if (this.vars.DISPLAY_STATE_history == DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_PROVISIONED_STATE_UI)
+            {
+                // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+                
+                // Step 2: Transition action: `this.tracer?.log("🕑 History: transitioning to IMPROV_PROVISIONED_STATE_UI.");`.
+                this.tracer?.log("🕑 History: transitioning to IMPROV_PROVISIONED_STATE_UI.");
+                
+                // Step 3: Enter/move towards transition target `IMPROV_PROVISIONED_STATE_UI`.
+                this.#WIFI_IMPROV_STATE_UI_enter();
+                this.#IMPROV_PROVISIONED_STATE_UI_enter();
+                
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for DISPLAY_STATE.<History>
+            
+            // DISPLAY_STATE.<History> behavior
+            // uml: [$gil(this.vars.DISPLAY_STATE_history == DISPLAY_STATE_HistoryId.IMPROV_PROVISIONING_STATE_UI)] / { this.tracer?.log("🕑 History: transitioning to IMPROV_PROVISIONING_STATE_UI."); } TransitionTo(IMPROV_PROVISIONING_STATE_UI)
+            if (this.vars.DISPLAY_STATE_history == DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_PROVISIONING_STATE_UI)
+            {
+                // Step 1: Exit states until we reach `DISPLAY_STATE` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+                
+                // Step 2: Transition action: `this.tracer?.log("🕑 History: transitioning to IMPROV_PROVISIONING_STATE_UI.");`.
+                this.tracer?.log("🕑 History: transitioning to IMPROV_PROVISIONING_STATE_UI.");
+                
+                // Step 3: Enter/move towards transition target `IMPROV_PROVISIONING_STATE_UI`.
+                this.#WIFI_IMPROV_STATE_UI_enter();
+                this.#IMPROV_PROVISIONING_STATE_UI_enter();
                 
                 // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
                 return;
@@ -3213,6 +3305,13 @@ evaluateGuard = null;
             // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "showImprovAuthorizedScreen();");`
             this.tracer?.log("⚡ FSM would execute action: " + "showImprovAuthorizedScreen();");
         } // end of behavior for IMPROV_AUTHORIZED_STATE_UI
+        
+        // IMPROV_AUTHORIZED_STATE_UI behavior
+        // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_AUTHORIZED_STATE_UI;) }
+        {
+            // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_AUTHORIZED_STATE_UI;)`
+            this.vars.DISPLAY_STATE_history = DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_AUTHORIZED_STATE_UI;
+        } // end of behavior for IMPROV_AUTHORIZED_STATE_UI
     }
     
     #IMPROV_AUTHORIZED_STATE_UI_exit()
@@ -3248,6 +3347,13 @@ evaluateGuard = null;
         {
             // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "showImprovConfirmationScreen();");`
             this.tracer?.log("⚡ FSM would execute action: " + "showImprovConfirmationScreen();");
+        } // end of behavior for IMPROV_AWAITING_AUTH_STATE_UI
+        
+        // IMPROV_AWAITING_AUTH_STATE_UI behavior
+        // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_AWAITING_AUTH_STATE_UI;) }
+        {
+            // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_AWAITING_AUTH_STATE_UI;)`
+            this.vars.DISPLAY_STATE_history = DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_AWAITING_AUTH_STATE_UI;
         } // end of behavior for IMPROV_AWAITING_AUTH_STATE_UI
     }
     
@@ -3285,6 +3391,13 @@ evaluateGuard = null;
             // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "showImprovDoneScreen();");`
             this.tracer?.log("⚡ FSM would execute action: " + "showImprovDoneScreen();");
         } // end of behavior for IMPROV_PROVISIONED_STATE_UI
+        
+        // IMPROV_PROVISIONED_STATE_UI behavior
+        // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_PROVISIONED_STATE_UI;) }
+        {
+            // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_PROVISIONED_STATE_UI;)`
+            this.vars.DISPLAY_STATE_history = DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_PROVISIONED_STATE_UI;
+        } // end of behavior for IMPROV_PROVISIONED_STATE_UI
     }
     
     #IMPROV_PROVISIONED_STATE_UI_exit()
@@ -3321,6 +3434,13 @@ evaluateGuard = null;
             // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "showImprovConnectingScreen();");`
             this.tracer?.log("⚡ FSM would execute action: " + "showImprovConnectingScreen();");
         } // end of behavior for IMPROV_PROVISIONING_STATE_UI
+        
+        // IMPROV_PROVISIONING_STATE_UI behavior
+        // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_PROVISIONING_STATE_UI;) }
+        {
+            // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_PROVISIONING_STATE_UI;)`
+            this.vars.DISPLAY_STATE_history = DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_PROVISIONING_STATE_UI;
+        } // end of behavior for IMPROV_PROVISIONING_STATE_UI
     }
     
     #IMPROV_PROVISIONING_STATE_UI_exit()
@@ -3356,6 +3476,13 @@ evaluateGuard = null;
         {
             // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "showImprovScreen();");`
             this.tracer?.log("⚡ FSM would execute action: " + "showImprovScreen();");
+        } // end of behavior for IMPROV_STARTED_STATE
+        
+        // IMPROV_STARTED_STATE behavior
+        // uml: enter / { $gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_STARTED_STATE;) }
+        {
+            // Step 1: execute action `$gil(this.vars.DISPLAY_STATE_history = DISPLAY_STATE_HistoryId.IMPROV_STARTED_STATE;)`
+            this.vars.DISPLAY_STATE_history = DisplaySm.DISPLAY_STATE_HistoryId.IMPROV_STARTED_STATE;
         } // end of behavior for IMPROV_STARTED_STATE
     }
     
