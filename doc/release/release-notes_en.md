@@ -1,4 +1,4 @@
-## next release
+## Beta Release 0.7.0
 ### Bug Fixes
 - External port detection with two blasters.
 - Show charger shut off error on screen caused by over-current detection ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).

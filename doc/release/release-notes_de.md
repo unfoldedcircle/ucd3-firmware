@@ -1,4 +1,4 @@
-## next release
+## Beta Release 0.7.0
 ### Fehlerbehebungen
 - Automatische Erkennung von zwei IR-Blaster.
 - Fehleranzeige auf dem Bildschirm bei Ladeabschaltung aufgrund von Überstromerkennung ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).

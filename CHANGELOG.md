@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## Beta Release 0.7.0
 ### Fixed
 - External port detection with two blasters.
 - Show error on screen for over-current detection ([#17](https://github.com/unfoldedcircle/ucd3-firmware/issues/17)).
@@ -26,8 +29,6 @@ _Changes in the next release_
 - Improve ADC reading and allow higher charging current to compensate different voltage threshold on production docks.
 - Disable IR decoding of AC protocols ([#7](https://github.com/unfoldedcircle/ucd3-firmware/pull/7)).
 - Use both internal IR outputs if no active output has been specified.
-
----
 
 ## Beta Release 0.6.0
 ### Changed
