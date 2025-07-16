@@ -72,7 +72,7 @@ menu "UC Dock"
 	config UCD_CHARGER_PERIOD
 		int "Charger monitor polling in ms"
 		range 20 10000
-		default 100
+		default 500
 		help
 			Polling interval in ms of the charger monitor.
 

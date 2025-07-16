@@ -36,6 +36,11 @@ EventParameter::EventParameter(ui_event_queue_message* event) : icon_(UI_ICON_NO
                     snprintf(buf, sizeof(buf), "%ld.%02ld V", event_error->value / 1000,
                              (event_error->value % 1000) / 10);
                     message_ = buf;
+                } else if (event_error->error == UC_ERROR_OVER_CURRENT) {
+                    title_ = "CHG OFF";
+                    char buf[16];
+                    snprintf(buf, sizeof(buf), "%ld mA", event_error->value);
+                    message_ = buf;
                 } else {
                     title_ = std::to_string(event_error->error);
                     if (event_error->esp_err != ESP_FAIL) {

@@ -71,8 +71,10 @@ bool RemoteCharger::checkOverCurrent(int voltage) {
     // Charging current too high: switch off charging!
     gpio_set_level(CHARGING_ENABLE, 0);
     ESP_LOGE(TAG, "Charging overcurrent protection: shut off charger! Detected charging current: %umA", voltage * 10);
+
+    uc_event_error_t event = {.error = UC_ERROR_OVER_CURRENT, .esp_err = 0, .value = voltage * 10, .fatal = true};
     ESP_ERROR_CHECK_WITHOUT_ABORT(
-        esp_event_post(UC_DOCK_EVENTS, UC_EVENT_OVER_CURRENT, NULL, 0, pdMS_TO_TICKS(10 * 1000)));
+        esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(10 * 1000)));
 
     return true;
 }

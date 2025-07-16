@@ -43,8 +43,6 @@ const char* uc_event_id_to_string(uc_event_id_t event_id) {
             return "CHARGING_ON";
         case UC_EVENT_CHARGING_OFF:
             return "CHARGING_OFF";
-        case UC_EVENT_OVER_CURRENT:
-            return "OVER_CURRENT";
         case UC_EVENT_IR_LEARNING_START:
             return "IR_LEARNING_START";
         case UC_EVENT_IR_LEARNING_OK:
