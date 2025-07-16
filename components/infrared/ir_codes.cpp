@@ -174,8 +174,8 @@ uint16_t *prontoBufferToArray(const char *msg, char separator, uint16_t *codeCou
     // Validate PRONTO code
     // Only raw pronto codes are supported
     if (codeArray[0] != 0) {
-        free(codeArray);
         ESP_LOGW(TAG, "Only raw pronto codes are supported! %d", codeArray[0]);
+        free(codeArray);
         return NULL;
     }
 
