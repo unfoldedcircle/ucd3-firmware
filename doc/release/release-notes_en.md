@@ -1,3 +1,20 @@
+## Beta Release 0.7.0
+### Bug Fixes
+- External port detection with two blasters.
+- Show charger shut off error on screen caused by over-current detection ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
+- PRONTO code parsing with trailing whitespace ([#495](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/495)).
+- Setup with a custom password on Remotes runnig firmware version <= 2.6.1 ([#489](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/489)).
+- Return correct network connection type (Ethernet or WiFi).
+- Show correct charging information in info screen when pressing the control button.
+- General stability improvements.
+
+### New Features
+- Low voltage charger check.
+
+### Changed
+- Improve charging current measurement and over-current detection to prevent charging shutdowns ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
+- Determination of the charging voltage offset at startup to prevent switching between the charging and non-charging screens.
+
 ## Beta Release 0.6.0
 ### Bug Fixes
 - Switch external ports 1 & 2 according to booklet: port 1 is next to ethernet port.
