@@ -48,8 +48,13 @@ IDF_TARGET=esp32s3 idf.py build
 - Signed production firmware can only be replaced by development firmware with UART flashing!
 - The USB-C port provides UART flashing functionality.
 
+### Using a Web Browser  with Web Serial support
+
+See [Manually Flashing the Dock 3 with Web Serial](doc/flash-web-serial.md).
+
 ### Upload with UART
 
+The following command flashes the complete firmware:
 ```shell
 esptool.py --chip esp32s3 --port "$SERIAL_DEV" --baud 921600 \
   --before default_reset --after hard_reset write_flash \
