@@ -7,7 +7,7 @@ Please note that manual flashing is usually not required, except if a custom fir
 1. Connect the Dock 3 with a USB cable to your PC
 2. Download the Dock 3 firmware release file from [https://github.com/unfoldedcircle/ucd3-firmware/releases](https://github.com/unfoldedcircle/ucd3-firmware/releases)
     1. Choose a release, usually the latest version
-    1. Download the attached firmware file under assets: UCD3-firmware_r4-v<VERSION>.tar.gz
+    1. Download the attached firmware file under assets: UCD3-firmware_r4-v\<VERSION>.tar.gz
 3. Extract the downloaded archive
 4. Open the web-based serial flasher from Espressif: [https://espressif.github.io/esptool-js/](https://espressif.github.io/esptool-js/)
     
