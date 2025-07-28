@@ -48,23 +48,11 @@ IDF_TARGET=esp32s3 idf.py build
 - Signed production firmware can only be replaced by development firmware with UART flashing!
 - The USB-C port provides UART flashing functionality.
 
-### Using a Web Browser  with Web Serial support
+Flashing the full firmware:
 
-See [Manually Flashing the Dock 3 with Web Serial](doc/flash-web-serial.md).
-
-### Upload with UART
-
-The following command flashes the complete firmware:
-```shell
-esptool.py --chip esp32s3 --port "$SERIAL_DEV" --baud 921600 \
-  --before default_reset --after hard_reset write_flash \
-  --flash_mode dio --flash_freq 80m --flash_size keep \
-  0x0 bootloader.bin \
-  0x8000 partition-table.bin \
-  0x8d000 ota_data_initial.bin \
-  0x90000 ucd3-firmware.bin
-```
-
+- [Manually Flashing the Dock 3 with Web Serial](doc/flash-web-serial.md).
+- [Manually Flashing the Dock 3 with esptool](doc/flash-esptool.md).
+ 
 ### OTA with POST request
 
 The OTA update requires the same authentication token used with the WebSocket Dock-API. If no custom password has been set during dock setup, `0000` must be used.
