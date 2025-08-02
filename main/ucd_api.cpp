@@ -20,8 +20,10 @@
 #include "config.h"
 #include "led_pattern.h"
 #include "network.h"
+#include "sdkconfig.h"
 #include "service_ir.h"
 #include "string_util.h"
+#include "system_stats.h"
 #include "uc_events.h"
 
 static const char *const TAG = "API";
@@ -319,6 +321,16 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         if (command == "get_sysinfo") {
             fill_sysinfo_to_json(responseDoc);
             processGetPortModes(responseDoc);
+            ret = ESP_OK;
+            goto send_response;
+        }
+        if (command == "get_stats") {
+#if defined(CONFIG_FREERTOS_USE_TRACE_FACILITY) && defined(CONFIG_FREERTOS_USE_STATS_FORMATTING_FUNCTIONS) && \
+    defined(CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS)
+            get_current_stats(responseDoc);
+#else
+            code = 503;
+#endif
             ret = ESP_OK;
             goto send_response;
         }

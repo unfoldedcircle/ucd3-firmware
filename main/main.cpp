@@ -34,6 +34,7 @@
 #include "nvs_flash.h"
 #include "ota.h"
 #include "service_ir.h"
+#include "system_stats.h"
 #include "uc_events.h"
 #include "ucd_api.h"
 
@@ -388,6 +389,8 @@ extern "C" void app_main(void) {
     if (cfg.isGcServerEnabled()) {
         GlobalCacheServer *gcServer = new GlobalCacheServer(&irService, &cfg, cfg.isGcServerBeaconEnabled());
     }
+
+    start_stats_task();
 
     // heap_caps_print_heap_info(MALLOC_CAP_INTERNAL);
     // heap_caps_print_heap_info(MALLOC_CAP_SPIRAM);
