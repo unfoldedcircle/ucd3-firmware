@@ -1,3 +1,7 @@
+## Beta Release 0.7.1
+### Geändert
+- Anhebung der Überstrombegrenzung auf 1850mA ([#30](https://github.com/unfoldedcircle/ucd3-firmware/pull/30)).
+
 ## Beta Release 0.7.0
 ### Fehlerbehebungen
 - Automatische Erkennung von zwei IR-Blaster.
