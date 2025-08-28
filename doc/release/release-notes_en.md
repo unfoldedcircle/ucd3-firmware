@@ -1,3 +1,7 @@
+## Beta Release 0.7.1
+### Changed
+- Increase of overcurrent limitation to 1850mA ([#30](https://github.com/unfoldedcircle/ucd3-firmware/pull/30)).
+
 ## Beta Release 0.7.0
 ### Bug Fixes
 - External port detection with two blasters.

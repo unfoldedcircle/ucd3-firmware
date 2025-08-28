@@ -11,6 +11,12 @@ _Changes in the next release_
 
 ---
 
+## Beta Release 0.7.1
+### Added
+- Documentation for firmware flashing with esptool and web-serial ([#26](https://github.com/unfoldedcircle/ucd3-firmware/pull/26), [#27](https://github.com/unfoldedcircle/ucd3-firmware/pull/27)).
+### Changed
+- Increase of overcurrent limitation to 1850mA ([#30](https://github.com/unfoldedcircle/ucd3-firmware/pull/30)).
+
 ## Beta Release 0.7.0
 ### Fixed
 - External port detection with two blasters.
