@@ -104,7 +104,7 @@ menu "UC Dock"
 	config UCD_CHARGER_MAX_CURRENT_MA
 		int "Maximum charging curent in mA"
 		range 1000 2000 
-		default 1700
+		default 1850
 		help
 			Overcurrent protection to shut off charging.
 		
