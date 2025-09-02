@@ -446,6 +446,8 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                                                            ext1, ext2);
             if (response == 0) {
                 // asynchronous reply
+                cJSON_Delete(responseDoc);
+                cJSON_Delete(root);
                 return ESP_OK;
             }
         }
