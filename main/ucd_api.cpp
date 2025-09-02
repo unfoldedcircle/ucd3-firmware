@@ -181,7 +181,8 @@ bool cjson_get_bool(const cJSON *root, const char *field, bool *ok = NULL) {
     return false;
 }
 
-DockApi::DockApi(Config *config, WebServer *web, port_map_t ports) : config_(config), web_(web), ports_(ports) {
+DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
+    : config_(config), web_(web), ports_(ports), sockfdSendIR_(-1) {
     assert(config_);
     assert(web_);
 
@@ -215,6 +216,11 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports) : config_(con
             }
             case WS_DISCONNECTED:
                 ESP_LOGI(TAG, "WS client disconnected: %d", sockfd);
+                // stop IR repeat if active.
+                if (sockfdSendIR_ == sockfd) {
+                    InfraredService::getInstance().stopSend();
+                    sockfdSendIR_ = -1;
+                }
                 return ESP_OK;
             case WS_TEXT:
                 return processRequest(req, sockfd, (const char *)payload, length, authenticated);
@@ -441,6 +447,8 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         std::string format = cjson_get_string(root, "format", "");
         uint16_t    response = 400;
 
+        sockfdSendIR_ = -1;
+
         // make sure there are no leading or trailing spaces that could interfere with PRONTO parsing
         trim(ir_code);
 
@@ -458,6 +466,10 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                                                            ext1, ext2);
             if (response == 0) {
                 // asynchronous reply
+                if (repeat > 1) {
+                    // save client socket to stop IR repeat on WebSocket disconnect
+                    sockfdSendIR_ = sockfd;
+                }
                 cJSON_Delete(responseDoc);
                 cJSON_Delete(root);
                 return ESP_OK;
@@ -466,6 +478,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         code = response;
     } else if (command == "ir_stop") {
         InfraredService::getInstance().stopSend();
+        sockfdSendIR_ = -1;
         code = 200;
     } else if (command == "ir_receive_on") {
         InfraredService::getInstance().startIrLearn();
