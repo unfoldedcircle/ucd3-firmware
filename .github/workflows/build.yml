@@ -8,7 +8,7 @@ on:
         - 'test/**'
         - 'components/**'
         - 'sdkconfig*'
-        - '.github/**/*.yml'
+        - '.github/workflows/build.yml'
 
   pull_request:
     types: [ opened, synchronize, reopened ]

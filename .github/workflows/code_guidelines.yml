@@ -4,6 +4,7 @@ name: Code Guidelines
 on:
   push:
     paths:
+      - .github/workflows/code_guidelines.yml
       - .clang-format*
       - components/**.c*
       - components/**.h
@@ -11,6 +12,7 @@ on:
       - main/**.h
   pull_request:
     paths:
+      - .github/workflows/code_guidelines.yml
       - .clang-format*
       - components/**.c*
       - components/**.h
