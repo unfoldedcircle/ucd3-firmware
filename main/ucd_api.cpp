@@ -24,6 +24,11 @@
 #include "string_util.h"
 #include "uc_events.h"
 
+// Feature flag: do not send a WebSocket response for ir_send when an IR sequence is extended.
+#define API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE BIT0
+// Available features.
+#define API_FEATURE_FLAGS API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE
+
 static const char *const TAG = "API";
 
 static const char *msgType = "type";
@@ -63,6 +68,7 @@ void fill_sysinfo_to_json(cJSON *root) {
     cJSON_AddStringToObject(root, "serial", cfg.getSerial());
     cJSON_AddStringToObject(root, "model", cfg.getModel());
     cJSON_AddStringToObject(root, "revision", cfg.getRevision());
+    cJSON_AddNumberToObject(root, "features", API_FEATURE_FLAGS);
     cJSON_AddNumberToObject(root, "led_brightness", cfg.getLedBrightness());
 #if defined(ETH_LED_PWM)
     cJSON_AddNumberToObject(root, "eth_led_brightness", cfg.getEthLedBrightness());
@@ -206,6 +212,7 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                 cJSON_AddStringToObject(response, "model", config_->getModel());
                 cJSON_AddStringToObject(response, "revision", config_->getRevision());
                 cJSON_AddStringToObject(response, "version", config_->getSoftwareVersion().c_str());
+                cJSON_AddNumberToObject(response, "features", API_FEATURE_FLAGS);
                 // Attention: resp gets freed by WebServer!
                 char     *resp = cJSON_PrintUnformatted(response);
                 esp_err_t ret = server->sendWsTxt(sockfd, resp);
@@ -448,11 +455,12 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             bool     intTop = cjson_get_bool(root, "int_top");
             bool     ext1 = cjson_get_bool(root, "ext1");
             bool     ext2 = cjson_get_bool(root, "ext2");
+            int      feature = cjson_get_int(root, "f");
 
             int reqId = cjson_get_int(root, msgId);
             response = InfraredService::getInstance().send(sockfd, reqId, ir_code, format, repeat, intSide, intTop,
                                                            ext1, ext2);
-            if (response == 0) {
+            if (response == 0 || (response == 202 && (feature & API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE))) {
                 // asynchronous reply
                 if (repeat > 1) {
                     // save client socket to stop IR repeat on WebSocket disconnect
