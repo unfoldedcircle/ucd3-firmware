@@ -4,6 +4,7 @@ name: Code Guidelines
 on:
   push:
     paths:
+      - .github/workflows/code_guidelines.yml
       - .clang-format*
       - components/**.c*
       - components/**.h
@@ -11,6 +12,7 @@ on:
       - main/**.h
   pull_request:
     paths:
+      - .github/workflows/code_guidelines.yml
       - .clang-format*
       - components/**.c*
       - components/**.h
@@ -22,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python -m pip install clang-format
+      - run: python -m pip install clang-format==20.1.8
       - name: clang-format
         run: |
           ./code_style.sh --check
