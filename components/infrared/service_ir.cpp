@@ -175,12 +175,6 @@ uint16_t InfraredService::send(int16_t clientId, uint32_t msgId, const std::stri
         return 503;  // service unavailable
     }
 
-    GpioPinMask pin_mask = createIrPinMask(internal_side, internal_top, external1, external2);
-    if (pin_mask.w1ts == 0 && pin_mask.w1tc == 0) {
-        ESP_LOGW(irLog, "No output specified");
-        return 400;
-    }
-
     IRFormat irFormat;
     if (format == "hex") {
         irFormat = IRFormat::UNFOLDED_CIRCLE;
@@ -197,15 +191,20 @@ uint16_t InfraredService::send(int16_t clientId, uint32_t msgId, const std::stri
 
     // #30 handle IR repeat if it's the same command. This is a very simple, initial implementation (ignore repeat val)
     if (sending && repeat > 0 && m_currentSendCode == code) {
-        ESP_LOGI(irLog, "detected IR repeat for last IR send command (%d)", repeat);
+        ESP_LOGI(irLog, "repeat req %lu", msgId);
         xEventGroupSetBits(m_eventgroup, IR_REPEAT_BIT);
-
-        return 202;  // accepted IR repeat
+        return 202;  // extended IR repeat sequence
     }
 
     // try to save an allocation if still sending an IR code
     if (sending) {
         return 429;  // too many requests
+    }
+
+    GpioPinMask pin_mask = createIrPinMask(internal_side, internal_top, external1, external2);
+    if (pin_mask.w1ts == 0 && pin_mask.w1tc == 0) {
+        ESP_LOGW(irLog, "No output specified");
+        return 400;
     }
 
     // new code, clear repeat flags

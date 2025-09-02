@@ -222,7 +222,7 @@ static void ws_async_send(void *arg) {
     ws_pkt.len = (resp_arg->len == 0 && resp_arg->type == HTTPD_WS_TYPE_TEXT) ? strlen((const char *)resp_arg->payload)
                                                                               : resp_arg->len;
 
-    ESP_LOGI(TAG, "ws_async_send: fd=%d, len=%d, msg=%s", fd, ws_pkt.len, (const char *)ws_pkt.payload);
+    ESP_LOGD(TAG, "ws_async_send: fd=%d, len=%d, msg=%s", fd, ws_pkt.len, (const char *)ws_pkt.payload);
     esp_err_t ret = httpd_ws_send_frame_async(hd, fd, &ws_pkt);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send async: %d", ret);

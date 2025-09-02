@@ -57,6 +57,24 @@ Example request using a PRONTO code:
 
 New messages currently in development
 
+### API Feature Flags
+
+Feature flags contain new or optional features a client can use.
+They also allow an easy way to keep backward compatibility.
+
+Feature flags are encoded as bit fields in an integer value and returned in the `get_sysinfo` message,
+and also in the `auth_required` message. Field name: `features`.
+
+- Bit 0: support for disabling IR repeat response messages. Default: disabled.
+
+#### Optimized IR Repeat Handling
+
+New feature flag field in `ir_send` request message:
+- Field: `f`, type number.
+- Bit 0: do not send a response message if an active IR repeat sequence is extended.
+
+This lowers processing overheat and allows sending `ir_send` repeat messages in a shorter intervall.
+
 ### External Port Operation Mode
 
 Get operation mode:
