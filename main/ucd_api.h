@@ -58,4 +58,5 @@ class DockApi {
     Config*    config_;
     WebServer* web_;
     port_map_t ports_;
+    int        sockfdSendIR_;
 };
