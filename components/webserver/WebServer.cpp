@@ -28,6 +28,8 @@ WebServer::WebServer()
     config_ = HTTPD_DEFAULT_CONFIG();
     // default httpd stack size of 4096 doesn't work with OTA: stack overflow in boot partition activation!
     config_.stack_size = CONFIG_UCD_WEB_TASK_STACKSIZE;
+    // pin task to main core to not interfere with IR sending
+    config_.core_id = 0;
     config_.max_open_sockets = CONFIG_UCD_WEB_MAX_OPEN_SOCKETS;
 }
 
