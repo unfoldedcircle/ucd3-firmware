@@ -8,6 +8,8 @@
 #include <IRtimer.h>
 #include <IRutils.h>
 
+#include <algorithm>
+
 #include "esp_event.h"
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
@@ -30,6 +32,13 @@ const char *irLogLearn = "IRLEARN";
 const int IR_LEARNING_BIT = BIT0;
 const int IR_REPEAT_BIT = BIT1;
 const int IR_REPEAT_STOP_BIT = BIT2;
+
+/// Limit maximum repeat count in continuous IR repeat mode to 20.
+const uint32_t MAX_REPEAT = 20;
+
+// Only enable log statements in IR repeat callback function for development!
+// Depending on IR format the callback is very time critical and log statements can interfere with timing!
+const bool DEVELOPMENT_LOG = false;
 
 // good explanation of IRrecv parameters:
 // https://github.com/crankyoldgit/IRremoteESP8266/blob/master/examples/IRrecvDumpV3/IRrecvDumpV3.ino
@@ -366,8 +375,9 @@ void InfraredService::send_ir_f(void *param) {
 
     // reference required to persist values during callbacks (also initialization is further down!)
     auto repeatCallback = [&repeatLimit, &repeat, &repeatCount, eventgroup]() -> bool {
-        // commented out log statements: depending on IR format this is very time critical!
-        // ESP_LOGI(irLogSend, "in callback!");
+        if (DEVELOPMENT_LOG) {
+            ESP_LOGI(irLogSend, "in callback!");
+        }
 
         // check if there's a command from the API
         auto bits = xEventGroupGetBits(eventgroup);
@@ -377,14 +387,17 @@ void InfraredService::send_ir_f(void *param) {
             ESP_LOGI(irLogSend, "stopping repeat");
         } else if (bits & IR_REPEAT_BIT) {
             // reset repeat count and start counting down again
-            ESP_LOGI(irLogSend, "continue repeat: %d -> %d", repeat, repeatLimit);
+            if (DEVELOPMENT_LOG) {
+                ESP_LOGI(irLogSend, "continue repeat: %d -> %d", repeat, repeatLimit);
+            }
             repeat = repeatLimit;
             xEventGroupClearBits(eventgroup, IR_REPEAT_BIT);
         }
         if (repeat > 0) {
             // repeat still active: count down
-            // ESP_LOGI(irLogSend, "repeat callback #%d, remaining repeats: %d",
-            //             ++repeatCount, repeat);
+            if (DEVELOPMENT_LOG) {
+                ESP_LOGI(irLogSend, "repeat callback #%d, remaining repeats: %d", ++repeatCount, repeat);
+            }
             repeat--;
             return true;
         }
@@ -433,11 +446,32 @@ void InfraredService::send_ir_f(void *param) {
             case IRFormat::UNFOLDED_CIRCLE: {
                 IRHexData data;
                 if (buildIRHexData(pIrMsg->message, &data)) {
-                    // Override repeat in code
-                    // Note: if only `data.repeat > 1`: some codes have to be sent twice for a single command,
-                    // i.e. it's not a repeat indicator yet!
+                    // Override repeat value in IR code.
+                    // Note: "press-and-hold" repeat indicator is the separate `repeat` parameter in IRSendMessage.
+                    // The parsed `data.repeat` value from the IR code is protocol specific and used for individual
+                    // commands.
                     if (pIrMsg->repeat > 0) {
                         data.repeat = pIrMsg->repeat;
+                        // Adapt repeat coun for protocols requiring a minimal repeat count (Epson, Sony, etc.).
+                        // E.g. Sony 40k requires 2 repeats for a single command, each msg 45ms apart, total of 3 msgs.
+                        // Handling repeat gets tricky now: increase repeat count, multiply the min repeat count,
+                        // or multiply the total count?
+                        // Answer is likely "it depends" on the IR protocol.
+                        // While testing, a Sony TV required 18 IR messages to increase the volume by 2 steps.
+                        // Afterwards, it increases much faster.
+                        // Repeat count logic (which might need further IR protocol specific adaption):
+                        // - only multiply the min repeat count.
+                        // - cap maximum repeat count at 20.
+                        // Example: repeat value of 3 with min repeat of 2: 3 * 2 = 6 repeat messages (+ 1 initial).
+                        // Repeat transmission length: 6 * 45ms = 270ms.
+                        // This allows to extend the repeat signal with a new WS request message every ~200ms.
+                        uint16_t min_repeat = IRsend::minRepeats(data.protocol);
+                        if (min_repeat > 1) {
+                            data.repeat = std::min(static_cast<uint32_t>(data.repeat * min_repeat), MAX_REPEAT);
+                            repeatLimit = data.repeat;
+                            ESP_LOGI(irLogSend, "repeat: req=%u, min=%d, ir=%d", pIrMsg->repeat, min_repeat,
+                                     data.repeat);
+                        }
                     }
                     success = irsend.send(data.protocol, data.command, data.bits, data.repeat);
                 } else {
