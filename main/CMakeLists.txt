@@ -8,6 +8,7 @@ idf_component_register(
     "button.cpp"
     "charger.cpp"
     "ucd_api.cpp"
+    "system_stats.cpp"
     INCLUDE_DIRS
      "."
     REQUIRES
