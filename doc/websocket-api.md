@@ -38,6 +38,7 @@ Example request from the Core-API to send an IR code on external port 2:
   "ext2": true,
 }
 ```
+
 Example request using a PRONTO code:
 ```json
 {
@@ -66,6 +67,7 @@ Feature flags are encoded as bit fields in an integer value and returned in the 
 and also in the `auth_required` message. Field name: `features`.
 
 - Bit 0: support for disabling IR repeat response messages. Default: disabled.
+- Bit 1: `ir_send` command supports the `hold` parameter to send ir command for x milliseconds.
 
 #### Optimized IR Repeat Handling
 
@@ -73,7 +75,43 @@ New feature flag field in `ir_send` request message:
 - Field: `f`, type number.
 - Bit 0: do not send a response message if an active IR repeat sequence is extended.
 
-This lowers processing overheat and allows sending `ir_send` repeat messages in a shorter intervall.
+This lowers processing overhead and allows sending `ir_send` repeat messages in shorter intervals.
+
+### Sending an IR Code for a Specific Time
+
+Some devices require pressing a button for a specific time to trigger a different action.
+For example long pressing the power button will switch off the device.
+
+This could be simulated with a proper repeat count. But this requires to know the IR protocol specific timings
+
+The new optional `hold` field in the `ir_send` message allows to send the code for a specific time.  
+Important: this time is the **minimal duration** the IR signal is sent and not the exact time the signal is stopped.
+An IR message will always be completed. This means that the actual send time will mostly be longer.
+
+Example request from the Core-API to send a Sony TV volume up command for 2 seconds using the external port 2:
+```json
+{
+  "type": "dock",
+  "command": "ir_send",
+  "code": "4;0x490;12;0",
+  "format": "hex",
+  "hold": 2000,
+  "int_side": false,
+  "int_top": false,
+  "ext1": false,
+  "ext2": true,
+}
+```
+
+- The `hold` parameter will override the `repeat` field if present!
+  - Total signal time: MAX(hold, "minimal IR signal duration")
+  - Example: Sony (protocol 4) requires a minimum of 3 IR messages, each 45ms apart:
+    - minimal signal duration = 135ms
+    - any `hold` value < 135 is ignored and the IR signal will be active for 135ms
+    - if `hold` is set to 150: the signal will be active for 180ms because 4 x 45ms = 180ms
+- If using a `format: hex` message:
+  - The repeat count in `code` is ignored.
+  - The protocol specific minimal repeat count is still being used. For example Sony (protocol 4), uses a minimal repeat count of 2.
 
 ### External Port Operation Mode
 

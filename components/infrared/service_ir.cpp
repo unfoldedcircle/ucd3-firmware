@@ -170,12 +170,12 @@ uint16_t InfraredService::sendGlobalCache(int16_t clientId, uint32_t msgId, cons
     std::string code = sendir;
     std::string format = "gc";
 
-    return send(clientId, msgId, code, format, repeat, port & 1, port & 8, port & 2, port & 4, socket);
+    return send(clientId, msgId, code, format, repeat, 0, port & 1, port & 8, port & 2, port & 4, socket);
 }
 
 uint16_t InfraredService::send(int16_t clientId, uint32_t msgId, const std::string &code, const std::string &format,
-                               uint16_t repeat, bool internal_side, bool internal_top, bool external1, bool external2,
-                               int gcSocket) {
+                               uint16_t repeat, uint16_t hold, bool internal_side, bool internal_top, bool external1,
+                               bool external2, int gcSocket) {
     if (!m_queue || !m_eventgroup) {
         return 500;
     }
@@ -225,6 +225,7 @@ uint16_t InfraredService::send(int16_t clientId, uint32_t msgId, const std::stri
     pxMessage->format = irFormat;
     pxMessage->message = code;
     pxMessage->repeat = repeat;
+    pxMessage->hold = hold;
     pxMessage->pin_mask = pin_mask;
     pxMessage->gcSocket = gcSocket;
 
@@ -371,12 +372,14 @@ void InfraredService::send_ir_f(void *param) {
     uint16_t              repeatLimit;
     int                   repeat;
     int                   repeatCount;
+    TimerMs               startSendTimer;
+    uint32_t              holdTimeLimit;
     EventGroupHandle_t    eventgroup = ir->m_eventgroup;
 
     // reference required to persist values during callbacks (also initialization is further down!)
-    auto repeatCallback = [&repeatLimit, &repeat, &repeatCount, eventgroup]() -> bool {
+    auto repeatCallback = [&repeatLimit, &repeat, &repeatCount, &startSendTimer, &holdTimeLimit, eventgroup]() -> bool {
         if (DEVELOPMENT_LOG) {
-            ESP_LOGI(irLogSend, "in callback!");
+            ESP_LOGD(irLogSend, "in callback!");
         }
 
         // check if there's a command from the API
@@ -391,8 +394,24 @@ void InfraredService::send_ir_f(void *param) {
                 ESP_LOGI(irLogSend, "continue repeat: %d -> %d", repeat, repeatLimit);
             }
             repeat = repeatLimit;
+            startSendTimer.reset();
             xEventGroupClearBits(eventgroup, IR_REPEAT_BIT);
         }
+
+        if (holdTimeLimit > 0) {
+            uint32_t elapsed = startSendTimer.elapsed();
+            if (elapsed < holdTimeLimit) {
+                // hold time still active
+                if (DEVELOPMENT_LOG) {
+                    ESP_LOGI(irLogSend, "hold time: %lu/%lums", elapsed, holdTimeLimit);
+                }
+                return true;
+            } else {
+                ESP_LOGI(irLogSend, "stopping hold: %lums", elapsed);
+                return false;
+            }
+        }
+
         if (repeat > 0) {
             // repeat still active: count down
             if (DEVELOPMENT_LOG) {
@@ -424,10 +443,13 @@ void InfraredService::send_ir_f(void *param) {
             repeatLimit = pIrMsg->repeat;
             repeat = pIrMsg->repeat;
             repeatCount = 0;
+            holdTimeLimit = pIrMsg->hold;
             irsend.setRepeatCallback(repeatCallback);
         } else {
+            holdTimeLimit = 0;
             irsend.setRepeatCallback(nullptr);
         }
+        startSendTimer.reset();
 
         // enable GPIOs for external IR peripherals if required
         if (pIrMsg->pin_mask.w1ts_enable) {

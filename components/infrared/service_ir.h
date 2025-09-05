@@ -51,6 +51,7 @@ class InfraredService {
      * @param code  IR code to send, either PRONTO or HEX (UnfoldedCircle) format.
      * @param format IR code format: "pronto" or "hex".
      * @param repeat IR repeat count.
+     * @param hold   IR send time in milliseconds. The repeat parameter is ignored if hold > 0.
      * @param internal_side Send IR signal on internal LEDs.
      * @param internal_top Send IR signal on internal top LED.
      * @param external1 Send IR signal on external 1 emitter port.
@@ -62,7 +63,8 @@ class InfraredService {
      * @return otherwise: status code to return to the WS client.
      */
     uint16_t send(int16_t clientId, uint32_t msgId, const std::string &code, const std::string &format, uint16_t repeat,
-                  bool internal_side, bool internal_top, bool external1, bool external2, int gcSocket = 0);
+                  uint16_t hold, bool internal_side, bool internal_top, bool external1, bool external2,
+                  int gcSocket = 0);
 
     void stopSend();
 

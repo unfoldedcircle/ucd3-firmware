@@ -36,7 +36,11 @@ struct IRSendMessage {
     uint32_t    msgId;
     IRFormat    format;
     std::string message;
-    uint16_t    repeat;
+    // IR repeat count for continuous IR-repeat mode.
+    uint16_t repeat;
+    // Minimal IR repeat time in milliseconds ("press-and-hold" a button). Overrides `repeat` if > 0.
+    uint16_t hold;
+    // GPIO IR output mask for sending the IR signal on multiple outputs.
     GpioPinMask pin_mask;
     // TCP socket of message if received from the GlobalCache server, 0 otherwise.
     int gcSocket;

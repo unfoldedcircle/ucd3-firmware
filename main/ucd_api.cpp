@@ -25,9 +25,12 @@
 #include "uc_events.h"
 
 // Feature flag: do not send a WebSocket response for ir_send when an IR sequence is extended.
-#define API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE BIT0
+static const int API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE = BIT0;
+// Feature flag: `ir_send` command supports the `hold` parameter to send ir command for x milliseconds.
+static const int API_FEATURE_FLAG_IR_SEND_HOLD = BIT1;
+
 // Available features.
-#define API_FEATURE_FLAGS API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE
+static const int API_FEATURE_FLAGS = API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE | API_FEATURE_FLAG_IR_SEND_HOLD;
 
 static const char *const TAG = "API";
 
@@ -451,6 +454,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
 
         if (!ir_code.empty() && !format.empty()) {
             uint16_t repeat = cjson_get_int(root, "repeat");
+            uint16_t hold = cjson_get_int(root, "hold");
             bool     intSide = cjson_get_bool(root, "int_side");
             bool     intTop = cjson_get_bool(root, "int_top");
             bool     ext1 = cjson_get_bool(root, "ext1");
@@ -458,8 +462,8 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             int      feature = cjson_get_int(root, "f");
 
             int reqId = cjson_get_int(root, msgId);
-            response = InfraredService::getInstance().send(sockfd, reqId, ir_code, format, repeat, intSide, intTop,
-                                                           ext1, ext2);
+            response = InfraredService::getInstance().send(sockfd, reqId, ir_code, format, repeat, hold, intSide,
+                                                           intTop, ext1, ext2);
             if (response == 0 || (response == 202 && (feature & API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE))) {
                 // asynchronous reply
                 if (repeat > 1) {
