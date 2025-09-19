@@ -1,5 +1,31 @@
 # ChangeLog
 
+## v2.0.1 - 2025-8-12
+
+### Bugfix
+
+* Fix: For LEDs driven by the LEDC driver with active-low enable, use the LEDC inversion function to avoid the LED turning on immediately after creation due to an initial low-level output.
+
+## v2.0.0 - 2025-7-30
+
+### Improve:
+
+* Refactor with Factory Pattern
+* Update the version of `led_strip` to v3.0
+* Add Xiaomi Blink support
+
+## v1.1.1 - 2025-03-11
+
+### Bugfix
+
+* Fix: Scale RGB values (0-255) to PWM duty range (0-8191)
+
+## v1.1.0 - 2025-02-24
+
+### Improve:
+
+* Update the version of dependent cmake_utilities to *
+
 ## v1.0.0 - 2024-8-14
 
 * Publish the official version
