@@ -424,7 +424,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                 // TODO m_state->setState(States::LED_SETUP);
                 ESP_LOGD(TAG, "Set LED brightness: %d", brightness);
                 // set new value
-                // TODO m_ledControl->setLedMaxBrightness(brightness);
+                set_led_brightness(brightness);
                 // persist value
                 config_->setLedBrightness(brightness);
             }

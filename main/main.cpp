@@ -332,7 +332,7 @@ extern "C" void app_main(void) {
         display->start();
     }
 
-    init_led();
+    init_led(cfg.getLedBrightness());
     uc_error_check(init_fs(), uc_errors::UC_ERROR_INIT_FS);
 
     std::shared_ptr<AdcUnit> vcc_adc_unit = AdcUnit::create(MEASURE_GND_1_ADC_UNIT);

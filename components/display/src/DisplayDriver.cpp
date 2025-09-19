@@ -274,6 +274,7 @@ void DisplayDriver::clearScreen() {
         lv_refr_now(disp_);
     }
 
+    ESP_LOGD(TAG, "lvgl_port_unlock clearScreen");
     lvgl_port_unlock();
 }
 

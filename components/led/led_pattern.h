@@ -16,6 +16,9 @@ extern "C" {
 
 /// @brief Public enum of all availale LED patterns, from highest to lowest priority.
 typedef enum {
+    /// @brief Software update is in progress.
+    /// Breathing red.
+    LED_OTA,
     /// @brief WiFi connection failed.
     LED_IMPROV_FAILED,
     /// @brief The improv service is stopped. Notification LED is off.
@@ -33,6 +36,19 @@ typedef enum {
     /// @brief The improv service is active and waiting to be authorized.
     /// Looping pattern until LED_IMPROV_WAIT_CREDENTIALS is activated.
     LED_IMPROV_WAIT_AUTHORIZATION,
+    /// @brief Dock is in setup mode. Ethernet not connected and no WiFi credentials.
+    /// Blinking amber pattern.
+    LED_SETUP,
+    /// @brief IR learning failed.
+    /// Double red blink.
+    LED_IR_LEARN_FAILED,
+    /// @brief Successfully learned an IR code.
+    /// Double green blink.
+    LED_IR_LEARN_OK,
+    /// @brief IR learning is active.
+    /// Solid green
+    LED_IR_LEARN_ON,
+    LED_IDLE,
     LED_PATTERNS_MAX,
 } led_pattern_t;
 
@@ -40,7 +56,7 @@ typedef enum {
 const char* get_led_pattern_str(led_pattern_t pattern);
 
 /// @brief Initialize the LED indicator component.
-void init_led();
+void init_led(uint32_t brightness);
 
 /// @brief Start the given LED pattern.
 /// @param pattern LED pattern to start.
@@ -52,6 +68,8 @@ void led_pattern_stop(led_pattern_t pattern);
 
 /// @brief Stop all running LED patterns.
 void led_pattern_stop_all();
+
+void set_led_brightness(uint32_t brightness);
 
 #ifdef __cplusplus
 }

@@ -12,6 +12,7 @@ idf_component_register(
     esp_wifi
     common
     infrared
+    led
     network
     preferences
 )
