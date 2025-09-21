@@ -49,6 +49,9 @@ LV_IMG_DECLARE(img_wifi_weak)
 // JUST FOR TESTING
 static const bool disable_boot_anim = false;
 
+/// LVGL port lock timeout in ms
+static const uint32_t PORT_LOCK_MS = 20000;
+
 // --- Event queue handling ----
 // System events and internal events are queued in a dedicated FreeRTOS queue.
 // This allows priority dispatching for internal events like expired timers.
@@ -175,6 +178,7 @@ esp_err_t DisplayDriver::init() {
     ESP_LOGI(TAG, "Initialize LVGL");
     lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
     // lvgl_cfg.task_stack = 9000;  // TESTING ONLY
+    // lvgl_cfg.task_priority = 4;  // default 4, CONFIG_FREERTOS_TIMER_TASK_PRIORITY should be set to same priority
     ESP_RETURN_ON_ERROR(lvgl_port_init(&lvgl_cfg), TAG, "Failed to initialize LVGL");
 
     const lvgl_port_display_cfg_t disp_cfg = {
@@ -233,7 +237,8 @@ esp_err_t DisplayDriver::start() {
     }
 
     // Lock the mutex due to the LVGL APIs are not thread-safe
-    if (!lvgl_port_lock(1000)) {
+    ESP_LOGD(TAG, "lvgl_port_lock start");
+    if (!lvgl_port_lock(PORT_LOCK_MS)) {
         return ESP_ERR_INVALID_STATE;
     }
 
@@ -250,6 +255,7 @@ esp_err_t DisplayDriver::start() {
     lv_anim_set_user_data(&lv_anim_, this);
     lv_anim_start(&lv_anim_);
 
+    ESP_LOGD(TAG, "lvgl_port_unlock start");
     lvgl_port_unlock();
 
     return ESP_OK;
@@ -260,7 +266,10 @@ void DisplayDriver::clearScreen() {
         return;
     }
 
-    if (!lvgl_port_lock(1000)) {
+    // Note: during startup this lock call to clear the ETH status screen can sometimes take multiple seconds!
+    // Setting the FreeRTOS timer task to the same priority as the LVGL task seems to solve it.
+    ESP_LOGD(TAG, "lvgl_port_lock clearDisplay");
+    if (!lvgl_port_lock(PORT_LOCK_MS)) {
         ESP_LOGE(TAG, "clearScreen LVGL lock failed");
         return;
     }
@@ -334,7 +343,8 @@ void DisplayDriver::showErrorScreen(std::string title, std::string text, bool fa
     // Note: incoming events are only started after the boot up screens are completed, no boot_up_ check required
 
     ESP_LOGI(TAG, "showing %serror screen: %s / %s", fatal ? "fatal " : "", title.c_str(), text.c_str());
-    if (!lvgl_port_lock(1000)) {
+    ESP_LOGD(TAG, "lvgl_port_lock showErrorScreen");
+    if (!lvgl_port_lock(PORT_LOCK_MS)) {
         // TODO auto-reboot? This should never happen, or something is really wrong.
         ESP_LOGE(TAG, "LVGL lock failed for showErrorScreen");
         error_screen_ = false;
@@ -344,6 +354,7 @@ void DisplayDriver::showErrorScreen(std::string title, std::string text, bool fa
     lv_obj_clean(main_screen_);
     createIconScreen(main_screen_, UI_ICON_ERROR, title, text);
 
+    ESP_LOGD(TAG, "lvgl_port_unlock showErrorScreen");
     lvgl_port_unlock();
 
     // start timer to automatically dismiss non-fatal error
@@ -373,7 +384,8 @@ void DisplayDriver::showIconScreen(ui_icon_t icon, std::string title, std::strin
     }
 
     ESP_LOGI(TAG, "showing icon screen %d: %s / %s", icon, title.c_str(), text.c_str());
-    if (!lvgl_port_lock(1000)) {
+    ESP_LOGD(TAG, "lvgl_port_lock showIconScreen");
+    if (!lvgl_port_lock(PORT_LOCK_MS)) {
         ESP_LOGE(TAG, "LVGL lock failed for showIconScreen");
         return;
     }
@@ -381,6 +393,7 @@ void DisplayDriver::showIconScreen(ui_icon_t icon, std::string title, std::strin
     lv_obj_clean(main_screen_);
     createIconScreen(main_screen_, icon, title, text);
 
+    ESP_LOGD(TAG, "lvgl_port_unlock showIconScreen");
     lvgl_port_unlock();
 }
 
@@ -402,7 +415,8 @@ void DisplayDriver::showWifiConnectingScreen(std::string title, std::string text
 
     ESP_LOGI(TAG, "showing wifi connecting screen: %s / %s", title.c_str(), text.c_str());
 
-    if (!lvgl_port_lock(1000)) {
+    ESP_LOGD(TAG, "lvgl_port_lock showWifiConnectingScreen");
+    if (!lvgl_port_lock(PORT_LOCK_MS)) {
         ESP_LOGE(TAG, "LVGL lock failed for showWifiConnectingScreen");
         return;
     }
@@ -410,6 +424,7 @@ void DisplayDriver::showWifiConnectingScreen(std::string title, std::string text
     lv_obj_clean(main_screen_);
     createIconScreen(main_screen_, anim_imgs, 3, 1000, title, text);
 
+    ESP_LOGD(TAG, "lvgl_port_unlock showWifiConnectingScreen");
     lvgl_port_unlock();
 }
 
@@ -701,13 +716,15 @@ void DisplayDriver::setBootScreenCb(void *display, int32_t screen_nbr) {
     }
     that->last_active_screen_ = screen_nbr;
 
-    if (!lvgl_port_lock(1000)) {
+    ESP_LOGD(TAG, "lvgl_port_lock setBootScreenCb");
+    if (!lvgl_port_lock(PORT_LOCK_MS)) {
         ESP_LOGE(TAG, "LVGL lock failed for setBootScreenCb");
         return;
     }
 
     if (disable_boot_anim) {
         lv_scr_load(that->main_screen_);
+        ESP_LOGD(TAG, "lvgl_port_unlock setBootScreenCb disable_boot_anim");
         lvgl_port_unlock();
         DisplayDriver::setBootAnimCompletedCb(&that->lv_anim_);
         return;
@@ -752,6 +769,7 @@ void DisplayDriver::setBootScreenCb(void *display, int32_t screen_nbr) {
             that->label_title_ = nullptr;
             that->label_text_ = nullptr;
             // release early, don't hold lock while calling setBootAnimCompletedCb
+            ESP_LOGD(TAG, "lvgl_port_unlock setBootScreenCb complete");
             lvgl_port_unlock();
             DisplayDriver::setBootAnimCompletedCb(&that->lv_anim_);
             return;
@@ -759,6 +777,7 @@ void DisplayDriver::setBootScreenCb(void *display, int32_t screen_nbr) {
             ESP_LOGW(TAG, "Ignoring invalid boot up screen number: %ld", screen_nbr);
     }
 
+    ESP_LOGD(TAG, "lvgl_port_unlock setBootScreenCb");
     lvgl_port_unlock();
 }
 
