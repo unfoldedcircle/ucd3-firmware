@@ -66,7 +66,7 @@ dependencies:
       type: service
     version: 3.0.1~1
   espressif/mdns:
-    component_hash: fe546a92ee741cfabf2c2bb52c9024314e1d0ad32b44794f45323a0ecf1543d7
+    component_hash: 3ec0af5f6bce310512e90f482388d21cc7c0e99668172d2f895356165fc6f7c5
     dependencies:
     - name: idf
       require: private
@@ -74,7 +74,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com/
       type: service
-    version: 1.7.0
+    version: 1.8.2
   idf:
     source:
       type: idf
@@ -116,6 +116,6 @@ direct_dependencies:
 - jkent/frogfs
 - joltwallet/littlefs
 - lvgl/lvgl
-manifest_hash: d2eac5febc2a15853eb850bb8c0708aac8743690349afe8fba394739763884d6
+manifest_hash: 9410a41f5ebfa538f30155c1e7c6f777dc84c125d748ecc324951a16ae8234e0
 target: esp32s3
 version: 2.0.0

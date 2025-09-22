@@ -1,7 +1,7 @@
 ## IDF Component Manager Manifest File
 ## Pin versions: managed components are checked in and have to be updated manually
 dependencies:
-  espressif/mdns: "==1.7.0"
+  espressif/mdns: "==1.8.2"
   espressif/led_indicator: "==2.0.1"
   espressif/led_strip: "==3.0.1~1"
   espressif/button: "==3.5.0"
