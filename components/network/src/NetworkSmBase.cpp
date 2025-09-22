@@ -243,10 +243,13 @@ void NetworkBase::connectActiveSsid() {
             ESP_LOGI(TAG, "Ethernet connection is found.  Try to fallback there");
             trigger_eth_fallback_event();
         } else {
-            // start WiFi provisioning
-            sta_duration_ms_ = CONFIG_NETWORK_MANAGER_STA_POLLING_MIN * 1000;
-            ESP_LOGI(TAG, "No ethernet and no WiFi configured. Starting WiFi provisioning");
-            trigger_configure_wifi_event();
+            // This should not happen! SSID & pwd were checked before and are available,
+            // something must have gone wrong in network_wifi_connect.
+            // Likely causes https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612
+            ESP_LOGE(TAG, "Failed to initiate WiFi connection. Trying one more time...");
+
+            // Retry one more time, before it will reboot the dock
+            retries_ = CONFIG_NETWORK_MANAGER_MAX_RETRY - 1;
         }
     }
 }
