@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- Microsecond delay function used for sending IR codes ([#34](https://github.com/unfoldedcircle/ucd3-firmware/pull/34), [feature-and-bug-tracker#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).
+- Stop active IR repeat if WebSocket client disconnects.
+- Memory leak in async ir_send responses.
+
+### Added
+- Optional system runtime statistics ([#28](https://github.com/unfoldedcircle/ucd3-firmware/pull/28)).
+- Status led patterns for dock setup, IR learning and OTA ([#37](https://github.com/unfoldedcircle/ucd3-firmware/pull/37)).
+- Sending an IR code for a specific time.
+
+### Changed
+- Support higher modulation frequencies and better PWM precision for sending IR ([#29](https://github.com/unfoldedcircle/ucd3-firmware/pull/29)).
+- Enhance IR repeat functionality ([#35](https://github.com/unfoldedcircle/ucd3-firmware/pull/35)).
+- Do not enter WiFi setup mode if connection setup failed ([feature-and-bug-tracker#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612))
+
 ---
 
 ## Beta Release 0.7.1
