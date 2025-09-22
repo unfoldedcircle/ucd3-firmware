@@ -246,10 +246,12 @@ void NetworkBase::connectActiveSsid() {
             // This should not happen! SSID & pwd were checked before and are available,
             // something must have gone wrong in network_wifi_connect.
             // Likely causes https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612
-            ESP_LOGE(TAG, "Failed to initiate WiFi connection. Trying one more time...");
+            ESP_LOGE(TAG, "Failed to initiate WiFi connection. Trying max 2 more times...");
 
-            // Retry one more time, before it will reboot the dock
-            retries_ = CONFIG_NETWORK_MANAGER_MAX_RETRY - 1;
+            // Retry again, dock is restarted when reaching max retry
+            if (retries_ < CONFIG_NETWORK_MANAGER_MAX_RETRY - 1) {
+                retries_ = CONFIG_NETWORK_MANAGER_MAX_RETRY - 1;
+            }
         }
     }
 }
