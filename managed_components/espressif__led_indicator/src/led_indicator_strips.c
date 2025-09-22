@@ -1,21 +1,24 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <math.h>
+#include <sys/param.h>  // For MIN/MAX(a, b)
 #include "esp_log.h"
-#include "led_strips.h"
+#include "led_indicator_strips.h"
 #include "led_strip.h"
 #include "led_strip_types.h"
 #include "led_convert.h"
+#include "led_common.h"
+#include "led_indicator_blink_default.h"
 
 #define TAG "led_strips"
 
@@ -26,13 +29,15 @@
         action;                                                   \
     }
 
+static uint32_t max_brightness = MAX_BRIGHTNESS;
+
 typedef struct {
     led_strip_handle_t led_strip;
     uint32_t max_index;             /*!< Maximum LEDs in a single strip */
     led_indicator_ihsv_t ihsv;      /*!< IHSV: I [0-127] 7 bits -  H [0-360] - 9 bits, S [0-255] - 8 bits, V [0-255] - 8 bits*/
 } led_strips_t;
 
-esp_err_t led_indicator_strips_init(void *param, void **ret_strips)
+static esp_err_t led_indicator_strips_init(void *param, void **ret_strips)
 {
     esp_err_t ret = ESP_OK;
     const led_indicator_strips_config_t *cfg = (led_indicator_strips_config_t *)param;
@@ -72,7 +77,7 @@ fail:
     return ret;
 }
 
-esp_err_t led_indicator_strips_deinit(void *strips)
+static esp_err_t led_indicator_strips_deinit(void *strips)
 {
     LED_STRIPS_CHECK(NULL != strips, "param pointer invalid", return ESP_ERR_INVALID_ARG);
     led_strips_t *p_strip = (led_strips_t *)strips;
@@ -83,10 +88,10 @@ esp_err_t led_indicator_strips_deinit(void *strips)
     return ESP_OK;
 }
 
-esp_err_t led_indicator_strips_set_on_off(void *strips, bool on_off)
+static esp_err_t led_indicator_strips_set_on_off(void *strips, bool on_off)
 {
     led_strips_t *p_strip = (led_strips_t *)strips;
-    p_strip->ihsv.v = on_off ? MAX_BRIGHTNESS : 0;
+    p_strip->ihsv.v = on_off ? max_brightness : 0;
     esp_err_t err = ESP_OK;
     if (p_strip->ihsv.i == MAX_INDEX) {
         for (int j = 0; j < p_strip->max_index; j++) {
@@ -107,7 +112,7 @@ esp_err_t led_indicator_strips_set_on_off(void *strips, bool on_off)
     return ESP_OK;
 }
 
-esp_err_t led_indicator_strips_set_rgb(void *strips, uint32_t irgb_value)
+static esp_err_t led_indicator_strips_set_rgb(void *strips, uint32_t irgb_value)
 {
     led_strips_t *p_strip = (led_strips_t *)strips;
     uint8_t i, r, g, b;
@@ -138,10 +143,12 @@ esp_err_t led_indicator_strips_set_rgb(void *strips, uint32_t irgb_value)
     return ESP_OK;
 }
 
-esp_err_t led_indicator_strips_set_hsv(void *strips, uint32_t ihsv_value)
+static esp_err_t led_indicator_strips_set_hsv(void *strips, uint32_t ihsv_value)
 {
     led_strips_t *p_strip = (led_strips_t *)strips;
     p_strip->ihsv.value = ihsv_value;
+
+    p_strip->ihsv.v = MIN(max_brightness, p_strip->ihsv.v);
 
     esp_err_t err = ESP_OK;
     if (p_strip->ihsv.i == MAX_INDEX) {
@@ -163,11 +170,12 @@ esp_err_t led_indicator_strips_set_hsv(void *strips, uint32_t ihsv_value)
     return ESP_OK;
 }
 
-esp_err_t led_indicator_strips_set_brightness(void *strips, uint32_t ihsv)
+static esp_err_t led_indicator_strips_set_brightness(void *strips, uint32_t ihsv)
 {
     led_strips_t *p_strip = (led_strips_t *)strips;
     p_strip->ihsv.i = GET_INDEX(ihsv);
-    p_strip->ihsv.v = GET_BRIGHTNESS(ihsv);
+    max_brightness =  GET_BRIGHTNESS(ihsv);
+    p_strip->ihsv.v = max_brightness;
 
     esp_err_t err = ESP_OK;
     if (p_strip->ihsv.i == MAX_INDEX) {
@@ -186,5 +194,45 @@ esp_err_t led_indicator_strips_set_brightness(void *strips, uint32_t ihsv)
         return err;
     }
 
+    return ESP_OK;
+}
+
+esp_err_t led_indicator_new_strips_device(const led_indicator_config_t *led_config, const led_indicator_strips_config_t *strips_cfg, led_indicator_handle_t *handle)
+{
+    esp_err_t ret = ESP_OK;
+    bool if_blink_default_list = false;
+
+    ESP_LOGI(TAG, "LED Indicator Version: %d.%d.%d", LED_INDICATOR_VER_MAJOR, LED_INDICATOR_VER_MINOR, LED_INDICATOR_VER_PATCH);
+    LED_INDICATOR_CHECK(strips_cfg != NULL, "invalid config pointer", return ESP_ERR_INVALID_ARG);
+    _led_indicator_com_config_t com_cfg = {0};
+    _led_indicator_t *p_led_indicator = NULL;
+
+    void *hardware_data = NULL;
+    ret = led_indicator_strips_init((void *)strips_cfg, &hardware_data);
+    LED_INDICATOR_CHECK(ESP_OK == ret, "LED rgb init failed", return ESP_FAIL);
+    com_cfg.hardware_data = hardware_data;
+    com_cfg.hal_indicator_set_on_off = led_indicator_strips_set_on_off;
+    com_cfg.hal_indicator_deinit = led_indicator_strips_deinit;
+    com_cfg.hal_indicator_set_brightness = led_indicator_strips_set_brightness;
+    com_cfg.hal_indicator_set_rgb = led_indicator_strips_set_rgb;
+    com_cfg.hal_indicator_set_hsv = led_indicator_strips_set_hsv;
+    com_cfg.duty_resolution = LED_DUTY_8_BIT;
+
+    if (led_config->blink_lists == NULL) {
+        ESP_LOGI(TAG, "blink_lists is null, use default blink list");
+        com_cfg.blink_lists = default_led_indicator_blink_lists;
+        com_cfg.blink_list_num = DEFAULT_BLINK_LIST_NUM;
+        if_blink_default_list = true;
+    } else {
+        com_cfg.blink_lists = led_config->blink_lists;
+        com_cfg.blink_list_num = led_config->blink_list_num;
+    }
+
+    p_led_indicator = _led_indicator_create_com(&com_cfg);
+
+    LED_INDICATOR_CHECK(NULL != p_led_indicator, "LED indicator create failed", return ESP_FAIL);
+    _led_indicator_add_node(p_led_indicator);
+    ESP_LOGI(TAG, "Indicator create successfully. type:LED Strips mode, hardware_data:%p, blink_lists:%s", p_led_indicator->hardware_data, if_blink_default_list ? "default" : "custom");
+    *handle = (led_indicator_handle_t)p_led_indicator;
     return ESP_OK;
 }

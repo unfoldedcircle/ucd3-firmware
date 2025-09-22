@@ -17,6 +17,10 @@ CONFIG_FREERTOS_TIMER_TASK_STACK_DEPTH=4092
 # CONFIG_SPI_FLASH_HPM_AUTO is not set
 CONFIG_SPI_FLASH_HPM_DIS=y
 
+# Increase from 1 to 4 to match LVGL task priority.
+# LCD state machine is driven by a timer and might starve with a lower priority then LVGL!
+CONFIG_FREERTOS_TIMER_TASK_PRIORITY=4
+
 #
 # Security features
 #

@@ -4,6 +4,7 @@
 
 #include "esp_log.h"
 
+#include "led_indicator_rgb.h"
 #include "led_pattern.h"
 #include "sdkconfig.h"
 
@@ -11,6 +12,15 @@
 
 extern led_indicator_handle_t led_handle;
 extern const char *const      LED;
+
+/**
+ * @brief Software update in progress: breathing red
+ */
+static const blink_step_t ota[] = {
+    {LED_BLINK_RGB, SET_RGB(0xFF, 0, 0), 0},    {LED_BLINK_BREATHE, LED_STATE_OFF, 1000},
+    {LED_BLINK_BRIGHTNESS, LED_STATE_OFF, 500}, {LED_BLINK_BREATHE, LED_STATE_ON, 1000},
+    {LED_BLINK_BRIGHTNESS, LED_STATE_ON, 500},  {LED_BLINK_LOOP, 0, 0},
+};
 
 /**
  * @brief LED off: The improv service is stopped
@@ -96,7 +106,56 @@ static const blink_step_t improv_provisioned[] = {
     {LED_BLINK_STOP, 0, 0},
 };
 
+/**
+ * @brief amber blinking: device requires setup
+ */
+static const blink_step_t setup[] = {
+    {LED_BLINK_RGB, SET_RGB(255, 170, 0), 1000},
+    {LED_BLINK_RGB, LED_STATE_OFF, 1000},
+    {LED_BLINK_LOOP, 0, 0},
+};
+
+/**
+ * @brief solid green: IR learning is active.
+ */
+static const blink_step_t ir_learn_on[] = {
+    // use a short delay to quickly show learned ok / failed pattern
+    {LED_BLINK_RGB, SET_RGB(0x00, 0xFF, 0x00), 100},
+    {LED_BLINK_LOOP, 0, 0},
+};
+
+/**
+ * @brief green blinking twice: IR command learned successfully
+ */
+static const blink_step_t ir_learn_ok[] = {
+    {LED_BLINK_RGB, SET_RGB(0x00, 0xFF, 0x00), 100},
+    {LED_BLINK_RGB, SET_RGB(0, 0, 0), 100},
+    {LED_BLINK_RGB, SET_RGB(0x00, 0xFF, 0x00), 100},
+    {LED_BLINK_RGB, SET_RGB(0, 0, 0), 100},
+    {LED_BLINK_STOP, 0, 0},
+};
+
+/**
+ * @brief red blinking twice: IR command learning failed
+ */
+static const blink_step_t ir_learn_failed[] = {
+    {LED_BLINK_RGB, SET_RGB(0xFF, 0, 0), 100},
+    {LED_BLINK_RGB, SET_RGB(0, 0, 0), 100},
+    {LED_BLINK_RGB, SET_RGB(0xFF, 0, 0), 100},
+    {LED_BLINK_RGB, SET_RGB(0, 0, 0), 100},
+    {LED_BLINK_STOP, 0, 0},
+};
+
+/**
+ * @brief pseudo pattern to turn off LED
+ */
+static const blink_step_t idle[] = {
+    {LED_BLINK_RGB, SET_RGB(0, 0, 0), 0},
+    {LED_BLINK_STOP, 0, 0},
+};
+
 static blink_step_t const *led_mode[] = {
+    [LED_OTA] = ota,
     [LED_IMPROV_FAILED] = improv_failed,
     [LED_IMPROV_STOPPED] = improv_stopped,
     [LED_IMPROV_PROVISIONED] = improv_provisioned,
@@ -104,10 +163,15 @@ static blink_step_t const *led_mode[] = {
     [LED_IMPROV_IDENTIFY] = improv_identify,
     [LED_IMPROV_WAIT_CREDENTIALS] = improv_wait_credentials,
     [LED_IMPROV_WAIT_AUTHORIZATION] = improv_wait_authorization,
+    [LED_SETUP] = setup,
+    [LED_IR_LEARN_FAILED] = ir_learn_failed,
+    [LED_IR_LEARN_OK] = ir_learn_ok,
+    [LED_IR_LEARN_ON] = ir_learn_on,
+    [LED_IDLE] = idle,
     [LED_PATTERNS_MAX] = NULL,
 };
 
-void init_led(led_pattern_t pattern) {
+void init_led(uint32_t brightness) {
     led_indicator_rgb_config_t led_rgb_config = {
         .is_active_level_high =
 #ifdef CONFIG_LED_PATTERN_RGB_ACTIVE_LEVEL
@@ -126,15 +190,15 @@ void init_led(led_pattern_t pattern) {
     };
 
     const led_indicator_config_t config = {
-        .mode = LED_RGB_MODE,
-        .led_indicator_rgb_config = &led_rgb_config,
         .blink_lists = led_mode,
         .blink_list_num = LED_PATTERNS_MAX,
     };
 
-    led_handle = led_indicator_create(&config);
+    ESP_ERROR_CHECK_WITHOUT_ABORT(led_indicator_new_rgb_device(&config, &led_grb_cfg, &led_handle));
+
     if (led_handle) {
         ESP_LOGI(LED, "Created RGB LED");
+        set_led_brightness(brightness);
     }
 }
 #endif  // CONFIG_LED_PATTERN_RGB

@@ -9,6 +9,7 @@
 #include "esp_timer.h"
 
 #include "DisplayDriver.h"
+#include "led_pattern.h"
 #include "mem_util.h"
 #include "network.h"
 #include "sdkconfig.h"
@@ -77,6 +78,9 @@ void DisplayBase::startIrLearnedOkTimer() {
 }
 
 void DisplayBase::stopIrLearning() {
+    led_pattern_stop(LED_IR_LEARN_ON);
+    // force LED to turn off. library quirk, or because it's a solid LED without a pattern?
+    led_pattern(LED_IDLE);
     InfraredService::getInstance().stopIrLearn();
 }
 
@@ -307,6 +311,7 @@ void DisplayBase::showImprovDoneScreen() {
 
 void DisplayBase::showIrLearningScreen() {
     ESP_LOGI(TAG, "showIrLearningScreen");
+    led_pattern(LED_IR_LEARN_ON);
     if (display_) {
         display_->showIconScreen(UI_ICON_IR_LEARNING, "IR learning", " ");
     }
@@ -314,6 +319,7 @@ void DisplayBase::showIrLearningScreen() {
 
 void DisplayBase::showIrLearnedOkScreen() {
     ESP_LOGI(TAG, "showIrLearnedOkScreen");
+    led_pattern(LED_IR_LEARN_OK);
     if (display_) {
         display_->showIconScreen(UI_ICON_OK, "IR code", event_parameter_->message());
     }
@@ -321,6 +327,7 @@ void DisplayBase::showIrLearnedOkScreen() {
 
 void DisplayBase::showIrLearnedFailedScreen() {
     ESP_LOGI(TAG, "showIrLearnedFailedScreen");
+    led_pattern(LED_IR_LEARN_FAILED);
     if (display_) {
         display_->showIconScreen(UI_ICON_FAILED, "IR learning", event_parameter_->message());
     }
@@ -328,6 +335,7 @@ void DisplayBase::showIrLearnedFailedScreen() {
 
 void DisplayBase::showOtaScreen() {
     ESP_LOGI(TAG, "showOtaScreen");
+    led_pattern(LED_OTA);
     if (display_) {
         display_->showIconScreen(UI_ICON_OTA, "OTA", "in progress");
     }
@@ -342,6 +350,7 @@ void DisplayBase::updateOtaScreen() {
 
 void DisplayBase::showOtaSuccessScreen() {
     ESP_LOGI(TAG, "showOtaSuccessScreen");
+    led_pattern_stop(LED_OTA);
     if (display_) {
         display_->showIconScreen(UI_ICON_OTA_OK, "Restarting", " ");
     }
@@ -349,6 +358,7 @@ void DisplayBase::showOtaSuccessScreen() {
 
 void DisplayBase::showOtaFailScreen() {
     ESP_LOGI(TAG, "showOtaFailScreen");
+    led_pattern_stop(LED_OTA);
     if (display_) {
         display_->showIconScreen(UI_ICON_OTA_FAILED, "Failed", " ");
     }

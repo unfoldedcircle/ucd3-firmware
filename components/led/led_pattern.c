@@ -15,7 +15,7 @@ const char* const LED = "LED";
 led_indicator_handle_t led_handle = NULL;
 
 #ifdef CONFIG_LED_PATTERN_NONE
-void init_led() {}
+void init_led(uint32_t) {}
 #endif
 
 void led_pattern(led_pattern_t pattern) {
@@ -43,7 +43,7 @@ void led_pattern(led_pattern_t pattern) {
             break;
     }
 
-    led_indicator_start(led_handle, pattern);
+    ESP_ERROR_CHECK_WITHOUT_ABORT(led_indicator_start(led_handle, pattern));
 }
 
 void led_pattern_stop(led_pattern_t pattern) {
@@ -53,7 +53,7 @@ void led_pattern_stop(led_pattern_t pattern) {
     }
 #endif
     ESP_LOGI(LED, "Stopping LED pattern: %s", get_led_pattern_str(pattern));
-    led_indicator_stop(led_handle, pattern);
+    ESP_ERROR_CHECK_WITHOUT_ABORT(led_indicator_stop(led_handle, pattern));
 }
 
 void led_pattern_stop_all() {
@@ -69,8 +69,20 @@ void led_pattern_stop_all() {
     }
 }
 
+void set_led_brightness(uint32_t brightness) {
+    // I do not understand the brightness settings function.
+    // It just doesn't work correctly for LED strips!
+    // Switches back to a white LED and patterns don't use the new brightness!
+    // --> see patched up code to at least make it work for basic blink patterns!
+    ESP_ERROR_CHECK_WITHOUT_ABORT(led_indicator_set_brightness(led_handle, brightness));
+    // HACK to turn off white LED if no pattern was active
+    led_pattern(LED_IDLE);
+}
+
 const char* get_led_pattern_str(led_pattern_t pattern) {
     switch (pattern) {
+        case LED_OTA:
+            return "OTA";
         case LED_IMPROV_STOPPED:
             return "IMPROV_STOPPED";
         case LED_IMPROV_FAILED:
@@ -85,6 +97,16 @@ const char* get_led_pattern_str(led_pattern_t pattern) {
             return "IMPROV_WAIT_CREDENTIALS";
         case LED_IMPROV_WAIT_AUTHORIZATION:
             return "IMPROV_WAIT_AUTHORIZATION";
+        case LED_SETUP:
+            return "SETUP";
+        case LED_IR_LEARN_ON:
+            return "IR_LEARN_ON";
+        case LED_IR_LEARN_OK:
+            return "IR_LEARN_OK";
+        case LED_IR_LEARN_FAILED:
+            return "IR_LEARN_FAILED";
+        case LED_IDLE:
+            return "IDLE";
         default:
             return "UNKNOWN";
     }

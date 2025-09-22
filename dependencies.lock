@@ -38,33 +38,33 @@ dependencies:
       type: service
     version: 2.4.4
   espressif/led_indicator:
-    component_hash: f1fbe20fba9313986c32b1b6b7a4ae4822103ab928b51e9bd77215470cb70d98
+    component_hash: add9c251d9a16fe7ddaab25401179a33f5b47790e29709d171fb047e116bcfb9
     dependencies:
-    - name: idf
-      require: private
-      version: '>=4.0'
     - name: espressif/cmake_utilities
       registry_url: https://components.espressif.com
       require: private
-      version: 0.*
+      version: '*'
+    - name: idf
+      require: private
+      version: '>=5.0'
     - name: espressif/led_strip
       registry_url: https://components.espressif.com
       require: public
-      version: 2.5.5
+      version: 3.*
     source:
       registry_url: https://components.espressif.com/
       type: service
-    version: 1.0.0
+    version: 2.0.1
   espressif/led_strip:
-    component_hash: 28c6509a727ef74925b372ed404772aeedf11cce10b78c3f69b3c66799095e2d
+    component_hash: 223998f10cae6d81f2ad2dd3c1103c2221be298c708e37917482b0153f3ec64e
     dependencies:
     - name: idf
       require: private
-      version: '>=4.4'
+      version: '>=5.0'
     source:
       registry_url: https://components.espressif.com/
       type: service
-    version: 2.5.5
+    version: 3.0.1~1
   espressif/mdns:
     component_hash: fe546a92ee741cfabf2c2bb52c9024314e1d0ad32b44794f45323a0ecf1543d7
     dependencies:
@@ -116,6 +116,6 @@ direct_dependencies:
 - jkent/frogfs
 - joltwallet/littlefs
 - lvgl/lvgl
-manifest_hash: 29f3a583f43e6a16bc0af68ea6cfc7722ca200eb91e9062a0e3aa00444497401
+manifest_hash: d2eac5febc2a15853eb850bb8c0708aac8743690349afe8fba394739763884d6
 target: esp32s3
 version: 2.0.0

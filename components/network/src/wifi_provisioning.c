@@ -473,6 +473,7 @@ void improv_set_state(improv_state_t new_state) {
                 led_pattern(LED_IMPROV_PROVISIONING);
                 break;
             case STATE_PROVISIONED:
+                led_pattern_stop(LED_SETUP);
                 led_pattern(LED_IMPROV_PROVISIONED);
                 break;
         }
@@ -572,6 +573,8 @@ void init_improv(void) {
 }
 
 esp_err_t start_improv(void) {
+    led_pattern(LED_SETUP);
+
     // TODO does this affect advertisement fields?
     // Default name is "nimble", which suddenly appeared in macOS LightBlue scan results if device_name was not set!
     ESP_RETURN_ON_ERROR(ble_svc_gap_device_name_set(create_device_name()), TAG, "Failed to set GAP device name");
