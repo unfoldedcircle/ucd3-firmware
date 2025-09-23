@@ -1,3 +1,15 @@
+## Beta Release 0.8.0
+### Fixed
+- Delay function used for sending IR codes was inaccurate for delays greater than 16ms, causing issues for certain IR protocols and native IR repeats ([#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).
+- Stop active IR repeat if the WebSocket client disconnects.
+- General stability improvements.
+
+### Added
+- Status led patterns for dock setup, IR learning and OTA.
+
+### Changed
+- Not entering WiFi setup mode if connection setup failed ([#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612)).
+
 ## Beta Release 0.7.1
 ### Changed
 - Increase of overcurrent limitation to 1850mA ([#30](https://github.com/unfoldedcircle/ucd3-firmware/pull/30)).
