@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## Beta Release 0.8.1
+### Changed
+- Increase of overcurrent limitation to 2000mA ([#41](https://github.com/unfoldedcircle/ucd3-firmware/pull/41)).
+
 ## Beta Release 0.8.0
 ### Fixed
 - Delay function used for sending IR codes was inaccurate for delays greater than 16ms, causing issues for certain IR protocols and native IR repeats ([#34](https://github.com/unfoldedcircle/ucd3-firmware/pull/34), [feature-and-bug-tracker#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).

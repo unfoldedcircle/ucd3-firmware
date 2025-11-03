@@ -1,3 +1,7 @@
+## Beta Release 0.8.1
+### Changed
+- Increase of overcurrent limitation to 2000mA.
+
 ## Beta Release 0.8.0
 ### Fixed
 - Delay function used for sending IR codes was inaccurate for delays greater than 16ms, causing issues for certain IR protocols and native IR repeats ([#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).

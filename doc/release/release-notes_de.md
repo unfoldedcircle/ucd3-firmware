@@ -1,3 +1,7 @@
+## Beta Release 0.8.1
+### Geändert
+- Anhebung der Überstrombegrenzung auf 2000mA.
+
 ## Beta Release 0.8.0
 ### Fehlerbehebungen
 - Die Verzögerungsfunktion für das Senden von IR-Codes war bei Verzögerungen von mehr als 16 ms ungenau, was bei bestimmten IR-Protokollen und nativen IR-Wiederholungen zu Problemen führte ([#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).
