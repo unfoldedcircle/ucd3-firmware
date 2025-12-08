@@ -60,6 +60,52 @@ The OTA update requires the same authentication token used with the WebSocket Do
 ```shell
 curl  --user "admin:$TOKEN" --data-binary "@./build/ucd3-firmware.bin" http://${DOCK_IP}/update
 ```
+## Pinout
+
+![Dock 3 ESP32S3 pinout](doc/pinout-rev4.png)
+
+Die Pins sind definiert in:
+`/components/preferences/board.h`
+`/components/preferences/board_r4.h`
+
+| GPIO | ADC (S3) | Funktion / Label |
+| :--- | :--- | :--- |
+| **IO0** | - | BUTTON |
+| **IO1** | ADC1_CH0 | IR_ANALOG_RECEIVE |
+| **IO2** | - | PORT2_HIGH_SIDE_ENABLE |
+| **IO3** | ADC1_CH2 | AMPLIFIER_ENABLE / VCC_SENSE*0.5 |
+| **IO4** | - | SCL_OLED |
+| **IO5** | - | SDA_OLED |
+| **IO6** | - | ETH_SPI_CS |
+| **IO7** | - | IR_SEND_TOP |
+| **IO8** | - | I2S_BLCK |
+| **IO9** | ADC1_CH8 | MEASURE_GND_PORT1 |
+| **IO10** | ADC1_CH9 | MEASURE_GND_PORT2 |
+| **IO11** | - | ETH_SPI_MOSI |
+| **IO12** | - | ETH_SPI_CLK |
+| **IO13** | - | ETH_SPI_MISO |
+| **IO14** | ADC2_CH3 | CHARGE_CURR_SENSE |
+| **IO15** | - | RGB_LED_DAT |
+| **IO16** | - | I2S_DAT_SPKR |
+| **IO17** | - | I2S_WS |
+| **IO18** | - | I2S_DAT_MIC |
+| **IO19** | - | USB_D- |
+| **IO20** | - | USB_D+ |
+| **IO21** | - | ETH/OLED_RESET |
+| **IO35** | - | ETH_LED_PWM_BRIGHTNESS |
+| **IO36** | - | IR_38KHZ_RECEIVE |
+| **IO37** | - | PORT2_LOW_SIDE_ENABLE |
+| **IO38** | - | IR_SEND_BOTTOM |
+| **IO39** | - | PORT2_RS232_RX |
+| **IO40** | - | CHARGE_LED_PWM |
+| **IO41** | - | PORT2_RS232_TX |
+| **IO42** | - | PORT1_HIGH_SIDE_ENABLE |
+| **IO45** | - | CHARGE_ENABLE |
+| **IO46** | - | ETH_INTERRUPT |
+| **IO47** | - | CHARGE_DATA_PIN |
+| **IO48** | - | PORT1_LOW_SIDE_ENABLE |
+| **RXD0** | - | PORT1_RS232_RX |
+| **TXD0** | - | PORT1_RS232_TX |
 
 ## Recent changes
 
