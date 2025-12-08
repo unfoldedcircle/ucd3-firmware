@@ -64,7 +64,7 @@ curl  --user "admin:$TOKEN" --data-binary "@./build/ucd3-firmware.bin" http://${
 
 ![Dock 3 ESP32S3 pinout](doc/pinout-rev4.png)
 
-Die Pins sind definiert in:
+Pins defined in:
 `/components/preferences/board.h`
 `/components/preferences/board_r4.h`
 
