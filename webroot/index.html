@@ -50,7 +50,11 @@
 					getRow(row, 'Free heap', info.free_heap) +
 					getRow(row, 'Reset reason', info.reset_reason) +
 					getRow(row, 'Uptime', info.uptime) +
-					getRow(row, 'Time', new Date(info.time).toLocaleString())
+					getRow(row, 'Time', (() => {
+						const timeValue = info.time;
+						const date = timeValue ? new Date(timeValue) : null;
+						return date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : '';
+					})())
 				})
 				.catch(err => {
 					console.error(err)
