@@ -245,7 +245,7 @@ bool Config::enableNtp(bool enable) {
 }
 
 bool Config::isNtpEnabled() {
-    return getBoolSetting(m_prefGeneral, "ntp_enabled", false);
+    return getBoolSetting(m_prefGeneral, "ntp_enabled", true);
 }
 
 bool Config::setNtpServer(const std::string& server1, const std::string& server2) {
