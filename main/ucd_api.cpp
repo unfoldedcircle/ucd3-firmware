@@ -87,15 +87,22 @@ void fill_sysinfo_to_json(cJSON *root) {
     cJSON_AddBoolToObject(root, "sntp", cfg.isNtpEnabled());
     cJSON_AddStringToObject(root, "reset_reason", getResetReason());
 
+    bool time_added = false;
     if (cfg.isNtpEnabled()) {
         time_t    now;
         char      strftime_buf[64];
-        struct tm timeinfo;
+        struct tm timeinfo = {};
 
         time(&now);
-        localtime_r(&now, &timeinfo);
-        strftime(strftime_buf, sizeof(strftime_buf), "%FT%T%z", &timeinfo);
-        cJSON_AddStringToObject(root, "time", strftime_buf);
+        if (localtime_r(&now, &timeinfo) && timeinfo.tm_year >= (2020 - 1900)) {
+            strftime(strftime_buf, sizeof(strftime_buf), "%FT%T%z", &timeinfo);
+            cJSON_AddStringToObject(root, "time", strftime_buf);
+            time_added = true;
+        }
+    }
+
+    if (!time_added) {
+        cJSON_AddNullToObject(root, "time");
     }
 
     char buf[1 + 8 * sizeof(uint32_t)];
