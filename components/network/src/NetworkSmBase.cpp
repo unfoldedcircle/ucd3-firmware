@@ -95,6 +95,14 @@ void NetworkBase::initNetwork() {
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &network_ip_event_handler, NULL));
 
+    if (Config::instance().isNtpEnabled()) {
+        auto ret = init_sntp();
+        // don't abort, SNTP is not required for the dock to function
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to initialize SNTP (%d): %s", ret, esp_err_to_name(ret));
+        }
+    }
+
     init_improv();
 }
 
@@ -124,14 +132,6 @@ void NetworkBase::initEthernet() {
 
     // Start Ethernet driver state machine
     ESP_GOTO_ON_ERROR(esp_eth_start(eth_handle_), err, TAG, "Failed to start eth driver");
-
-    if (Config::instance().isNtpEnabled()) {
-        ret = init_sntp();
-        // don't abort, SNTP is not required for the dock to function
-        if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to initialize SNTP (%d): %s", ret, esp_err_to_name(ret));
-        }
-    }
 
     return;
 err:
