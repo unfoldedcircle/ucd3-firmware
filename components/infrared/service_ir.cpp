@@ -574,7 +574,7 @@ void InfraredService::send_ir_f(void *param) {
             response->clientId = pIrMsg->clientId;
             char *resp = cJSON_PrintUnformatted(responseDoc);
             response->message = resp;
-            delete (resp);
+            cJSON_free(resp);
             cJSON_Delete(responseDoc);
 
             if (ir->m_responseCallback) {
@@ -707,7 +707,7 @@ void InfraredService::learn_ir_f(void *param) {
             response->clientId = -1;  // broadcast
             char *resp = cJSON_PrintUnformatted(responseDoc);
             response->message = resp;
-            delete (resp);
+            cJSON_free(resp);
             cJSON_Delete(responseDoc);
 
             if (ir->m_responseCallback) {
