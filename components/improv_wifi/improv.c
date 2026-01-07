@@ -139,7 +139,7 @@ uint8_t* build_rpc_response(improv_command_t command, const char* datum[], uint8
     *buf_length = out_length;
 
     out[0] = command;
-    out[1] = length;
+    out[1] = out_length - 3;
 
     uint16_t pos = 2;
     for (uint8_t i = 0; i < num_datum; i++) {
@@ -154,7 +154,7 @@ uint8_t* build_rpc_response(improv_command_t command, const char* datum[], uint8
         uint32_t calculated_checksum = 0;
 
         for (uint8_t i = 0; i < pos; i++) {
-            calculated_checksum += out[pos];
+            calculated_checksum += out[i];
         }
         out[pos] = (uint8_t)calculated_checksum;
     }
