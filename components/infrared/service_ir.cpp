@@ -358,8 +358,8 @@ void InfraredService::send_ir_f(void *param) {
 
     bool modulation = true;
     // used default output to initialize, active outputs are set with `setPinMask` before calling send
-    uint64_t w1ts_mask = 1ULL << IR_SEND_PIN_INT_SIDE;
-    IRsend   irsend = IRsend(modulation, w1ts_mask, 0);
+    auto   default_mask = ir->createIrPinMask(true, true, false, false);
+    IRsend irsend = IRsend(modulation, default_mask.w1ts, default_mask.w1tc);
 
     int8_t value = irsend.calibrate(38000);
     ESP_LOGI(irLogSend, "IR Calibration, calculated period offset: %dus", value);
