@@ -60,6 +60,52 @@ The OTA update requires the same authentication token used with the WebSocket Do
 ```shell
 curl  --user "admin:$TOKEN" --data-binary "@./build/ucd3-firmware.bin" http://${DOCK_IP}/update
 ```
+## Pinout
+
+![Dock 3 ESP32S3 pinout](doc/pinout-rev4.png)
+
+Pins defined in:
+- [`/components/preferences/board.h`](components/preferences/board.h)
+- [`/components/preferences/board_r4.h`](components/preferences/board_r4.h)
+
+| GPIO | ADC (S3) | Function / Label | Source Code Macro |
+| :--- | :--- | :--- | :--- |
+| **IO0** | - | BUTTON | `BUTTON_PIN` |
+| **IO1** | ADC1_CH0 | IR_ANALOG_RECEIVE | `IR_RECEIVE_ANALOG` |
+| **IO2** | - | PORT2_HIGH_SIDE_ENABLE | `SWITCH_EXT_2` |
+| **IO3** | ADC1_CH2 | AMPLIFIER_ENABLE / VCC_SENSE*0.5 | `SPEAKER_GPIO` |
+| **IO4** | - | SCL_OLED | `SCL` |
+| **IO5** | - | SDA_OLED | `SDA` |
+| **IO6** | - | ETH_SPI_CS | `SPI_CS` |
+| **IO7** | - | IR_SEND_TOP | `IR_SEND_PIN_INT_TOP` |
+| **IO8** | - | I2S_BLCK | `I2S_BCLK` |
+| **IO9** | ADC1_CH8 | MEASURE_GND_PORT1 | `MEASURE_GND_1` |
+| **IO10** | ADC1_CH9 | MEASURE_GND_PORT2 | `MEASURE_GND_2` |
+| **IO11** | - | ETH_SPI_MOSI | `SPI_MOSI` |
+| **IO12** | - | ETH_SPI_CLK | `SPI_CLK` |
+| **IO13** | - | ETH_SPI_MISO | `SPI_MISO` |
+| **IO14** | ADC2_CH3 | CHARGE_CURR_SENSE | `CHARGING_CURRENT` |
+| **IO15** | - | RGB_LED_DAT | `RGB_LED` |
+| **IO16** | - | I2S_DAT_SPKR | `I2S_SPEAKER_DATA` |
+| **IO17** | - | I2S_WS | `I2S_WS` |
+| **IO18** | - | I2S_DAT_MIC | `I2S_MIC_DATA` |
+| **IO19** | - | USB_D- | `USB_D_MINUS` |
+| **IO20** | - | USB_D+ | `USB_D_PLUS` |
+| **IO21** | - | ETH/OLED_RESET | `PERIPHERAL_RESET` |
+| **IO35** | - | ETH_LED_PWM_BRIGHTNESS | `ETH_LED_PWM` |
+| **IO36** | - | IR_38KHZ_RECEIVE | `IR_RECEIVE_PIN` |
+| **IO37** | - | PORT2_LOW_SIDE_ENABLE | `SWITCH_GND_2` |
+| **IO38** | - | IR_SEND_BOTTOM | `IR_SEND_PIN_INT_SIDE` |
+| **IO39** | - | PORT2_RS232_RX | `RX1` |
+| **IO40** | - | CHARGE_LED_PWM | `CHARGE_LED_PWM` |
+| **IO41** | - | PORT2_RS232_TX | `TX1` |
+| **IO42** | - | PORT1_HIGH_SIDE_ENABLE | `SWITCH_EXT_1` |
+| **IO45** | - | CHARGE_ENABLE | `CHARGING_ENABLE` |
+| **IO46** | - | ETH_INTERRUPT | `SPI_INT` |
+| **IO47** | - | CHARGE_DATA_PIN | `ROCKCHIP_PIN` |
+| **IO48** | - | PORT1_LOW_SIDE_ENABLE | `SWITCH_GND_1` |
+| **RXD0** | - | PORT1_RS232_RX | `RX0` (IO44) |
+| **TXD0** | - | PORT1_RS232_TX | `TX0` (IO43) |
 
 ## Recent changes
 
