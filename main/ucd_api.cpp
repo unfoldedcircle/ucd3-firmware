@@ -881,7 +881,7 @@ void DockApi::dockEventHandler(void *arg, esp_event_base_t event_base, int32_t e
 
             char       *resp = cJSON_PrintUnformatted(responseDoc);
             std::string msg = resp;
-            delete (resp);
+            cJSON_free(resp);
             cJSON_Delete(responseDoc);
 
             that->web_->broadcastWsTxt(msg);
