@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Run native tests
         run: |
           cd test
@@ -57,7 +57,7 @@ jobs:
   
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
           # History of 200 should be more than enough to calculate commit count since last release tag.
@@ -102,7 +102,7 @@ jobs:
           tar -czvf ${{ env.APP_NAME }}_r${{ matrix.config.revision }}-v${{ env.FW_VERSION }}.tar.gz *.bin
 
       - name: Archive build output artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.APP_NAME }}_r${{ matrix.config.revision }}-v${{ env.FW_VERSION }}
           path: ${{ env.APP_NAME }}_r${{ matrix.config.revision }}-v${{ env.FW_VERSION }}.tar.gz
@@ -119,7 +119,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -133,7 +133,7 @@ jobs:
           echo "FW_VERSION=$FW_VERSION" >> $GITHUB_OUTPUT
   
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "lts/*"
 
@@ -144,7 +144,7 @@ jobs:
           cat ${{ env.BUILD_CHANGELOG }}
 
       - name: Upload changelog
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: changelog
           path: ${{ env.BUILD_CHANGELOG }}
@@ -159,7 +159,7 @@ jobs:
 
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
 
       - name: Log
         if: env.DEBUG_OUTPUT == 'true'
@@ -198,7 +198,7 @@ jobs:
 
       # Checkout is required for the next `gh release delete` step
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: main
 
@@ -252,14 +252,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # History of 200 should be more than enough to calculate commit count since last release tag.
           # Required by tools/ota/create_ota_update.sh
           fetch-depth: 200
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: ${{ env.APP_NAME }}_r${{ env.BOARD_REVISION }}-*
           path: bin
