@@ -71,7 +71,7 @@ curl  --user "admin:$TOKEN" --data-binary "@./build/ucd3-firmware.bin" http://${
 Pins defined in:
 - [`/components/preferences/board.h`](components/preferences/board.h)
 - [`/components/preferences/board_r4.h`](components/preferences/board_r4.h)
-- - [`/components/preferences/board_r4.h`](components/preferences/board_r6.h)
+- [`/components/preferences/board_r6.h`](components/preferences/board_r6.h)
 
 | GPIO | ADC (S3) | Function / Label | Source Code Macro |
 | :--- | :--- | :--- | :--- |
