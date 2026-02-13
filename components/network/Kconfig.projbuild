@@ -65,6 +65,7 @@ menu "UC Dock Network Configuration"
 	config UCD_ETH_SPI_CS0_GPIO
 		int "SPI CS0 GPIO number for SPI Ethernet module"
 		range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+		default 14 if UCD_HW_REVISION_6
 		default 6
 		help
 			Set the GPIO number used by SPI CS0, i.e. Chip Select associated with the first SPI Eth module.

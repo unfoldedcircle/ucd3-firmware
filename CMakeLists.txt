@@ -1,5 +1,5 @@
 # To force a specific revision. This is usually set in the build environment.
-# set(SDKCONFIG_DEFAULTS "sdkconfig.defaults;sdkconfig.rev3")
+# set(SDKCONFIG_DEFAULTS "sdkconfig.defaults;sdkconfig.rev6")
 
 # The following lines of boilerplate have to be in your project's
 # CMakeLists in this exact order for cmake to work correctly
