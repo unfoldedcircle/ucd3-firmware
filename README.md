@@ -60,13 +60,18 @@ The OTA update requires the same authentication token used with the WebSocket Do
 ```shell
 curl  --user "admin:$TOKEN" --data-binary "@./build/ucd3-firmware.bin" http://${DOCK_IP}/update
 ```
-## Pinout
+## Pinout Rev 4
+
+![Dock 3 ESP32S3 pinout](doc/pinout-rev4.png)
+
+## Pinout Rev 6
 
 ![Dock 3 ESP32S3 pinout](doc/pinout-rev4.png)
 
 Pins defined in:
 - [`/components/preferences/board.h`](components/preferences/board.h)
 - [`/components/preferences/board_r4.h`](components/preferences/board_r4.h)
+- - [`/components/preferences/board_r4.h`](components/preferences/board_r6.h)
 
 | GPIO | ADC (S3) | Function / Label | Source Code Macro |
 | :--- | :--- | :--- | :--- |
@@ -106,6 +111,15 @@ Pins defined in:
 | **IO48** | - | PORT1_LOW_SIDE_ENABLE | `SWITCH_GND_1` |
 | **RXD0** | - | PORT1_RS232_RX | `RX0` (IO44) |
 | **TXD0** | - | PORT1_RS232_TX | `TX0` (IO43) |
+
+## Pin Changes on Rev 6
+
+| GPIO Rev 6 Changes | ADC (S3) | Function / Label | Source Code Macro |
+| --- | --- | --- | --- |
+| **IO6** | ADC1_CH5 | CHARGE_CURRENT_SENSE | `CHARGING_CURRENT` |
+| **IO7** | ADC1_CH6 | POE_VOLTAGE | `POE_VOLTAGE` |
+| **IO14** | - | ETH_SPI_CS | `SPI_CS` |
+| **IO38** | - | IR_SEND | `IR_SEND_PIN` |
 
 ## Recent changes
 
