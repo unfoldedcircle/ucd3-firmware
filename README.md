@@ -117,7 +117,7 @@ Pins defined in:
 | GPIO Rev 6 Changes | ADC (S3) | Function / Label | Source Code Macro |
 | --- | --- | --- | --- |
 | **IO6** | ADC1_CH5 | CHARGE_CURRENT_SENSE | `CHARGING_CURRENT` |
-| **IO7** | ADC1_CH6 | POE_VOLTAGE | `POE_VOLTAGE` |
+| **IO7** | - | POE_VOLTAGE | `POE_VOLTAGE` |
 | **IO14** | - | ETH_SPI_CS | `SPI_CS` |
 | **IO38** | - | IR_SEND | `IR_SEND_PIN` |
 
