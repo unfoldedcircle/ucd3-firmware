@@ -16,6 +16,11 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# prevent concurrent runs of this workflow for open pull requests
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   DEBUG_OUTPUT: "true"
   APP_NAME: UCD3-firmware
@@ -52,7 +57,13 @@ jobs:
             name: "Rev 4",
             # must match CONFIG_UCD_HW_REVISION
             revision: "4",
-            sdkconfig_defaults: "sdkconfig.defaults"
+            sdkconfig_defaults: "sdkconfig.defaults;sdkconfig.rev4"
+          }
+          - {
+            name: "Rev 6",
+            # must match CONFIG_UCD_HW_REVISION
+            revision: "6",
+            sdkconfig_defaults: "sdkconfig.defaults;sdkconfig.rev6"
           }
   
     steps:

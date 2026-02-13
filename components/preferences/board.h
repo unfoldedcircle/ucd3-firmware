@@ -38,7 +38,7 @@
 // 2. function: turnoff speaker amplifier when use as output low
 #define SCL                   GPIO_NUM_4    // OPEN DRAIN OUTPUT, physically pulled high
 #define SDA                   GPIO_NUM_5    // OPEN DRAIN OUTPUT, physically pulled high
-#define SPI_CS                GPIO_NUM_6    // chipselect for W5500 ethernet ic, LOW -> enable communication to w5500
+// SPI_CS and optional POE_SWITCH are defined per revision in board_r*.h.
 
 #define I2S_BCLK              GPIO_NUM_8    // OUTPUT
 #define I2S_SPEAKER_DATA      GPIO_NUM_16   // OUTPUT
@@ -67,9 +67,7 @@
 #define SPI_INT               GPIO_NUM_46   // INPUT,  ETH_INT
 #define ROCKCHIP_PIN          GPIO_NUM_47   // to be determined, protected pin with BAT54S and 10k
 
-#define CHARGING_CURRENT      GPIO_NUM_14   // INPUT, measures low side via 0.1 Ohm current to remote
-#define CHARGING_CURRENT_ADC_UNIT ADC_UNIT_2
-#define CHARGING_CURRENT_ADC_CH   ADC_CHANNEL_3
+// CHARGING_CURRENT* are defined per revision in board_r*.h.
 #define RGB_LED               GPIO_NUM_15   // OUTPUT OPEN DRAIN, pulled physically to 5V 10k
 
 #define CHARGING_ENABLE       GPIO_NUM_45   // OUTPUT, physically pulled low
@@ -77,7 +75,7 @@
 #define IR_SEND_PIN_INT_SIDE  GPIO_NUM_38   // OUTPUT OPEN DRAIN, physicall pulled up 2.4v
 // IR_SEND_PIN_INT_SIDE is an inverted output: required for IRsend GPIO mask
 #define IR_SEND_PIN_INT_SIDE_INVERTED 1
-#define IR_SEND_PIN_INT_TOP   GPIO_NUM_7    // OUTPUT,OPEN DRAIN. physically pulled up to 2.4V
+// IR_SEND_PIN_INT_TOP is defined per revision in board_r*.h.
 // IR_SEND_PIN_INT_TOP is an inverted output: required for IRsend GPIO mask
 #define IR_SEND_PIN_INT_TOP_INVERTED  1
 
@@ -114,7 +112,9 @@
 #include "board_r3.h"
 #elif defined(CONFIG_UCD_HW_REVISION_4)
 #include "board_r4.h"
+#elif defined(CONFIG_UCD_HW_REVISION_6)
+#include "board_r6.h"
 #else
 #error You need to specify a board revision in the SDK configuration: \
-CONFIG_UCD_HW_REVISION_3, CONFIG_UCD_HW_REVISION_4
+CONFIG_UCD_HW_REVISION_3, CONFIG_UCD_HW_REVISION_4, CONFIG_UCD_HW_REVISION_6
 #endif

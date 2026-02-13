@@ -289,13 +289,20 @@ port_map_t init_external_ports(Config *cfg, std::shared_ptr<AdcUnit> adc_unit,
     return ports;
 }
 
-esp_err_t init_charger(std::shared_ptr<AdcChannel> vcc_channel) {
+esp_err_t init_charger(std::shared_ptr<AdcChannel> vcc_channel, std::shared_ptr<AdcUnit> shared_adc_unit) {
     assert(vcc_channel);
+    assert(shared_adc_unit);
 
     adc_unit_t unit = CHARGING_CURRENT_ADC_UNIT;
     auto       adc_ch = CHARGING_CURRENT_ADC_CH;
 
-    std::shared_ptr<AdcUnit> adcUnit = AdcUnit::create(unit);
+    std::shared_ptr<AdcUnit> adcUnit;
+#if defined(CONFIG_UCD_HW_REVISION_6)
+    // Rev6 shares ADC_UNIT_1 between charger current and port sensing.
+    adcUnit = shared_adc_unit;
+#else
+    adcUnit = AdcUnit::create(unit);
+#endif
     ESP_RETURN_ON_FALSE(adcUnit, ESP_FAIL, TAG, "Cannot initialize charger: ADC unit %d creation failed", unit);
 
     std::unique_ptr<AdcChannel> channel = adcUnit->createChannel(adc_ch, ADC_ATTEN_DB_0);
@@ -367,7 +374,7 @@ extern "C" void app_main(void) {
 
     uc_error_check(init_button(), uc_errors::UC_ERROR_INIT_BUTTON);
     if (cfg.hasChargingFeature()) {
-        uc_error_check(init_charger(vcc_channel), uc_errors::UC_ERROR_INIT_CHARGER);
+        uc_error_check(init_charger(vcc_channel, vcc_adc_unit), uc_errors::UC_ERROR_INIT_CHARGER);
     }
 
     // Initialize IR
