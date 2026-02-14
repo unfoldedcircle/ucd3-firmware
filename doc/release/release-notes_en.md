@@ -1,3 +1,11 @@
+## Beta Release 0.8.2
+### Fixed
+- Correct initial state for IR LEDs so that they do not light up until an IR command is sent ([#48](https://github.com/unfoldedcircle/ucd3-firmware/pull/48)).
+- General fixes and improvements.
+
+### Changed
+- SNTP initialization, not displaying an invalid date in the status web-page. Contributed by @Tosko4, thanks! ([#46](https://github.com/unfoldedcircle/ucd3-firmware/pull/46)).
+
 ## Beta Release 0.8.1
 ### Changed
 - Increase of overcurrent limitation to 2000mA.

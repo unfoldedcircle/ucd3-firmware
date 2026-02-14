@@ -11,6 +11,20 @@ _Changes in the next release_
 
 ---
 
+## Beta Release 0.8.2
+### Fixed
+- Improv-wifi RPC response length and checksum calculation ([#47](https://github.com/unfoldedcircle/ucd3-firmware/pull/47)).
+- Correct initial state for inverted IR emitters ([#48](https://github.com/unfoldedcircle/ucd3-firmware/pull/48)).
+- Use free() instead of delete for cJSON strings ([#49](https://github.com/unfoldedcircle/ucd3-firmware/pull/49)).
+
+### Added
+- Pinout diagram ([#45](https://github.com/unfoldedcircle/ucd3-firmware/pull/45)).
+- Hardware revision 6 support ([#51](https://github.com/unfoldedcircle/ucd3-firmware/pull/51)).
+
+### Changed
+- SNTP initialization, not displaying an invalid date in the status web-page by @Tosko4 in ([#46](https://github.com/unfoldedcircle/ucd3-firmware/pull/46)).
+- Update GitHub build actions ([#50](https://github.com/unfoldedcircle/ucd3-firmware/pull/50)).
+    
 ## Beta Release 0.8.1
 ### Changed
 - Increase of overcurrent limitation to 2000mA ([#41](https://github.com/unfoldedcircle/ucd3-firmware/pull/41)).
