@@ -16,6 +16,7 @@
 #include <lwip/sys.h>
 
 #include <cstdio>
+#include <new>
 
 #include "esp_event.h"
 #include "esp_log.h"
@@ -177,6 +178,7 @@ void GlobalCacheServer::tcp_server_task(void *param) {
         int                     sock = accept(listen_sock, (struct sockaddr *)&source_addr, &addr_len);
         if (sock < 0) {
             ESP_LOGE(TAG_GC, "Unable to accept connection: errno %d", errno);
+            xSemaphoreGive(clientCountSemaphore);
             continue;
         }
 
@@ -199,18 +201,29 @@ void GlobalCacheServer::tcp_server_task(void *param) {
         ESP_LOGI(TAG_GC, "Socket accepted client: %s", addr_str);
 
         // hand over to new client Task
-        GCClient *client = new GCClient();
+        GCClient *client = new (std::nothrow) GCClient();
+        if (client == nullptr) {
+            ESP_LOGE(TAG_GC, "Unable to allocate GC client");
+            close(sock);
+            xSemaphoreGive(clientCountSemaphore);
+            continue;
+        }
         client->socket = sock;
         snprintf(client->mac, sizeof(client->mac), "%s", gc->m_config->getHostName() + 9);
         client->semaphore = clientCountSemaphore;
         client->irService = gc->m_irService;
-        xTaskCreatePinnedToCore(socket_task,  // task function
-                                "GC client",  // task name
-                                4000,         // stack size
-                                client,       // task parameter
-                                5,            // task priority
-                                NULL,         // Task handle to keep track of created task
-                                1);           // core
+        if (xTaskCreatePinnedToCore(socket_task,     // task function
+                                    "GC client",     // task name
+                                    4000,            // stack size
+                                    client,          // task parameter
+                                    5,               // task priority
+                                    NULL,            // Task handle to keep track of created task
+                                    1) != pdPASS) {  // core
+            ESP_LOGE(TAG_GC, "Unable to create GC client task");
+            close(sock);
+            delete client;
+            xSemaphoreGive(clientCountSemaphore);
+        }
     }
 
 CLEAN_UP:
