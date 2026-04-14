@@ -192,9 +192,20 @@ bool cjson_get_bool(const cJSON *root, const char *field, bool *ok = NULL) {
 }
 
 DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
-    : config_(config), web_(web), ports_(ports), sockfdSendIR_(-1) {
+    : config_(config), web_(web), ports_(ports), sockfdSendIR_(-1), auth_timer_(nullptr) {
     assert(config_);
     assert(web_);
+
+    const esp_timer_create_args_t timer_args = {
+        .callback = &authTimeoutCallback,
+        .arg = this,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "auth_timeout",
+        .skip_unhandled_events = true,
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &auth_timer_));
+    // Check every 5 seconds
+    ESP_ERROR_CHECK(esp_timer_start_periodic(auth_timer_, 5000 * 1000));
 
     web_->onWsEvent([this](httpd_req_t *req, int sockfd, WsTypeEnum type, uint8_t *payload, size_t length,
                            bool authenticated) -> esp_err_t {
@@ -212,6 +223,12 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                 if (authenticated) {
                     return ESP_OK;
                 }
+
+                {
+                    std::lock_guard<std::mutex> lock(unauthenticated_fds_mutex_);
+                    unauthenticated_fds_[sockfd] = esp_timer_get_time() / 1000 / 1000;
+                }
+
                 WebServer *server = static_cast<WebServer *>(req->user_ctx);
                 cJSON     *response = cJSON_CreateObject();
                 cJSON_AddStringToObject(response, msgType, "auth_required");
@@ -225,7 +242,11 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                 cJSON_Delete(response);
                 return ret;
             }
-            case WS_DISCONNECTED:
+            case WS_DISCONNECTED: {
+                {
+                    std::lock_guard<std::mutex> lock(unauthenticated_fds_mutex_);
+                    unauthenticated_fds_.erase(sockfd);
+                }
                 ESP_LOGI(TAG, "WS client disconnected: %d", sockfd);
                 // stop IR repeat if active.
                 if (sockfdSendIR_ == sockfd) {
@@ -233,6 +254,7 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                     sockfdSendIR_ = -1;
                 }
                 return ESP_OK;
+            }
             case WS_TEXT:
                 return processRequest(req, sockfd, (const char *)payload, length, authenticated);
             case WS_BIN:
@@ -311,6 +333,10 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         if (value == config_->getToken()) {
             // add client to authorized clients
             if (web->setAuthenticated(sockfd) == ESP_OK) {
+                {
+                    std::lock_guard<std::mutex> lock(unauthenticated_fds_mutex_);
+                    unauthenticated_fds_.erase(sockfd);
+                }
                 // token ok
                 code = 200;
                 ret = ESP_OK;
@@ -891,5 +917,32 @@ void DockApi::dockEventHandler(void *arg, esp_event_base_t event_base, int32_t e
         default:
             // ignore
             return;
+    }
+}
+
+DockApi::~DockApi() {
+    if (auth_timer_) {
+        esp_timer_stop(auth_timer_);
+        esp_timer_delete(auth_timer_);
+    }
+}
+
+void DockApi::authTimeoutCallback(void *arg) {
+    DockApi *that = static_cast<DockApi *>(arg);
+    that->checkAuthTimeouts();
+}
+
+void DockApi::checkAuthTimeouts() {
+    std::lock_guard<std::mutex> lock(unauthenticated_fds_mutex_);
+    uint64_t                    now = esp_timer_get_time() / 1000 / 1000;  // in seconds
+
+    for (auto it = unauthenticated_fds_.begin(); it != unauthenticated_fds_.end();) {
+        if (now - it->second > 30) {
+            ESP_LOGW(TAG, "Disconnecting unauthenticated WS client: %d", it->first);
+            web_->disconnect(it->first);
+            it = unauthenticated_fds_.erase(it);
+        } else {
+            ++it;
+        }
     }
 }

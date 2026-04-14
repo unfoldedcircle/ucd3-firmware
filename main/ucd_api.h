@@ -6,9 +6,12 @@
 
 #include <stdlib.h>
 
+#include <map>
+#include <mutex>
 #include <string>
 
 #include "esp_http_server.h"
+#include "esp_timer.h"
 
 #include "WebServer.h"
 #include "cJSON.h"
@@ -31,7 +34,7 @@ char* get_sysinfo_json(void);
 class DockApi {
  public:
     explicit DockApi(Config* config, WebServer* web, port_map_t ports);
-    virtual ~DockApi() {}
+    virtual ~DockApi();
 
     esp_err_t init();
 
@@ -55,8 +58,15 @@ class DockApi {
     static void dockEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 
  private:
+    static void authTimeoutCallback(void* arg);
+    void        checkAuthTimeouts();
+
     Config*    config_;
     WebServer* web_;
     port_map_t ports_;
     int        sockfdSendIR_;
+
+    std::map<int, uint64_t> unauthenticated_fds_;
+    std::mutex              unauthenticated_fds_mutex_;
+    esp_timer_handle_t      auth_timer_;
 };
