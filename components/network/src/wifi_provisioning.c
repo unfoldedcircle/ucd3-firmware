@@ -577,7 +577,10 @@ esp_err_t start_improv(void) {
 
     // TODO does this affect advertisement fields?
     // Default name is "nimble", which suddenly appeared in macOS LightBlue scan results if device_name was not set!
-    ESP_RETURN_ON_ERROR(ble_svc_gap_device_name_set(create_device_name()), TAG, "Failed to set GAP device name");
+    char *device_name = create_device_name();
+    int   res = ble_svc_gap_device_name_set(device_name);
+    free(device_name);
+    ESP_RETURN_ON_ERROR(res, TAG, "Failed to set GAP device name");
 
     ble_svc_gap_init();
     ble_svc_gatt_init();
