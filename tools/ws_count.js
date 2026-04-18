@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Dock WebSocket connection test.
-// Verifies that oldest connecton automatically closes for new connectons after
-// connection limit is reached.
+// Verifies that oldest connection automatically closes for new connections
+// after connection limit is reached.
 //
 // Usage:
 // node ws_count.js <DOCK_IP>
