@@ -59,7 +59,25 @@ CONFIG_BT_NIMBLE_ENABLED=y
 #
 CONFIG_LWIP_LOCAL_HOSTNAME="ucd3"
 # CONFIG_LWIP_DNS_SUPPORT_MDNS_QUERIES is not set
-CONFIG_LWIP_MAX_SOCKETS=16
+# Global socket pool. Worst case:
+#  21 web-server (16 WS + 2 REST + 3 internal)
+# + 7 GlobalCache server (6 clients + 1 server socket)
+# + 4 system services (mDNS, SNTP, DHCP, DNS, ...)
+# = 32
+CONFIG_LWIP_MAX_SOCKETS=32
+
+# Maximum number of web-server sockets. 3 more internal sockets are used.
+CONFIG_UCD_WEB_MAX_OPEN_SOCKETS=18
+# Maximum number of GlobalCache TCP clients. 1 more socket is required for the listening socket.
+CONFIG_UCD_GLOBALCACHE_MAX_CLIENTS=6
+
+#
+# TCP
+#
+# Maximum number of simultaneously active TCP connections
+CONFIG_LWIP_MAX_ACTIVE_TCP=32
+# Maximum number of simultaneously listening TCP connections (leave at default): WebSocket API, webserver, GlobalCache server
+CONFIG_LWIP_MAX_LISTENING_TCP=16
 
 #
 # SNTP
