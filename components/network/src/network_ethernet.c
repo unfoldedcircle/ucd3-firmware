@@ -154,8 +154,6 @@ esp_err_t eth_init(esp_eth_handle_t *eth_handle_out) {
     esp_eth_handle_t *eth_handle = NULL;
 
     ESP_GOTO_ON_FALSE(eth_handle_out != NULL, ESP_ERR_INVALID_ARG, err, TAG, "invalid arguments: initialized handle");
-    eth_handle = calloc(1, sizeof(esp_eth_handle_t));
-    ESP_GOTO_ON_FALSE(eth_handle != NULL, ESP_ERR_NO_MEM, err, TAG, "no memory");
 
     ESP_GOTO_ON_ERROR(spi_bus_init(), err, TAG, "SPI bus init failed");
     // Init specific SPI Ethernet module configuration from Kconfig (CS GPIO, Interrupt GPIO, etc.)
