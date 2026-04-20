@@ -57,7 +57,14 @@ static void session_free_func(void *ctx) {
     free(ctx);
 }
 
-#define CHECK_FILE_EXTENSION(filename, ext) (strcasecmp(&filename[strlen(filename) - strlen(ext)], ext) == 0)
+static bool check_file_extension(const char *filename, const char *ext) {
+    size_t filename_len = strlen(filename);
+    size_t ext_len = strlen(ext);
+    if (filename_len < ext_len) {
+        return false;
+    }
+    return strcasecmp(&filename[filename_len - ext_len], ext) == 0;
+}
 
 /// @brief Set HTTP response content-type according to file extension
 /// @param req http request
@@ -65,17 +72,17 @@ static void session_free_func(void *ctx) {
 /// @return ESP_OK : On success - ESP_ERR_HTTPD_INVALID_REQ : Invalid request pointer
 static esp_err_t set_content_type_from_file(httpd_req_t *req, const char *filepath) {
     const char *type = "text/plain";
-    if (CHECK_FILE_EXTENSION(filepath, ".html")) {
+    if (check_file_extension(filepath, ".html")) {
         type = "text/html";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".js")) {
+    } else if (check_file_extension(filepath, ".js")) {
         type = "application/javascript";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".css")) {
+    } else if (check_file_extension(filepath, ".css")) {
         type = "text/css";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".png")) {
+    } else if (check_file_extension(filepath, ".png")) {
         type = "image/png";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".ico")) {
+    } else if (check_file_extension(filepath, ".ico")) {
         type = "image/x-icon";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".svg")) {
+    } else if (check_file_extension(filepath, ".svg")) {
         type = "image/svg+xml";
     }
     return httpd_resp_set_type(req, type);
@@ -548,11 +555,11 @@ esp_err_t WebServer::sendWsTxt(int id, char *msg) {
     resp_arg->hd = server_;
     resp_arg->fd = id;
     resp_arg->type = HTTPD_WS_TYPE_TEXT;
-    // FIXME msg arg & buffer copy
     resp_arg->payload = (uint8_t *)msg;
     resp_arg->len = 0;
     esp_err_t ret = httpd_queue_work(resp_arg->hd, ws_async_send, resp_arg);
     if (ret != ESP_OK) {
+        free(resp_arg->payload);
         free(resp_arg);
         ESP_LOGE(TAG, "httpd_queue_work failed! %d", ret);
     }
