@@ -138,6 +138,7 @@ void GlobalCacheServer::tcp_server_task(void *param) {
     int listen_sock = socket(addr_family, SOCK_STREAM, ip_protocol);
     if (listen_sock < 0) {
         ESP_LOGE(TAG_GC, "Unable to create socket: errno %d", errno);
+        vSemaphoreDelete(clientCountSemaphore);
         vTaskDelete(NULL);
         return;
     }
@@ -228,6 +229,7 @@ void GlobalCacheServer::tcp_server_task(void *param) {
 
 CLEAN_UP:
     close(listen_sock);
+    vSemaphoreDelete(clientCountSemaphore);
     vTaskDelete(NULL);
 }
 
