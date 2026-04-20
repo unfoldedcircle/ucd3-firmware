@@ -7,11 +7,11 @@
 #include <stdlib.h>
 
 #include <map>
-#include <mutex>
 #include <string>
 
 #include "esp_http_server.h"
 #include "esp_timer.h"
+#include "freertos/task.h"
 
 #include "WebServer.h"
 #include "cJSON.h"
@@ -67,6 +67,6 @@ class DockApi {
     int        sockfdSendIR_;
 
     std::map<int, uint64_t> unauthenticated_fds_;
-    std::mutex              unauthenticated_fds_mutex_;
+    SemaphoreHandle_t       unauthenticated_fds_mutex_;
     esp_timer_handle_t      auth_timer_;
 };

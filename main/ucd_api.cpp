@@ -192,9 +192,15 @@ bool cjson_get_bool(const cJSON *root, const char *field, bool *ok = NULL) {
 }
 
 DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
-    : config_(config), web_(web), ports_(ports), sockfdSendIR_(-1), auth_timer_(nullptr) {
+    : config_(config),
+      web_(web),
+      ports_(ports),
+      sockfdSendIR_(-1),
+      unauthenticated_fds_mutex_(xSemaphoreCreateMutex()),
+      auth_timer_(nullptr) {
     assert(config_);
     assert(web_);
+    assert(unauthenticated_fds_mutex_);
 
     const esp_timer_create_args_t timer_args = {
         .callback = &authTimeoutCallback,
@@ -224,10 +230,12 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                     return ESP_OK;
                 }
 
-                {
-                    std::lock_guard<std::mutex> lock(unauthenticated_fds_mutex_);
-                    unauthenticated_fds_[sockfd] = esp_timer_get_time() / 1000 / 1000;
+                if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+                    ESP_LOGE(TAG, "Failed to lock FDs in connect");
+                    return ESP_FAIL;
                 }
+                unauthenticated_fds_[sockfd] = esp_timer_get_time() / 1000 / 1000;
+                xSemaphoreGive(unauthenticated_fds_mutex_);
 
                 WebServer *server = static_cast<WebServer *>(req->user_ctx);
                 cJSON     *response = cJSON_CreateObject();
@@ -243,16 +251,20 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                 return ret;
             }
             case WS_DISCONNECTED: {
-                {
-                    std::lock_guard<std::mutex> lock(unauthenticated_fds_mutex_);
-                    unauthenticated_fds_.erase(sockfd);
-                }
                 ESP_LOGI(TAG, "WS client disconnected: %d", sockfd);
                 // stop IR repeat if active.
                 if (sockfdSendIR_ == sockfd) {
                     InfraredService::getInstance().stopSend();
                     sockfdSendIR_ = -1;
                 }
+
+                if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+                    ESP_LOGE(TAG, "Failed to lock FDs in disconnect");
+                } else {
+                    unauthenticated_fds_.erase(sockfd);
+                    xSemaphoreGive(unauthenticated_fds_mutex_);
+                }
+
                 return ESP_OK;
             }
             case WS_TEXT:
@@ -333,10 +345,12 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         if (value == config_->getToken()) {
             // add client to authorized clients
             if (web->setAuthenticated(sockfd) == ESP_OK) {
-                {
-                    std::lock_guard<std::mutex> lock(unauthenticated_fds_mutex_);
-                    unauthenticated_fds_.erase(sockfd);
+                if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+                    ESP_LOGE(TAG, "Failed to lock FDs");
+                    return ESP_FAIL;
                 }
+                unauthenticated_fds_.erase(sockfd);
+                xSemaphoreGive(unauthenticated_fds_mutex_);
                 // token ok
                 code = 200;
                 ret = ESP_OK;
@@ -933,16 +947,28 @@ void DockApi::authTimeoutCallback(void *arg) {
 }
 
 void DockApi::checkAuthTimeouts() {
-    std::lock_guard<std::mutex> lock(unauthenticated_fds_mutex_);
-    uint64_t                    now = esp_timer_get_time() / 1000 / 1000;  // in seconds
+    if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+        ESP_LOGE(TAG, "Failed to lock FDs in timer");
+        return;
+    }
+
+    uint64_t         now = esp_timer_get_time() / 1000 / 1000;  // in seconds
+    std::vector<int> disconnected;
 
     for (auto it = unauthenticated_fds_.begin(); it != unauthenticated_fds_.end();) {
-        if (now - it->second > 30) {
-            ESP_LOGW(TAG, "Disconnecting unauthenticated WS client: %d", it->first);
-            web_->disconnect(it->first);
+        if (now - it->second > 5) {
+            disconnected.push_back(it->first);
             it = unauthenticated_fds_.erase(it);
         } else {
             ++it;
         }
+    }
+
+    xSemaphoreGive(unauthenticated_fds_mutex_);
+
+    for (int fd : disconnected) {
+        // disconnect is async with work queue
+        ESP_LOGW(TAG, "Disconnecting unauthenticated WS client: %d", fd);
+        web_->disconnect(fd);
     }
 }
