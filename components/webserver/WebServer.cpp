@@ -31,6 +31,15 @@ WebServer::WebServer()
     // pin task to main core to not interfere with IR sending
     config_.core_id = 0;
     config_.max_open_sockets = CONFIG_UCD_WEB_MAX_OPEN_SOCKETS;
+    // purge oldest connection if max open sockets is reached
+    config_.lru_purge_enable = true;
+    // Enable tcp keep-alive: if a client disconnects ungracefully (e.g., moves out of Wi-Fi range, loses power),
+    // the server may keep the socket in the `ESTABLISHED` state indefinitely (until the default TCP timeout,
+    // which can be hours), consuming a socket slot.
+    config_.keep_alive_enable = true;
+    config_.keep_alive_idle = 30;
+    config_.keep_alive_interval = 10;
+    config_.keep_alive_count = 3;
 }
 
 WebServer::~WebServer() {
