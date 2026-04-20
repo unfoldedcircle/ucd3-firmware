@@ -31,6 +31,15 @@ WebServer::WebServer()
     // pin task to main core to not interfere with IR sending
     config_.core_id = 0;
     config_.max_open_sockets = CONFIG_UCD_WEB_MAX_OPEN_SOCKETS;
+    // purge oldest connection if max open sockets is reached
+    config_.lru_purge_enable = true;
+    // Enable tcp keep-alive: if a client disconnects ungracefully (e.g., moves out of Wi-Fi range, loses power),
+    // the server may keep the socket in the `ESTABLISHED` state indefinitely (until the default TCP timeout,
+    // which can be hours), consuming a socket slot.
+    config_.keep_alive_enable = true;
+    config_.keep_alive_idle = 30;
+    config_.keep_alive_interval = 10;
+    config_.keep_alive_count = 3;
 }
 
 WebServer::~WebServer() {
@@ -57,7 +66,14 @@ static void session_free_func(void *ctx) {
     free(ctx);
 }
 
-#define CHECK_FILE_EXTENSION(filename, ext) (strcasecmp(&filename[strlen(filename) - strlen(ext)], ext) == 0)
+static bool check_file_extension(const char *filename, const char *ext) {
+    size_t filename_len = strlen(filename);
+    size_t ext_len = strlen(ext);
+    if (filename_len < ext_len) {
+        return false;
+    }
+    return strcasecmp(&filename[filename_len - ext_len], ext) == 0;
+}
 
 /// @brief Set HTTP response content-type according to file extension
 /// @param req http request
@@ -65,17 +81,17 @@ static void session_free_func(void *ctx) {
 /// @return ESP_OK : On success - ESP_ERR_HTTPD_INVALID_REQ : Invalid request pointer
 static esp_err_t set_content_type_from_file(httpd_req_t *req, const char *filepath) {
     const char *type = "text/plain";
-    if (CHECK_FILE_EXTENSION(filepath, ".html")) {
+    if (check_file_extension(filepath, ".html")) {
         type = "text/html";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".js")) {
+    } else if (check_file_extension(filepath, ".js")) {
         type = "application/javascript";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".css")) {
+    } else if (check_file_extension(filepath, ".css")) {
         type = "text/css";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".png")) {
+    } else if (check_file_extension(filepath, ".png")) {
         type = "image/png";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".ico")) {
+    } else if (check_file_extension(filepath, ".ico")) {
         type = "image/x-icon";
-    } else if (CHECK_FILE_EXTENSION(filepath, ".svg")) {
+    } else if (check_file_extension(filepath, ".svg")) {
         type = "image/svg+xml";
     }
     return httpd_resp_set_type(req, type);
@@ -548,11 +564,11 @@ esp_err_t WebServer::sendWsTxt(int id, char *msg) {
     resp_arg->hd = server_;
     resp_arg->fd = id;
     resp_arg->type = HTTPD_WS_TYPE_TEXT;
-    // FIXME msg arg & buffer copy
     resp_arg->payload = (uint8_t *)msg;
     resp_arg->len = 0;
     esp_err_t ret = httpd_queue_work(resp_arg->hd, ws_async_send, resp_arg);
     if (ret != ESP_OK) {
+        free(resp_arg->payload);
         free(resp_arg);
         ESP_LOGE(TAG, "httpd_queue_work failed! %d", ret);
     }

@@ -474,7 +474,7 @@ void InfraredService::send_ir_f(void *param) {
                     // commands.
                     if (pIrMsg->repeat > 0) {
                         data.repeat = pIrMsg->repeat;
-                        // Adapt repeat coun for protocols requiring a minimal repeat count (Epson, Sony, etc.).
+                        // Adapt repeat count for protocols requiring a minimal repeat count (Epson, Sony, etc.).
                         // E.g. Sony 40k requires 2 repeats for a single command, each msg 45ms apart, total of 3 msgs.
                         // Handling repeat gets tricky now: increase repeat count, multiply the min repeat count,
                         // or multiply the total count?

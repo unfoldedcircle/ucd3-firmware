@@ -113,7 +113,7 @@ jobs:
           tar -czvf ${{ env.APP_NAME }}_r${{ matrix.config.revision }}-v${{ env.FW_VERSION }}.tar.gz *.bin
 
       - name: Archive build output artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APP_NAME }}_r${{ matrix.config.revision }}-v${{ env.FW_VERSION }}
           path: ${{ env.APP_NAME }}_r${{ matrix.config.revision }}-v${{ env.FW_VERSION }}.tar.gz
@@ -155,7 +155,7 @@ jobs:
           cat ${{ env.BUILD_CHANGELOG }}
 
       - name: Upload changelog
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: changelog
           path: ${{ env.BUILD_CHANGELOG }}
@@ -170,7 +170,7 @@ jobs:
 
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
 
       - name: Log
         if: env.DEBUG_OUTPUT == 'true'
@@ -223,7 +223,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Create pre-release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: "!contains(github.ref, 'tags/v')"
         with:
           prerelease: true
@@ -243,7 +243,7 @@ jobs:
           ls -lah
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: "contains(github.ref, 'tags/v')"
         with:
           prerelease: false
@@ -270,7 +270,7 @@ jobs:
           fetch-depth: 200
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: ${{ env.APP_NAME }}_r${{ env.BOARD_REVISION }}-*
           path: bin

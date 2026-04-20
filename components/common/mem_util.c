@@ -47,7 +47,6 @@ char *strdup_to_psram(const char *source) {
     if (dest == NULL) {
         ESP_LOGE(TAG, "Failed to allocate %d bytes of PSRAM! Cannot clone string %s", size, source);
     } else {
-        memset(dest, 0, size);
         strcpy(dest, source);
     }
     return dest;
