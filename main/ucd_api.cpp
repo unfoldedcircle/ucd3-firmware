@@ -283,6 +283,14 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
     });
 }
 
+DockApi::~DockApi() {
+    if (auth_timer_) {
+        esp_timer_stop(auth_timer_);
+        esp_timer_delete(auth_timer_);
+    }
+    vSemaphoreDelete(unauthenticated_fds_mutex_);
+}
+
 esp_err_t DockApi::init() {
     // Register external-port-mode-change event
     ESP_RETURN_ON_ERROR(
@@ -935,13 +943,6 @@ void DockApi::dockEventHandler(void *arg, esp_event_base_t event_base, int32_t e
         default:
             // ignore
             return;
-    }
-}
-
-DockApi::~DockApi() {
-    if (auth_timer_) {
-        esp_timer_stop(auth_timer_);
-        esp_timer_delete(auth_timer_);
     }
 }
 
