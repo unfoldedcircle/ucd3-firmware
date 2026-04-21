@@ -26,6 +26,11 @@
 #include "system_stats.h"
 #include "uc_events.h"
 
+// Auto-close unauthenticated WebSocket connections after n seconds.
+static const int UNAUTHENTICATED_TIMEOUT_SEC = 30;
+// WebSocket client authentication check timer period in ms.
+static const int AUTH_TIMER_CHECK_PERIOD_MS = 5000;
+
 // Feature flag: do not send a WebSocket response for ir_send when an IR sequence is extended.
 static const int API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE = BIT0;
 // Feature flag: `ir_send` command supports the `hold` parameter to send ir command for x milliseconds.
@@ -210,8 +215,7 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
         .skip_unhandled_events = true,
     };
     ESP_ERROR_CHECK(esp_timer_create(&timer_args, &auth_timer_));
-    // Check every 5 seconds
-    ESP_ERROR_CHECK(esp_timer_start_periodic(auth_timer_, 5000 * 1000));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(auth_timer_, AUTH_TIMER_CHECK_PERIOD_MS * 1000));
 
     web_->onWsEvent([this](httpd_req_t *req, int sockfd, WsTypeEnum type, uint8_t *payload, size_t length,
                            bool authenticated) -> esp_err_t {
@@ -952,11 +956,14 @@ void DockApi::checkAuthTimeouts() {
         return;
     }
 
+    // for logging open http & ws socket counts at each timer interval
+    // web_->wsClientCount();
+
     uint64_t         now = esp_timer_get_time() / 1000 / 1000;  // in seconds
     std::vector<int> disconnected;
 
     for (auto it = unauthenticated_fds_.begin(); it != unauthenticated_fds_.end();) {
-        if (now - it->second > 5) {
+        if (now - it->second > UNAUTHENTICATED_TIMEOUT_SEC) {
             disconnected.push_back(it->first);
             it = unauthenticated_fds_.erase(it);
         } else {

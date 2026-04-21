@@ -17,7 +17,6 @@
 typedef enum {
     /// not yet implemented
     WS_ERROR,
-    /// not yet implemented
     WS_DISCONNECTED,
     WS_CONNECTED,
     WS_TEXT,
@@ -101,6 +100,8 @@ class WebServer {
     void broadcastWsTxt(std::string &msg);
 
     static esp_err_t getRemoteIp(int id, struct sockaddr_in6 *addr_in);
+
+    uint16_t wsClientCount();
 
  private:
     esp_err_t startWebServer();
