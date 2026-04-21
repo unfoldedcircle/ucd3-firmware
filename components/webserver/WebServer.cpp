@@ -524,6 +524,30 @@ void WebServer::disconnectAll() {
     }
 }
 
+void WebServer::forceCloseWs(int id, uint16_t code) {
+    httpd_ws_frame_t frame;
+    memset(&frame, 0, sizeof(httpd_ws_frame_t));
+    frame.type = HTTPD_WS_TYPE_CLOSE;
+    frame.final = true;
+    frame.fragmented = false;
+    frame.len = 0;
+
+    // include optional 2‑byte status code in payload (big‑endian)
+    uint8_t payload[2];
+    if (code != 0) {
+        payload[0] = (code >> 8) & 0xff;
+        payload[1] = code & 0xff;
+        frame.payload = payload;
+        frame.len = 2;
+    }
+
+    // Send CLOSE frame synchronously
+    httpd_ws_send_data(server_, id, &frame);
+
+    // Then queue the normal session close
+    httpd_sess_trigger_close(server_, id);
+}
+
 esp_err_t WebServer::setAuthenticated(int id, bool authenticated) {
     if (!server_) {
         return ESP_FAIL;

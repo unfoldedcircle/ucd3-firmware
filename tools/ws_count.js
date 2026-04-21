@@ -18,7 +18,7 @@
 // node ws_count.js <DOCK_IP>
 // 
 // Example:
-// node ws_count.js /192.168.1.234
+// node ws_count.js 192.168.1.234
 //
 
 const TARGET_PORT = 80;

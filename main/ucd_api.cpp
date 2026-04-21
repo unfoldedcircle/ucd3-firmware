@@ -977,6 +977,8 @@ void DockApi::checkAuthTimeouts() {
     for (int fd : disconnected) {
         // disconnect is async with work queue
         ESP_LOGW(TAG, "Disconnecting unauthenticated WS client: %d", fd);
-        web_->disconnect(fd);
+        // use 1008 Policy Violation, normally used for "Authentication failure"
+        // https://websocket.org/reference/close-codes/#1008-policy-violation
+        web_->forceCloseWs(fd, 1008);
     }
 }
