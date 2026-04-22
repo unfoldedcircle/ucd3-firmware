@@ -229,18 +229,24 @@ struct async_resp_arg {
  */
 static void ws_async_send(void *arg) {
     struct async_resp_arg *resp_arg = static_cast<async_resp_arg *>(arg);
-    assert(resp_arg->payload);
+    if (resp_arg->type == HTTPD_WS_TYPE_TEXT) {
+        assert(resp_arg->payload);
+    }
     httpd_handle_t   hd = resp_arg->hd;
     int              fd = resp_arg->fd;
     httpd_ws_frame_t ws_pkt;
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
     ws_pkt.type = resp_arg->type;
+    if (ws_pkt.type == HTTPD_WS_TYPE_CLOSE) {
+        ws_pkt.final = true;
+        ESP_LOGD(TAG, "final send for %d with len: %d", fd, resp_arg->len);
+    }
     ws_pkt.payload = resp_arg->payload;
-    ws_pkt.len = resp_arg->len;
     ws_pkt.len = (resp_arg->len == 0 && resp_arg->type == HTTPD_WS_TYPE_TEXT) ? strlen((const char *)resp_arg->payload)
                                                                               : resp_arg->len;
 
-    ESP_LOGD(TAG, "ws_async_send: fd=%d, len=%d, msg=%s", fd, ws_pkt.len, (const char *)ws_pkt.payload);
+    ESP_LOGD(TAG, "ws_async_send: fd=%d, len=%d, msg=%s", fd, ws_pkt.len,
+             ws_pkt.type == HTTPD_WS_TYPE_TEXT ? (const char *)ws_pkt.payload : "<non-text>");
     esp_err_t ret = httpd_ws_send_frame_async(hd, fd, &ws_pkt);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send async: %d", ret);
@@ -525,27 +531,34 @@ void WebServer::disconnectAll() {
 }
 
 void WebServer::forceCloseWs(int id, uint16_t code) {
-    httpd_ws_frame_t frame;
-    memset(&frame, 0, sizeof(httpd_ws_frame_t));
-    frame.type = HTTPD_WS_TYPE_CLOSE;
-    frame.final = true;
-    frame.fragmented = false;
-    frame.len = 0;
+    struct async_resp_arg *resp_arg = static_cast<async_resp_arg *>(malloc(sizeof(struct async_resp_arg)));
+    assert(resp_arg);
+    resp_arg->hd = server_;
+    resp_arg->fd = id;
+    resp_arg->type = HTTPD_WS_TYPE_CLOSE;
 
     // include optional 2‑byte status code in payload (big‑endian)
-    uint8_t payload[2];
     if (code != 0) {
+        uint8_t *payload = static_cast<uint8_t *>(malloc(2));
         payload[0] = (code >> 8) & 0xff;
         payload[1] = code & 0xff;
-        frame.payload = payload;
-        frame.len = 2;
+        resp_arg->payload = payload;
+        resp_arg->len = 2;
+    } else {
+        resp_arg->payload = NULL;
+        resp_arg->len = 0;
     }
 
-    // Send CLOSE frame synchronously
-    httpd_ws_send_data(server_, id, &frame);
+    // Queue a close frame first for graceful shutdown
+    esp_err_t ret = httpd_queue_work(resp_arg->hd, ws_async_send, resp_arg);
+    if (ret != ESP_OK) {
+        free(resp_arg->payload);
+        free(resp_arg);
+        ESP_LOGE(TAG, "httpd_queue_work failed! %d", ret);
+    }
 
     // Then queue the normal session close
-    httpd_sess_trigger_close(server_, id);
+    ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_sess_trigger_close(server_, id));
 }
 
 esp_err_t WebServer::setAuthenticated(int id, bool authenticated) {

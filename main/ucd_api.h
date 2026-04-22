@@ -10,8 +10,8 @@
 #include <string>
 
 #include "esp_http_server.h"
-#include "esp_timer.h"
 #include "freertos/task.h"
+#include "freertos/timers.h"
 
 #include "WebServer.h"
 #include "cJSON.h"
@@ -58,7 +58,8 @@ class DockApi {
     static void dockEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 
  private:
-    static void authTimeoutCallback(void* arg);
+    /// @brief Periodic timer to check for unauthenticated WebSocket connections.
+    static void authTimeoutCallback(TimerHandle_t timer_id);
     void        checkAuthTimeouts();
 
     Config*    config_;
@@ -68,5 +69,5 @@ class DockApi {
 
     std::map<int, uint64_t> unauthenticated_fds_;
     SemaphoreHandle_t       unauthenticated_fds_mutex_;
-    esp_timer_handle_t      auth_timer_;
+    TimerHandle_t           auth_timer_;
 };
