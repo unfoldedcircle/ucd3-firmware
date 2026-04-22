@@ -1,0 +1,11 @@
+menu "UC GlobalCache server"
+
+	config UCD_GLOBALCACHE_MAX_CLIENTS
+		int "Max number of TCP clients"
+		range 1 16
+		default 8
+		help
+			Max number of TCP clients connected at any time
+			(1 additional socket is required for the TCP server)
+
+endmenu

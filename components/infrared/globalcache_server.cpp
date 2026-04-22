@@ -22,13 +22,12 @@
 #include "esp_log.h"
 
 #include "globalcache.h"
+#include "sdkconfig.h"
 #include "string_util.h"
 #include "uc_events.h"
 
 // TODO(#28) use IDF LWIP_IPV6 & LWIP_IPV4 and test IPv6
 #define USE_IPV4
-
-#define MAX_TCP_CLIENT_COUNT 8
 
 #define TCP_API_PORT 4998
 #define KEEPALIVE_IDLE 5
@@ -110,7 +109,8 @@ void GlobalCacheServer::tcp_server_task(void *param) {
 
     GlobalCacheServer *gc = reinterpret_cast<GlobalCacheServer *>(param);
 
-    clientCountSemaphore = xSemaphoreCreateCounting(MAX_TCP_CLIENT_COUNT, MAX_TCP_CLIENT_COUNT);
+    clientCountSemaphore =
+        xSemaphoreCreateCounting(CONFIG_UCD_GLOBALCACHE_MAX_CLIENTS, CONFIG_UCD_GLOBALCACHE_MAX_CLIENTS);
     if (clientCountSemaphore == NULL) {
         ESP_LOGE(TAG_GC, "Error starting server: unable to create client semaphore");
         vTaskDelete(NULL);
