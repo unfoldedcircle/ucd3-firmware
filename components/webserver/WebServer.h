@@ -17,7 +17,6 @@
 typedef enum {
     /// not yet implemented
     WS_ERROR,
-    /// not yet implemented
     WS_DISCONNECTED,
     WS_CONNECTED,
     WS_TEXT,
@@ -74,12 +73,19 @@ class WebServer {
     /// @param handler callback function.
     void setOtaHandler(RestCallback handler);
 
-    /// @brief Disconnect a client. This is normally used for a WebSocket client.
+    /// @brief Asynchronously disconnect a client. This is normally used for a WebSocket client.
+    ///        Only the socket is closed without sending a WebSocket close frame!
     /// @param id int client identifier
     void disconnect(int id);
 
-    /// @brief Disconnect all clients. This is normally used for WebSocket clients.
+    /// @brief Asynchronously disconnect all clients. This is normally used for WebSocket clients.
     void disconnectAll();
+
+    /// @brief Asynchronously force disconnect a WebSocket client by sending a close frame first, then closing the TCP
+    /// socket.
+    /// @param id int client identifier
+    /// @param code uint16_t the optional close code
+    void forceCloseWs(int id, uint16_t code = 0);
 
     /// @brief Mark a WebSocket connection as authenticated. The authentication flag is passed to the
     /// WebSocketTextCallback handler.
@@ -101,6 +107,8 @@ class WebServer {
     void broadcastWsTxt(std::string &msg);
 
     static esp_err_t getRemoteIp(int id, struct sockaddr_in6 *addr_in);
+
+    uint16_t wsClientCount();
 
  private:
     esp_err_t startWebServer();

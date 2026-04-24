@@ -26,6 +26,14 @@
 #include "system_stats.h"
 #include "uc_events.h"
 
+// Auto-close unauthenticated WebSocket connections after n seconds.
+static const int UNAUTHENTICATED_TIMEOUT_SEC = 30;
+// WebSocket client authentication check timer period in ms.
+static const int AUTH_TIMER_CHECK_PERIOD_MS = 5000;
+// Maximum number of WebSocket connections to close per timer call.
+// Limited because of silently dropping queue work: https://github.com/espressif/esp-idf/issues/8440
+static const int MAX_WS_CLOSE_COUNT = 2;
+
 // Feature flag: do not send a WebSocket response for ir_send when an IR sequence is extended.
 static const int API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE = BIT0;
 // Feature flag: `ir_send` command supports the `hold` parameter to send ir command for x milliseconds.
@@ -192,9 +200,15 @@ bool cjson_get_bool(const cJSON *root, const char *field, bool *ok = NULL) {
 }
 
 DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
-    : config_(config), web_(web), ports_(ports), sockfdSendIR_(-1) {
+    : config_(config),
+      web_(web),
+      ports_(ports),
+      sockfdSendIR_(-1),
+      unauthenticated_fds_mutex_(xSemaphoreCreateMutex()),
+      auth_timer_(nullptr) {
     assert(config_);
     assert(web_);
+    assert(unauthenticated_fds_mutex_);
 
     web_->onWsEvent([this](httpd_req_t *req, int sockfd, WsTypeEnum type, uint8_t *payload, size_t length,
                            bool authenticated) -> esp_err_t {
@@ -212,6 +226,14 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                 if (authenticated) {
                     return ESP_OK;
                 }
+
+                if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+                    ESP_LOGE(TAG, "Failed to lock FDs in connect");
+                    return ESP_FAIL;
+                }
+                unauthenticated_fds_[sockfd] = esp_timer_get_time() / 1000 / 1000;
+                xSemaphoreGive(unauthenticated_fds_mutex_);
+
                 WebServer *server = static_cast<WebServer *>(req->user_ctx);
                 cJSON     *response = cJSON_CreateObject();
                 cJSON_AddStringToObject(response, msgType, "auth_required");
@@ -225,14 +247,23 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                 cJSON_Delete(response);
                 return ret;
             }
-            case WS_DISCONNECTED:
+            case WS_DISCONNECTED: {
                 ESP_LOGI(TAG, "WS client disconnected: %d", sockfd);
                 // stop IR repeat if active.
                 if (sockfdSendIR_ == sockfd) {
                     InfraredService::getInstance().stopSend();
                     sockfdSendIR_ = -1;
                 }
+
+                if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+                    ESP_LOGE(TAG, "Failed to lock FDs in disconnect");
+                } else {
+                    unauthenticated_fds_.erase(sockfd);
+                    xSemaphoreGive(unauthenticated_fds_mutex_);
+                }
+
                 return ESP_OK;
+            }
             case WS_TEXT:
                 return processRequest(req, sockfd, (const char *)payload, length, authenticated);
             case WS_BIN:
@@ -245,11 +276,29 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
     });
 }
 
+DockApi::~DockApi() {
+    if (auth_timer_) {
+        xTimerStop(auth_timer_, pdMS_TO_TICKS(1000));
+    }
+    vSemaphoreDelete(unauthenticated_fds_mutex_);
+}
+
 esp_err_t DockApi::init() {
     // Register external-port-mode-change event
     ESP_RETURN_ON_ERROR(
         esp_event_handler_instance_register(UC_DOCK_EVENTS, ESP_EVENT_ANY_ID, dockEventHandler, this, NULL), TAG,
         "Registering UC_DOCK_EVENTS failed");
+
+    if (!auth_timer_) {
+        auth_timer_ =
+            xTimerCreate("auth_timeout", pdMS_TO_TICKS(AUTH_TIMER_CHECK_PERIOD_MS), pdTRUE, this, authTimeoutCallback);
+        if (!auth_timer_) {
+            ESP_LOGE(TAG, "Failed to create WS auth timer");
+            return ESP_FAIL;
+        }
+        ESP_RETURN_ON_FALSE(xTimerStart(auth_timer_, pdMS_TO_TICKS(3000)), ESP_FAIL, TAG,
+                            "Failed to start WS auth timer");
+    }
 
     return ESP_OK;
 }
@@ -311,6 +360,12 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         if (value == config_->getToken()) {
             // add client to authorized clients
             if (web->setAuthenticated(sockfd) == ESP_OK) {
+                if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+                    ESP_LOGE(TAG, "Failed to lock FDs");
+                    return ESP_FAIL;
+                }
+                unauthenticated_fds_.erase(sockfd);
+                xSemaphoreGive(unauthenticated_fds_mutex_);
                 // token ok
                 code = 200;
                 ret = ESP_OK;
@@ -891,5 +946,54 @@ void DockApi::dockEventHandler(void *arg, esp_event_base_t event_base, int32_t e
         default:
             // ignore
             return;
+    }
+}
+
+void DockApi::authTimeoutCallback(TimerHandle_t timer_id) {
+    DockApi *that = static_cast<DockApi *>(pvTimerGetTimerID(timer_id));
+    that->checkAuthTimeouts();
+}
+
+void DockApi::checkAuthTimeouts() {
+    if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+        ESP_LOGE(TAG, "Failed to lock FDs in timer");
+        return;
+    }
+
+    // for logging open http & ws socket counts at each timer interval
+    // web_->wsClientCount();
+
+    uint64_t         now = esp_timer_get_time() / 1000 / 1000;  // in seconds
+    std::vector<int> disconnected;
+
+    for (auto it = unauthenticated_fds_.begin(); it != unauthenticated_fds_.end();) {
+        if (now - it->second > UNAUTHENTICATED_TIMEOUT_SEC) {
+            if (disconnected.size() == MAX_WS_CLOSE_COUNT) {
+                ESP_LOGI(TAG, "Max number of unauth sessions reached: splitting up");
+                break;
+            }
+            disconnected.push_back(it->first);
+            it = unauthenticated_fds_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    xSemaphoreGive(unauthenticated_fds_mutex_);
+
+    for (int fd : disconnected) {
+        // disconnect is async with work queue
+        ESP_LOGW(TAG, "Disconnecting unauthenticated WS client: %d", fd);
+        // use 1008 Policy Violation, normally used for "Authentication failure"
+        // https://websocket.org/reference/close-codes/#1008-policy-violation
+        web_->forceCloseWs(fd, 1008);
+    }
+
+    if (disconnected.size() == MAX_WS_CLOSE_COUNT) {
+        // Too many unauthorized connections: close remaining connections in 500ms
+        xTimerChangePeriod(auth_timer_, pdMS_TO_TICKS(500), 100);
+    } else {
+        // Check again in regular interval
+        xTimerChangePeriod(auth_timer_, pdMS_TO_TICKS(AUTH_TIMER_CHECK_PERIOD_MS), 100);
     }
 }

@@ -229,18 +229,24 @@ struct async_resp_arg {
  */
 static void ws_async_send(void *arg) {
     struct async_resp_arg *resp_arg = static_cast<async_resp_arg *>(arg);
-    assert(resp_arg->payload);
+    if (resp_arg->type == HTTPD_WS_TYPE_TEXT) {
+        assert(resp_arg->payload);
+    }
     httpd_handle_t   hd = resp_arg->hd;
     int              fd = resp_arg->fd;
     httpd_ws_frame_t ws_pkt;
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
     ws_pkt.type = resp_arg->type;
+    if (ws_pkt.type == HTTPD_WS_TYPE_CLOSE) {
+        ws_pkt.final = true;
+        ESP_LOGD(TAG, "final send for %d with len: %d", fd, resp_arg->len);
+    }
     ws_pkt.payload = resp_arg->payload;
-    ws_pkt.len = resp_arg->len;
     ws_pkt.len = (resp_arg->len == 0 && resp_arg->type == HTTPD_WS_TYPE_TEXT) ? strlen((const char *)resp_arg->payload)
                                                                               : resp_arg->len;
 
-    ESP_LOGD(TAG, "ws_async_send: fd=%d, len=%d, msg=%s", fd, ws_pkt.len, (const char *)ws_pkt.payload);
+    ESP_LOGD(TAG, "ws_async_send: fd=%d, len=%d, msg=%s", fd, ws_pkt.len,
+             ws_pkt.type == HTTPD_WS_TYPE_TEXT ? (const char *)ws_pkt.payload : "<non-text>");
     esp_err_t ret = httpd_ws_send_frame_async(hd, fd, &ws_pkt);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send async: %d", ret);
@@ -469,10 +475,10 @@ esp_err_t WebServer::init(uint16_t port, const char *base_path) {
 
     ESP_RETURN_ON_ERROR(esp_event_handler_register(ESP_HTTP_SERVER_EVENT, HTTP_SERVER_EVENT_ON_CONNECTED,
                                                    &WebServer::onClientConnectionEvent, this),
-                        TAG, "Registering http event failed");
+                        TAG, "Registering http connect event failed");
     ESP_RETURN_ON_ERROR(esp_event_handler_register(ESP_HTTP_SERVER_EVENT, HTTP_SERVER_EVENT_DISCONNECTED,
                                                    &WebServer::onClientConnectionEvent, this),
-                        TAG, "Registering http event failed");
+                        TAG, "Registering http disconnect event failed");
 
     // start server once we get an IP address. Then leave it running.
     ESP_RETURN_ON_ERROR(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &WebServer::connect_handler, this),
@@ -506,7 +512,7 @@ void WebServer::disconnect(int id) {
         return;
     }
 
-    httpd_sess_trigger_close(server_, id);
+    ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_sess_trigger_close(server_, id));
 }
 
 void WebServer::disconnectAll() {
@@ -522,6 +528,37 @@ void WebServer::disconnectAll() {
     for (size_t i = 0; i < clients; ++i) {
         httpd_sess_trigger_close(server_, client_fds[i]);
     }
+}
+
+void WebServer::forceCloseWs(int id, uint16_t code) {
+    struct async_resp_arg *resp_arg = static_cast<async_resp_arg *>(malloc(sizeof(struct async_resp_arg)));
+    assert(resp_arg);
+    resp_arg->hd = server_;
+    resp_arg->fd = id;
+    resp_arg->type = HTTPD_WS_TYPE_CLOSE;
+
+    // include optional 2‑byte status code in payload (big‑endian)
+    if (code != 0) {
+        uint8_t *payload = static_cast<uint8_t *>(malloc(2));
+        payload[0] = (code >> 8) & 0xff;
+        payload[1] = code & 0xff;
+        resp_arg->payload = payload;
+        resp_arg->len = 2;
+    } else {
+        resp_arg->payload = NULL;
+        resp_arg->len = 0;
+    }
+
+    // Queue a close frame first for graceful shutdown
+    esp_err_t ret = httpd_queue_work(resp_arg->hd, ws_async_send, resp_arg);
+    if (ret != ESP_OK) {
+        free(resp_arg->payload);
+        free(resp_arg);
+        ESP_LOGE(TAG, "httpd_queue_work failed! %d", ret);
+    }
+
+    // Then queue the normal session close
+    ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_sess_trigger_close(server_, id));
 }
 
 esp_err_t WebServer::setAuthenticated(int id, bool authenticated) {
@@ -600,6 +637,46 @@ esp_err_t WebServer::getRemoteIp(int fd, struct sockaddr_in6 *addr_in) {
         ESP_LOGE(TAG, "Error getting peer's IP/port");
         return ESP_FAIL;
     }
+}
+
+uint16_t WebServer::wsClientCount() {
+    if (!server_) {
+        return 0;
+    }
+
+    uint16_t  wsCount = 0;
+    uint16_t  httpCount = 0;
+    u_int16_t invCount = 0;
+    size_t    clients = CONFIG_UCD_WEB_MAX_OPEN_SOCKETS;
+    int       client_fds[CONFIG_UCD_WEB_MAX_OPEN_SOCKETS];
+
+    esp_err_t ret = httpd_get_client_list(server_, &clients, client_fds);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get httpd clients: %d", ret);
+        return 0;
+    }
+
+    for (size_t i = 0; i < clients; ++i) {
+        int                    fd = client_fds[i];
+        httpd_ws_client_info_t info = httpd_ws_get_fd_info(server_, fd);
+        switch (info) {
+            case HTTPD_WS_CLIENT_WEBSOCKET:
+                wsCount++;
+                break;
+            case HTTPD_WS_CLIENT_HTTP:
+                httpCount++;
+                break;
+            case HTTPD_WS_CLIENT_INVALID:
+                invCount++;
+                break;
+            default:
+                ESP_LOGW(TAG, "Unknown client type %d: %d", info, fd);
+        }
+    }
+
+    ESP_LOGI(TAG, "Clients: %d ws=%d, http=%d, invalid=%d", clients, wsCount, httpCount, invCount);
+
+    return wsCount;
 }
 
 esp_err_t httpd_resp_send_json_err(httpd_req_t *req, httpd_err_code_t error, const char *usr_msg) {
