@@ -11,7 +11,20 @@ _Changes in the next release_
 
 ---
 
-## Beta Release 0.8.2
+## Release 0.9.0 - 2026-04-28
+### Fixed
+- Double allocation of eth_handle ([#53](https://github.com/unfoldedcircle/ucd3-firmware/pull/53)).
+- Memory leak in BLE device name advertisement ([#54](https://github.com/unfoldedcircle/ucd3-firmware/pull/54)).
+- Memory leak in WebSocket send, buffer under-read in file ext check ([#55](https://github.com/unfoldedcircle/ucd3-firmware/pull/55)).
+- Semaphore and socket leak in GlobalCache server ([#56](https://github.com/unfoldedcircle/ucd3-firmware/pull/56)).
+
+### Changed
+- Update GitHub actions, clean up ([#57](https://github.com/unfoldedcircle/ucd3-firmware/pull/57)).
+- Enable TCP keep alive and connection lru purge ([#58](https://github.com/unfoldedcircle/ucd3-firmware/pull/58)).
+- Disconnect unauthenticated WS clients after 30s ([#59](https://github.com/unfoldedcircle/ucd3-firmware/pull/59)).
+- Increase max sockets from 10 to 32 ([#60](https://github.com/unfoldedcircle/ucd3-firmware/pull/60)).
+
+## Beta Release 0.8.2 - 2026-02-14
 ### Fixed
 - Improv-wifi RPC response length and checksum calculation ([#47](https://github.com/unfoldedcircle/ucd3-firmware/pull/47)).
 - Correct initial state for inverted IR emitters ([#48](https://github.com/unfoldedcircle/ucd3-firmware/pull/48)).
@@ -25,11 +38,11 @@ _Changes in the next release_
 - SNTP initialization, not displaying an invalid date in the status web-page by @Tosko4 in ([#46](https://github.com/unfoldedcircle/ucd3-firmware/pull/46)).
 - Update GitHub build actions ([#50](https://github.com/unfoldedcircle/ucd3-firmware/pull/50)).
     
-## Beta Release 0.8.1
+## Beta Release 0.8.1 - 2025-11-03
 ### Changed
 - Increase of overcurrent limitation to 2000mA ([#41](https://github.com/unfoldedcircle/ucd3-firmware/pull/41)).
 
-## Beta Release 0.8.0
+## Beta Release 0.8.0 - 2025-09-23
 ### Fixed
 - Delay function used for sending IR codes was inaccurate for delays greater than 16ms, causing issues for certain IR protocols and native IR repeats ([#34](https://github.com/unfoldedcircle/ucd3-firmware/pull/34), [feature-and-bug-tracker#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).
 - Stop active IR repeat if WebSocket client disconnects.
@@ -45,13 +58,13 @@ _Changes in the next release_
 - Enhance IR repeat functionality ([#35](https://github.com/unfoldedcircle/ucd3-firmware/pull/35)).
 - Do not enter WiFi setup mode if connection setup failed ([feature-and-bug-tracker#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612)).
 
-## Beta Release 0.7.1
+## Beta Release 0.7.1 - 2025-08-28
 ### Added
 - Documentation for firmware flashing with esptool and web-serial ([#26](https://github.com/unfoldedcircle/ucd3-firmware/pull/26), [#27](https://github.com/unfoldedcircle/ucd3-firmware/pull/27)).
 ### Changed
 - Increase of overcurrent limitation to 1850mA ([#30](https://github.com/unfoldedcircle/ucd3-firmware/pull/30)).
 
-## Beta Release 0.7.0
+## Beta Release 0.7.0 - 2025-07-17
 ### Fixed
 - External port detection with two blasters.
 - Show error on screen for over-current detection ([#17](https://github.com/unfoldedcircle/ucd3-firmware/issues/17)).
@@ -71,7 +84,7 @@ _Changes in the next release_
 - Use both internal IR outputs if no active output has been specified.
 - Determine vcc charger offset at startup to prevent toggling charging / non charging screens.
 
-## Beta Release 0.6.0
+## Beta Release 0.6.0 - 2025-06-02
 ### Changed
 - Improve auto-detection of external IR-peripherals, including the Dock Two mono-plug IR-emitter.
 - OSS release: squashed and cleaned-up project for public release.

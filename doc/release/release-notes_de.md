@@ -1,4 +1,13 @@
-## Beta Release 0.8.2
+## Release 0.9.0 - 2026-04-28
+### Fehlerbehebungen
+- Verschiedene Stabilitätsverbesserungen und automatisches Trennen von hängenden Client-Verbindungen.
+  
+### Geändert
+- Die am wenigsten aktive Client-Verbindung automatisch schließen, wenn keine Verbindungen mehr verfügbar sind ([#58](https://github.com/unfoldedcircle/ucd3-firmware/pull/58)).
+- Nicht authentifizierte Clients nach 30 Sekunden trennen ([#59](https://github.com/unfoldedcircle/ucd3-firmware/pull/59)).
+- Die maximale Anzahl an Client-Verbindungen wurde von 7 auf 18 erhöht ([#60](https://github.com/unfoldedcircle/ucd3-firmware/pull/60)).
+
+## Beta Release 0.8.2 - 2026-02-14
 ### Fehlerbehebungen
 - Korrekter Anfangszustand für IR-LEDs, damit diese nicht leuchten bis ein IR-Befehl gesendet wird ([#48](https://github.com/unfoldedcircle/ucd3-firmware/pull/48)).
 - Allgemeine Fehlerbehebungen und Verbesserungen.
@@ -6,11 +15,11 @@
 ### Geändert
 - SNTP-Initialisierung, keine Anzeige eines ungültigen Datums auf der Status-Webseite. Beigetragen von @Tosko4, danke! ([#46](https://github.com/unfoldedcircle/ucd3-firmware/pull/46)).
 
-## Beta Release 0.8.1
+## Beta Release 0.8.1 - 2025-11-03
 ### Geändert
 - Anhebung der Überstrombegrenzung auf 2000mA.
 
-## Beta Release 0.8.0
+## Beta Release 0.8.0 - 2025-09-23
 ### Fehlerbehebungen
 - Die Verzögerungsfunktion für das Senden von IR-Codes war bei Verzögerungen von mehr als 16 ms ungenau, was bei bestimmten IR-Protokollen und nativen IR-Wiederholungen zu Problemen führte ([#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).
 - Aktive IR-Wiederholung stoppen, wenn der WebSocket-Client die Verbindung trennt.
@@ -22,11 +31,11 @@
 ### Geändert
 - Nicht in den WiFi-Einrichtungsmodus wechseln, wenn die Einrichtung der Verbindung fehlgeschlagen ist ([#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612))
 
-## Beta Release 0.7.1
+## Beta Release 0.7.1 - 2025-08-28
 ### Geändert
 - Anhebung der Überstrombegrenzung auf 1850mA ([#30](https://github.com/unfoldedcircle/ucd3-firmware/pull/30)).
 
-## Beta Release 0.7.0
+## Beta Release 0.7.0 - 2025-07-17
 ### Fehlerbehebungen
 - Automatische Erkennung von zwei IR-Blaster.
 - Fehleranzeige auf dem Bildschirm bei Ladeabschaltung aufgrund von Überstromerkennung ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
@@ -43,7 +52,7 @@
 - Verbesserung der Ladestrommessung und der Überstromerkennung zur Vermeidung von Ladeabschaltungen ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
 - Bestimmung des Ladespannungs-Offset beim Start, um ein Umschalten zwischen den Lade- und Nichtladebildschirmen zu verhindern.
 
-## Beta Release 0.6.0
+## Beta Release 0.6.0 - 2025-06-02
 ### Fehlerbehebungen
 - Die externen Ports 1 und 2 wurden gemäß Handbuch getauscht: Port 1 befindet sich neben dem Ethernet-Port.
 - Startup-Crash beim Netzwerk-Check, wenn andere Initialisierungen länger dauern als erwartet.
