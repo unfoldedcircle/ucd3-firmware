@@ -91,7 +91,7 @@ static bool          conn_active = false;
 static void ble_app_on_reset(int reason);
 static void ble_app_on_sync(void);
 
-static const char *create_device_name() {
+static char *create_device_name() {
     uint8_t mac[6];
     char   *device_name;
     ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));

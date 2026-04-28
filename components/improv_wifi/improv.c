@@ -119,7 +119,6 @@ uint8_t* build_rpc_response(improv_command_t command, const char* datum[], uint8
                             uint16_t* buf_length) {
     uint8_t* out;
     uint16_t out_length = 3;  // command + data length + checksum
-    uint16_t length = 0;
 
     ESP_LOGI(TAG, "build_rpc_response, urls: %d", num_datum);
 
