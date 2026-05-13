@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- IR code validation fails for data value 0 ([#62](https://github.com/unfoldedcircle/ucd3-firmware/issues/62)).
+
 ---
 
 ## Release 0.9.0 - 2026-04-28
