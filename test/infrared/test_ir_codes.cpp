@@ -137,6 +137,14 @@ TEST(IrCodesTest, BuildIRHexDataRepeatTooHigh) {
     EXPECT_FALSE(buildIRHexData(msg, &data));
 }
 
+TEST(IrCodesTest, BuildIRHexDataGhIssue62) {
+    struct IRHexData data;
+    std::string      msg = "2;0x0;20;0";
+    EXPECT_TRUE(buildIRHexData(msg, &data));
+    msg = "2;0x10000;20;0";
+    EXPECT_TRUE(buildIRHexData(msg, &data));
+}
+
 TEST(IrCodesTest, countValuesInCStrNullInput) {
     EXPECT_EQ(0, countValuesInCStr(NULL, ','));
 }

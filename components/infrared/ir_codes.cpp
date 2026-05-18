@@ -47,22 +47,25 @@ decode_type_t parseProtocol(const char *input) {
     return static_cast<decode_type_t>(protocol);
 }
 
-uint64_t parseCommand(const char *input) {
-    errno = 0;
+uint64_t parseCommand(const char *input, int *error) {
     char *end;
     errno = 0;
     uint64_t command = strtoull(input, &end, 16);
     if (command == 0 && end == input) {
         // input was not a number
+        *error = 1;
         return 0;
     } else if (command == UINT64_MAX && errno) {
         // the value of input does not fit in unsigned long long
+        *error = 2;
         return 0;
     } else if (*end) {
         // input began with a number but has junk left over at the end
+        *error = 3;
         return 0;
     }
 
+    *error = 0;
     return command;
 }
 
@@ -83,30 +86,35 @@ bool buildIRHexData(const std::string &message, IRHexData *data) {
 
     data->protocol = parseProtocol(message.substr(0, firstIndex).c_str());
     if (data->protocol <= 0) {
+        ESP_LOGW(TAG, "Protocol parsing error, message='%s'", message.c_str());
         return false;
     }
 
     firstIndex++;
-    data->command = parseCommand(message.substr(firstIndex, secondIndex - firstIndex).c_str());
-    if (data->command == 0) {
+    int error;
+    data->command = parseCommand(message.substr(firstIndex, secondIndex - firstIndex).c_str(), &error);
+    if (error) {
+        ESP_LOGW(TAG, "Command parsing error %d, message='%s'", error, message.c_str());
         return false;
     }
 
     secondIndex++;
-    int         error;
     std::string number = message.substr(secondIndex, thirdIndex - secondIndex);
     uint32_t    value = parseUint32(number.c_str(), &error, 10);
     if (error || value > 0xFFFF) {
+        ESP_LOGW(TAG, "Command bits parsing error: %d, value: %lu", error, value);
         return false;
     }
     data->bits = value;
     if (data->bits == 0) {
+        ESP_LOGW(TAG, "Invalid command bits");
         return false;
     }
 
     number = message.substr(thirdIndex + 1);
     value = parseUint32(number.c_str(), &error, 10);
     if (error || value > 0xFFFF || value > 20) {
+        ESP_LOGW(TAG, "Repeat parsing error: %d, value: %lu", error, value);
         return false;
     }
     data->repeat = value;
