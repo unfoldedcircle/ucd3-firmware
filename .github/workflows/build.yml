@@ -258,8 +258,8 @@ jobs:
     # changelog step is required to access firmware version (see below: FW_VERSION)
     needs: [changelog, release]
     env:
-      # limit to single board revision
-      BOARD_REVISION: "4"
+      # Space-separated list of board revisions to build OTA images for
+      BOARD_REVISIONS: "4 6"
 
     steps:
       - name: Checkout repository
@@ -272,7 +272,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
-          pattern: ${{ env.APP_NAME }}_r${{ env.BOARD_REVISION }}-*
+          pattern: ${{ env.APP_NAME }}_r*
           path: bin
 
       - name: Get version
@@ -287,26 +287,29 @@ jobs:
           echo "--- Environment ---"
           printenv
 
-      # quick and dirty: this only works with a single downloaded artifact!
       - name: Extract tar.gz build archives from downloaded artifacts
         run: |
-          # Files are wrapped in tar from actions/upload-artifact, then extracted into a directory by actions/download-artifact
+          # Each artifact directory is named APP_NAME_r{REVISION}-v{VERSION}.
+          # All archives contain identical filenames, so each is extracted into
+          # its own subdirectory bin/r{REVISION}/ to avoid overwriting.
           cd bin
-          ls -lah 
-          for D in * 
-            do if [ -d "${D}" ]; then
-              echo "Archive directory: $D"
-              ls -lah $D/*
-              mv $D/* ./
+          for D in */; do
+            REVISION=$(echo "$D" | grep -oP '(?<=_r)\d+(?=-)')
+            if [[ -n "$REVISION" ]]; then
+              echo "Extracting archive for revision r${REVISION} from $D"
+              mkdir -p "r${REVISION}"
+              tar xzvf "$D"*.tar.gz -C "r${REVISION}"
             fi
-          done;
-          tar xzvf *.tar.gz
-          ls -lah
+          done
+          ls -Rlah
 
       - name: Create OTA images
         run: |
           cd tools/ota
-          ./create_ota_update.sh "../../bin/ucd3-firmware.bin" ${{ env.BOARD_REVISION }} ${{ env.FW_VERSION }}
+          for REVISION in ${{ env.BOARD_REVISIONS }}; do
+            echo "Creating OTA image for revision ${REVISION}"
+            ./create_ota_update.sh "../../bin/r${REVISION}/ucd3-firmware.bin" "${REVISION}" ${{ env.FW_VERSION }}
+          done
           ls -lah release
 
       - name: Install SSH key for OTA server deployment
@@ -320,5 +323,8 @@ jobs:
         if: "contains(github.ref, 'tags/v')"
         run: |
           cd tools/ota
-          OTA_SERVER=${{ secrets.OTA_SERVER}} OTA_SERVER_USER=${{ secrets.OTA_SERVER_USER }} OTA_SERVER_BASEPATH=${{ secrets.OTA_SERVER_BASEPATH }} \
-              ./upload-ota.sh ${{ env.BOARD_REVISION }} ${{ env.FW_VERSION }}
+          for REVISION in ${{ env.BOARD_REVISIONS }}; do
+            echo "Uploading OTA image for revision ${REVISION}"
+            OTA_SERVER=${{ secrets.OTA_SERVER}} OTA_SERVER_USER=${{ secrets.OTA_SERVER_USER }} OTA_SERVER_BASEPATH=${{ secrets.OTA_SERVER_BASEPATH }} \
+            ./upload-ota.sh "${REVISION}" ${{ env.FW_VERSION }}
+          done

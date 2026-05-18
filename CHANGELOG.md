@@ -11,6 +11,7 @@ _Changes in the next release_
 
 ### Fixed
 - IR code validation fails for data value 0 ([#62](https://github.com/unfoldedcircle/ucd3-firmware/issues/62)).
+- OTA image build now supports multiple revisions. No more manual interventions required.
 
 ---
 
