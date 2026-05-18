@@ -1,3 +1,7 @@
+## Release 0.9.1 - 2026-05-18
+### Fehlerbehebungen
+- IR-Codes mit dem Datenwert 0 zulassen, z. B. die Ziffer "0" bei Philips-Fernsehern, die das RC6-Protokoll verwenden ([bug-tracker#721](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/721)).
+
 ## Release 0.9.0 - 2026-04-28
 ### Fehlerbehebungen
 - Verschiedene Stabilitätsverbesserungen und automatisches Trennen von hängenden Client-Verbindungen.
@@ -21,7 +25,7 @@
 
 ## Beta Release 0.8.0 - 2025-09-23
 ### Fehlerbehebungen
-- Die Verzögerungsfunktion für das Senden von IR-Codes war bei Verzögerungen von mehr als 16 ms ungenau, was bei bestimmten IR-Protokollen und nativen IR-Wiederholungen zu Problemen führte ([#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).
+- Die Verzögerungsfunktion für das Senden von IR-Codes war bei Verzögerungen von mehr als 16 ms ungenau, was bei bestimmten IR-Protokollen und nativen IR-Wiederholungen zu Problemen führte ([bug-tracker#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).
 - Aktive IR-Wiederholung stoppen, wenn der WebSocket-Client die Verbindung trennt.
 - Allgemeine Stabilitätsverbesserungen.
 
@@ -29,7 +33,7 @@
 - Status-LED-Muster für Dock-Einrichtung, IR-Lernen und OTA.
 
 ### Geändert
-- Nicht in den WiFi-Einrichtungsmodus wechseln, wenn die Einrichtung der Verbindung fehlgeschlagen ist ([#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612))
+- Nicht in den WiFi-Einrichtungsmodus wechseln, wenn die Einrichtung der Verbindung fehlgeschlagen ist ([bug-tracker#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612))
 
 ## Beta Release 0.7.1 - 2025-08-28
 ### Geändert
@@ -38,9 +42,9 @@
 ## Beta Release 0.7.0 - 2025-07-17
 ### Fehlerbehebungen
 - Automatische Erkennung von zwei IR-Blaster.
-- Fehleranzeige auf dem Bildschirm bei Ladeabschaltung aufgrund von Überstromerkennung ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
-- PRONTO-Code-Parsing mit nachgestellten Leerzeichen ([#495](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/495)).
-- Einrichtung mit einem benutzerdefinierten Passwort auf Fernbedienungen mit einer Firmware-Version <= 2.6.1 ([#489](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/489)).
+- Fehleranzeige auf dem Bildschirm bei Ladeabschaltung aufgrund von Überstromerkennung ([#bug-tracker501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
+- PRONTO-Code-Parsing mit nachgestellten Leerzeichen ([bug-tracker#495](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/495)).
+- Einrichtung mit einem benutzerdefinierten Passwort auf Fernbedienungen mit einer Firmware-Version <= 2.6.1 ([bug-tracker#489](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/489)).
 - Rückgabe des korrekten Netzwerkverbindungstyps (Ethernet oder WiFi).
 - Anzeige der korrekten Ladeinformationen im Info-Bildschirm beim Drücken der Steuerungstaste.
 - Allgemeine Stabilitätsverbesserungen.
@@ -49,7 +53,7 @@
 - Überprüfung des Ladegeräts auf Unterspannung.
 
 ### Geändert
-- Verbesserung der Ladestrommessung und der Überstromerkennung zur Vermeidung von Ladeabschaltungen ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
+- Verbesserung der Ladestrommessung und der Überstromerkennung zur Vermeidung von Ladeabschaltungen ([bug-tracker#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
 - Bestimmung des Ladespannungs-Offset beim Start, um ein Umschalten zwischen den Lade- und Nichtladebildschirmen zu verhindern.
 
 ## Beta Release 0.6.0 - 2025-06-02
