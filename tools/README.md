@@ -16,6 +16,14 @@ Local copy of the Linux and macOS binary of [git-semver](https://github.com/mdom
 
 OTA firmware update creation and OTA server upload scripts.
 
+## decode_efuse.py
+
+Decode ESP32-S3 efuse BLOCK3 data from espefuse.py dump output with our [efuse data structure](../doc/efuse.md).
+
+## git-tag.sh
+
+Git tag release script to simplify creating git tags with changelog since last release.
+
 ## git-version.sh
 
 Helper script to determine [SemVer](https://semver.org/) compatible version string from git repository.
