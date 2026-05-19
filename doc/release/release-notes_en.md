@@ -1,3 +1,7 @@
+## Release 0.9.1 - 2026-05-18
+### Fixed
+- Allow IR codes with a data value of 0, such as the digit "0" on Philips TVs that use the RC6 protocol ([bug-tracker#721](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/721)).
+
 ## Release 0.9.0 - 2026-04-28
 ### Fixed
 - Various stability improvements and automatically releasing stuck client connections.
@@ -21,7 +25,7 @@
 
 ## Beta Release 0.8.0 - 2025-09-23
 ### Fixed
-- Delay function used for sending IR codes was inaccurate for delays greater than 16ms, causing issues for certain IR protocols and native IR repeats ([#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).
+- Delay function used for sending IR codes was inaccurate for delays greater than 16ms, causing issues for certain IR protocols and native IR repeats ([bug-tracker#484](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/484)).
 - Stop active IR repeat if the WebSocket client disconnects.
 - General stability improvements.
 
@@ -29,7 +33,7 @@
 - Status led patterns for dock setup, IR learning and OTA.
 
 ### Changed
-- Not entering WiFi setup mode if connection setup failed ([#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612)).
+- Not entering WiFi setup mode if connection setup failed ([bug-tracker#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612)).
 
 ## Beta Release 0.7.1 - 2025-08-28
 ### Changed
@@ -38,9 +42,9 @@
 ## Beta Release 0.7.0 - 2025-07-17
 ### Bug Fixes
 - External port detection with two blasters.
-- Show charger shut off error on screen caused by over-current detection ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
-- PRONTO code parsing with trailing whitespace ([#495](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/495)).
-- Setup with a custom password on Remotes runnig firmware version <= 2.6.1 ([#489](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/489)).
+- Show charger shut off error on screen caused by over-current detection ([bug-tracker#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
+- PRONTO code parsing with trailing whitespace ([bug-tracker#495](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/495)).
+- Setup with a custom password on Remotes runnig firmware version <= 2.6.1 ([bug-tracker#489](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/489)).
 - Return correct network connection type (Ethernet or WiFi).
 - Show correct charging information in info screen when pressing the control button.
 - General stability improvements.
