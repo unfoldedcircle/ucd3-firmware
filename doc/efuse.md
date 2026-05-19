@@ -56,6 +56,8 @@ espefuse.py -c esp32s3 --virt --path-efuse-file virt.bin summary
 espefuse.py --port $SERIAL_DEV dump
 ```
 
+The dumped BLOCK3 data can be decoded with the [./tools/decode_efuse.py](../tools/decode_efuse.py) script.
+
 ## Write efuse
 
 ‼️ Test with a virtual device first before writing efuses in a real device!  
