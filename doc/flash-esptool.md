@@ -18,8 +18,6 @@ Please note that manual flashing is usually not required, except if a custom fir
     1. Choose a release, usually the latest version
     2. Download the attached firmware file under assets: UCD3-firmware_r4-v\<VERSION>.tar.gz
 2. Extract the downloaded archive and copy all `.bin` files into the extracted `esptool` directory.
-    - Note: the `ucd3-firmware-unsigned.bin` firmware file needs to be flashed with the esptool, the `ucd3-firmware.bin` is the signed firmware for OTA updates.
-
 
 ## Flash Firmware with esptool
 
@@ -40,7 +38,7 @@ Please note that manual flashing is usually not required, except if a custom fir
   0x0 bootloader.bin \
   0x8000 partition-table.bin \
   0x8d000 ota_data_initial.bin \
-  0x90000 ucd3-firmware-unsigned.bin
+  0x90000 ucd3-firmware.bin
 ```
 
   - The output should look similar to:
