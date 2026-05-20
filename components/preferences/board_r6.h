@@ -12,8 +12,3 @@
 
 // OUTPUT, PoE voltage switch (rev6+). Not used yet
 #define POE_SWITCH GPIO_NUM_7
-
-// Inverted output or not for SWITCH_EXT_1 & SWITCH_EXT_2
-#define SWITCH_EXT_INVERTED 0
-// GPIO output mode for SWITCH_EXT_1 & SWITCH_EXT_2: open drain or floating
-#define SWITCH_EXT_GPIO_MODE GPIO_MODE_OUTPUT

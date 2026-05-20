@@ -9,8 +9,3 @@
 
 #define UCD_HW_MODEL_NAME "UCD3"
 #define UCD_HW_REVISION_NAME "4"
-
-// Inverted output or not for SWITCH_EXT_1 & SWITCH_EXT_2
-#define SWITCH_EXT_INVERTED 0
-// GPIO output mode for SWITCH_EXT_1 & SWITCH_EXT_2: open drain or floating
-#define SWITCH_EXT_GPIO_MODE GPIO_MODE_OUTPUT

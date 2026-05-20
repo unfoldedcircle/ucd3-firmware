@@ -205,21 +205,21 @@ void init_gpios(void) {
     gpio_set_level(TX1, TX_INVERTED);  // output low
 
     // RS232 / IR out 1
-    gpio_init(SWITCH_EXT_1, SWITCH_EXT_GPIO_MODE, GPIO_PULLUP_DISABLE);
+    gpio_init(SWITCH_EXT_1, board_switch_ext_gpio_mode(), GPIO_PULLUP_DISABLE);
     gpio_init(MEASURE_GND_1, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE);
     // also use input to retrieve current state in trigger output mode
     gpio_init(SWITCH_GND_1, GPIO_MODE_INPUT_OUTPUT, GPIO_PULLUP_DISABLE, GPIO_PULLDOWN_ENABLE);
     // disable 5V & GND
-    gpio_set_level(SWITCH_EXT_1, SWITCH_EXT_INVERTED);  // output low
-    gpio_set_level(SWITCH_GND_1, 0);                    // output low
+    gpio_set_level(SWITCH_EXT_1, board_is_switch_ext_inverted() ? 1 : 0);  // output low
+    gpio_set_level(SWITCH_GND_1, 0);                                       // output low
 
     // RS232 / IR out 2
-    gpio_init(SWITCH_EXT_2, SWITCH_EXT_GPIO_MODE, GPIO_PULLUP_DISABLE);
+    gpio_init(SWITCH_EXT_2, board_switch_ext_gpio_mode(), GPIO_PULLUP_DISABLE);
     gpio_init(MEASURE_GND_2, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE);
     // also use input to retrieve current state in trigger output mode
     gpio_init(SWITCH_GND_2, GPIO_MODE_INPUT_OUTPUT, GPIO_PULLUP_DISABLE, GPIO_PULLDOWN_ENABLE);
     // disable 5V & GND
-    gpio_set_level(SWITCH_EXT_2, SWITCH_EXT_INVERTED);
+    gpio_set_level(SWITCH_EXT_2, board_is_switch_ext_inverted() ? 1 : 0);
     gpio_set_level(SWITCH_GND_2, 0);
 }
 

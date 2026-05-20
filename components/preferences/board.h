@@ -7,10 +7,10 @@
 
 #pragma once
 
+#include "driver/gpio.h"
 #include "esp_bit_defs.h"
 #include "hal/adc_types.h"
 #include "soc/gpio_num.h"
-
 
 #include "sdkconfig.h"
 
@@ -145,6 +145,12 @@ adc_unit_t    board_get_charging_current_adc_unit(void);
 
 // Charger measurement ADC channel
 adc_channel_t board_get_charging_current_adc_ch(void);
+
+// Inverted output or not for SWITCH_EXT_1 & SWITCH_EXT_2
+bool board_is_switch_ext_inverted(void);
+
+// GPIO output mode for SWITCH_EXT_1 & SWITCH_EXT_2: open drain or floating
+gpio_mode_t board_switch_ext_gpio_mode(void);
 
 #ifdef __cplusplus
 }

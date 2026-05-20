@@ -427,7 +427,7 @@ void ExternalPort::enableGround(bool enable) {
 
 void ExternalPort::enable5V(bool enable) {
     // inverted logic depending on board revision!
-    if (SWITCH_EXT_INVERTED) {
+    if (board_is_switch_ext_inverted()) {
         enable = !enable;
     }
     gpio_set_level(config_.gpio_5v_switch, enable ? 1 : 0);

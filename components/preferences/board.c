@@ -40,7 +40,7 @@ static adc_unit_t s_charging_current_adc_unit = ADC_UNIT_2;
 static adc_channel_t s_charging_current_adc_ch = ADC_CHANNEL_3;
 
 int read_efuse_revision() {
-    char revision[4];
+    char revision[4] = {0};
     esp_efuse_read_field_blob(ESP_EFUSE_USER_DATA_DOCK_HW_REV, &revision,
                               ESP_EFUSE_USER_DATA_DOCK_HW_REV[0]->bit_count);
     int rev = atoi(revision);
@@ -70,7 +70,7 @@ void board_init_revision(void) {
         s_charging_current_adc_unit = ADC_UNIT_1;
         s_charging_current_adc_ch = ADC_CHANNEL_5;
         // tied to IR side output on rev6+
-        s_ir_send_pin_int_top = GPIO_NUM_NC;
+        s_ir_send_pin_int_top = IR_SEND_PIN_INT_SIDE;
     }
 }
 
@@ -96,4 +96,12 @@ adc_unit_t board_get_charging_current_adc_unit(void) {
 
 adc_channel_t board_get_charging_current_adc_ch(void) {
     return s_charging_current_adc_ch;
+}
+
+bool board_is_switch_ext_inverted(void) {
+    return s_revision == 3 ? true : false;
+}
+
+gpio_mode_t board_switch_ext_gpio_mode(void) {
+    return s_revision == 3 ? GPIO_MODE_OUTPUT_OD : GPIO_MODE_OUTPUT;
 }
