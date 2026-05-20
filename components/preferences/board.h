@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "driver/gpio.h"
 #include "esp_bit_defs.h"
 #include "hal/adc_types.h"
+#include "hal/gpio_types.h"
 #include "soc/gpio_num.h"
 
 #include "sdkconfig.h"
