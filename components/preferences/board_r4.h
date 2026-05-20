@@ -10,17 +10,6 @@
 #define UCD_HW_MODEL_NAME "UCD3"
 #define UCD_HW_REVISION_NAME "4"
 
-// chipselect for KSZ8851SNL ethernet ic, LOW -> enable communication to KSZ8851SNL
-#define SPI_CS GPIO_NUM_6
-
-// INPUT, measures low side via 0.1 Ohm current to remote
-#define CHARGING_CURRENT GPIO_NUM_14
-#define CHARGING_CURRENT_ADC_UNIT ADC_UNIT_2
-#define CHARGING_CURRENT_ADC_CH ADC_CHANNEL_3
-
-// OUTPUT,OPEN DRAIN. physically pulled up to 2.4V
-#define IR_SEND_PIN_INT_TOP GPIO_NUM_7
-
 // Inverted output or not for SWITCH_EXT_1 & SWITCH_EXT_2
 #define SWITCH_EXT_INVERTED 0
 // GPIO output mode for SWITCH_EXT_1 & SWITCH_EXT_2: open drain or floating

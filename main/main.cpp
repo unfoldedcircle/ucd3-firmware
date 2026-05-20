@@ -23,6 +23,7 @@
 #include "charger.h"
 #include "config.h"
 #include "display.h"
+#include "efuse.h"
 #include "external_port.h"
 #include "frogfs/frogfs.h"
 #include "frogfs/vfs.h"
@@ -174,7 +175,7 @@ void init_gpios(void) {
         ESP_LOGE(TAG, "Failed to initialize ETH PWM LED: %d", ret);
     }
 
-    gpio_init(CHARGING_CURRENT, GPIO_MODE_INPUT);
+    gpio_init(board_get_charging_current_pin(), GPIO_MODE_INPUT);
     // also input to be able to read current state in charger monitor
     gpio_init(CHARGING_ENABLE, GPIO_MODE_INPUT_OUTPUT, GPIO_PULLUP_DISABLE);
     gpio_set_level(CHARGING_ENABLE, 0);
@@ -187,10 +188,13 @@ void init_gpios(void) {
     // internal IR
     gpio_init(IR_RECEIVE_PIN, GPIO_MODE_INPUT);
 
-    gpio_init(IR_SEND_PIN_INT_TOP, GPIO_MODE_OUTPUT_OD, GPIO_PULLUP_DISABLE);
     gpio_init(IR_SEND_PIN_INT_SIDE, GPIO_MODE_OUTPUT_OD, GPIO_PULLUP_DISABLE);
-    gpio_set_level(IR_SEND_PIN_INT_TOP, IR_SEND_PIN_INT_TOP_INVERTED);    // output low (inverted logic)
     gpio_set_level(IR_SEND_PIN_INT_SIDE, IR_SEND_PIN_INT_SIDE_INVERTED);  // output low (inverted logic)
+    gpio_num_t ir_send_pin_int_top = board_get_ir_send_pin_int_top();
+    if (ir_send_pin_int_top != GPIO_NUM_NC) {
+        gpio_init(ir_send_pin_int_top, GPIO_MODE_OUTPUT_OD, GPIO_PULLUP_DISABLE);
+        gpio_set_level(ir_send_pin_int_top, IR_SEND_PIN_INT_TOP_INVERTED);  // output low (inverted logic)
+    }
 
     // configure UART out for IR blaster
     gpio_init(TX0, GPIO_MODE_OUTPUT_OD);
@@ -293,16 +297,16 @@ esp_err_t init_charger(std::shared_ptr<AdcChannel> vcc_channel, std::shared_ptr<
     assert(vcc_channel);
     assert(shared_adc_unit);
 
-    adc_unit_t unit = CHARGING_CURRENT_ADC_UNIT;
-    auto       adc_ch = CHARGING_CURRENT_ADC_CH;
+    adc_unit_t    unit = board_get_charging_current_adc_unit();
+    adc_channel_t adc_ch = board_get_charging_current_adc_ch();
 
     std::shared_ptr<AdcUnit> adcUnit;
-#if defined(CONFIG_UCD_HW_REVISION_6)
-    // Rev6 shares ADC_UNIT_1 between charger current and port sensing.
-    adcUnit = shared_adc_unit;
-#else
-    adcUnit = AdcUnit::create(unit);
-#endif
+    if (board_get_revision() == 6) {
+        // Rev6 shares ADC_UNIT_1 between charger current and port sensing.
+        adcUnit = shared_adc_unit;
+    } else {
+        adcUnit = AdcUnit::create(unit);
+    }
     ESP_RETURN_ON_FALSE(adcUnit, ESP_FAIL, TAG, "Cannot initialize charger: ADC unit %d creation failed", unit);
 
     std::unique_ptr<AdcChannel> channel = adcUnit->createChannel(adc_ch, ADC_ATTEN_DB_0);
@@ -319,6 +323,9 @@ static void factoryResetHandler(void *arg, esp_event_base_t event_base, int32_t 
 
 extern "C" void app_main(void) {
     esp_err_t ret = ESP_OK;
+
+    board_init_revision();
+
     init_gpios();
 
     // to set another timezone

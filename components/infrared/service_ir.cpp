@@ -297,15 +297,16 @@ GpioPinMask InfraredService::createIrPinMask(bool internal_side, bool internal_t
         }
     }
 
-#ifdef IR_SEND_PIN_INT_TOP
     if (internal_top) {
-        if (IR_SEND_PIN_INT_TOP_INVERTED) {
-            mask.w1tc |= (1ULL << IR_SEND_PIN_INT_TOP);
-        } else {
-            mask.w1ts |= (1ULL << IR_SEND_PIN_INT_TOP);
+        gpio_num_t ir_send_pin_int_top = board_get_ir_send_pin_int_top();
+        if (ir_send_pin_int_top != GPIO_NUM_NC) {
+            if (IR_SEND_PIN_INT_TOP_INVERTED) {
+                mask.w1tc |= (1ULL << ir_send_pin_int_top);
+            } else {
+                mask.w1ts |= (1ULL << ir_send_pin_int_top);
+            }
         }
     }
-#endif
 
     if (ext1_gpio_signal != GPIO_NUM_NC) {
         if (ext1_gpio_enable != GPIO_NUM_NC) {

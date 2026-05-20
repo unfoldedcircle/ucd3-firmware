@@ -8,7 +8,9 @@
 #pragma once
 
 #include "esp_bit_defs.h"
+#include "hal/adc_types.h"
 #include "soc/gpio_num.h"
+
 
 #include "sdkconfig.h"
 
@@ -38,7 +40,7 @@
 // 2. function: turnoff speaker amplifier when use as output low
 #define SCL                   GPIO_NUM_4    // OPEN DRAIN OUTPUT, physically pulled high
 #define SDA                   GPIO_NUM_5    // OPEN DRAIN OUTPUT, physically pulled high
-// SPI_CS and optional POE_SWITCH are defined per revision in board_r*.h.
+// optional POE_SWITCH is defined per revision in board_r*.h.
 
 #define I2S_BCLK              GPIO_NUM_8    // OUTPUT
 #define I2S_SPEAKER_DATA      GPIO_NUM_16   // OUTPUT
@@ -67,7 +69,6 @@
 #define SPI_INT               GPIO_NUM_46   // INPUT,  ETH_INT
 #define ROCKCHIP_PIN          GPIO_NUM_47   // to be determined, protected pin with BAT54S and 10k
 
-// CHARGING_CURRENT* are defined per revision in board_r*.h.
 #define RGB_LED               GPIO_NUM_15   // OUTPUT OPEN DRAIN, pulled physically to 5V 10k
 
 #define CHARGING_ENABLE       GPIO_NUM_45   // OUTPUT, physically pulled low
@@ -75,7 +76,7 @@
 #define IR_SEND_PIN_INT_SIDE  GPIO_NUM_38   // OUTPUT OPEN DRAIN, physicall pulled up 2.4v
 // IR_SEND_PIN_INT_SIDE is an inverted output: required for IRsend GPIO mask
 #define IR_SEND_PIN_INT_SIDE_INVERTED 1
-// IR_SEND_PIN_INT_TOP is defined per revision in board_r*.h.
+// IR_SEND_PIN_INT_TOP is defined with function board_get_ir_send_pin_int_top()
 // IR_SEND_PIN_INT_TOP is an inverted output: required for IRsend GPIO mask
 #define IR_SEND_PIN_INT_TOP_INVERTED  1
 
@@ -117,4 +118,34 @@
 #else
 #error You need to specify a board revision in the SDK configuration: \
 CONFIG_UCD_HW_REVISION_3, CONFIG_UCD_HW_REVISION_4, CONFIG_UCD_HW_REVISION_6
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Call this once during early startup to initialize all `board_get_*` getters from the hardware revision.
+void board_init_revision(void);
+
+// Return the board revision
+int board_get_revision(void);
+
+// SPI chipselect GPIO pin
+gpio_num_t board_get_spi_cs(void);
+
+// GPIO pin of the internal top IR output
+// @return pin or GPIO_NUM_NC if not used
+gpio_num_t board_get_ir_send_pin_int_top(void);
+
+// GPIO pin of the charger measurement
+gpio_num_t board_get_charging_current_pin(void);
+
+// Charger measurement ADC unit
+adc_unit_t    board_get_charging_current_adc_unit(void);
+
+// Charger measurement ADC channel
+adc_channel_t board_get_charging_current_adc_ch(void);
+
+#ifdef __cplusplus
+}
 #endif
