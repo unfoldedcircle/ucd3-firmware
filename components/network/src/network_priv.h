@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-// TODO use a class with a destructor to free allocated mem?
+// TODO eventhough ssid and password are usually treated as text, technically it's a byte array!
 struct queue_message {
     uint8_t                        event;
     char                          *ssid;
