@@ -66,7 +66,7 @@ esp_err_t init_button() {
     button_handle_t gpio_btn = iot_button_create(&gpio_btn_cfg);
     ESP_RETURN_ON_FALSE(gpio_btn, ESP_FAIL, TAG, "Button create failed");
     int32_t duration = 2000;
-    iot_button_set_param(gpio_btn, BUTTON_LONG_PRESS_TIME_MS, (void *)duration);
+    iot_button_set_param(gpio_btn, BUTTON_LONG_PRESS_TIME_MS, (void *)(intptr_t)duration);
 
     ESP_RETURN_ON_ERROR(iot_button_register_cb(gpio_btn, BUTTON_SINGLE_CLICK, button_single_click_cb, NULL), TAG,
                         "Error registering button single click handler");

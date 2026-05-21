@@ -732,4 +732,4 @@ InfraredService &InfraredService::getInstance() {
     return instance;
 }
 
-InfraredService &irService = irService.getInstance();
+InfraredService &irService = InfraredService::getInstance();
