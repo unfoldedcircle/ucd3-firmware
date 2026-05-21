@@ -84,9 +84,7 @@ bool AdcUnit::calibrationInit(adc_unit_t unit, adc_channel_t channel, adc_atten_
             calibrated = true;
         }
     }
-#endif
-
-#if ADC_CALI_SCHEME_LINE_FITTING_SUPPORTED
+#elif ADC_CALI_SCHEME_LINE_FITTING_SUPPORTED
     if (!calibrated) {
         ESP_LOGI(TAG, "Calibration scheme version is Line Fitting");
         adc_cali_line_fitting_config_t cali_config = {
