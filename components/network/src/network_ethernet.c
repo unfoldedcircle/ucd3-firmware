@@ -159,7 +159,7 @@ esp_err_t eth_init(esp_eth_handle_t *eth_handle_out) {
     // Init specific SPI Ethernet module configuration from Kconfig (CS GPIO, Interrupt GPIO, etc.)
     spi_eth_module_config_t spi_eth_module_config = {0};
 
-    spi_eth_module_config.spi_cs_gpio = CONFIG_UCD_ETH_SPI_CS0_GPIO;
+    spi_eth_module_config.spi_cs_gpio = board_get_spi_cs();
     spi_eth_module_config.int_gpio = CONFIG_UCD_ETH_SPI_INT0_GPIO;
     spi_eth_module_config.polling_ms = CONFIG_UCD_ETH_SPI_POLLING0_MS;
     spi_eth_module_config.phy_reset_gpio = CONFIG_UCD_ETH_SPI_PHY_RST0_GPIO;

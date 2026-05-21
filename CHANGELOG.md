@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Changed
+- Unify firmware revisions 4 and 6 ([#66](https://github.com/unfoldedcircle/ucd3-firmware/pull/66)).
+
 ---
 
 ## Release 0.9.1 - 2026-05-18

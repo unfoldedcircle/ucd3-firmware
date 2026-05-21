@@ -1,5 +1,6 @@
 idf_component_register(
     SRCS
+    "board.c"
     "config.cpp"
     "efuse.cpp"
     "efuse_user.c"
