@@ -116,7 +116,8 @@ ExternalPort::ExternalPort(uint8_t port, ext_port_config_t config, std::unique_p
       trigger_timer_(nullptr),
       port_lock_(xSemaphoreCreateMutex()),
       vcc_reader_(vcc_reader),
-      uart_event_queue_(nullptr) {
+      uart_event_queue_(nullptr),
+      uart_driver_installed_(false) {
     assert(port_lock_);
     if (asprintf(&tag_, "EXT%d", port) < 0) {
         tag_ = nullptr;
@@ -479,6 +480,8 @@ esp_err_t ExternalPort::initUart() {
     ESP_GOTO_ON_ERROR(uart_set_line_inverse(config_.uart_port, UART_SIGNAL_TXD_INV | UART_SIGNAL_RXD_INV),
                       err_uart_config, tag_, "uart line inverse failed");
 
+    uart_driver_installed_ = true;
+
     return ESP_OK;
 
 err_uart_install:
@@ -496,9 +499,9 @@ void ExternalPort::deinitUart() {
         xQueueReset(uart_event_queue_);
         uart_event_queue_ = nullptr;
     }
-    if (config_.uart_port != UART_NUM_MAX) {
+    if (config_.uart_port != UART_NUM_MAX && uart_driver_installed_) {
         uart_driver_delete(config_.uart_port);
-        config_.uart_port = UART_NUM_MAX;
+        uart_driver_installed_ = false;
     }
 }
 

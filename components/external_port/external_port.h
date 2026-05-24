@@ -135,4 +135,5 @@ class ExternalPort {
     std::shared_ptr<AdcReader>  vcc_reader_;
     // TODO do we need an event queue?
     QueueHandle_t uart_event_queue_;
+    bool          uart_driver_installed_;
 };
