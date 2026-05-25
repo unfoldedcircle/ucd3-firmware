@@ -45,3 +45,8 @@ std::string rtrim_copy(std::string s);
 
 // Trim from both ends (copying)
 std::string trim_copy(std::string s);
+
+/// Convert Latin-1 (ISO-8859-1) bytes to a valid UTF-8 string.
+/// Worst case output size: 2 * input size.
+/// @return number of bytes written to out (without null terminator)
+size_t latin1_to_utf8(const uint8_t *in, size_t in_len, char *out, size_t out_size);

@@ -114,13 +114,7 @@ bool Config::setWifi(std::string ssid, std::string password) {
 }
 
 bool Config::setLogLevel(UCLog::Level level) {
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putUShort("log_level", level);
-
-    m_preferences.end();
-    return true;
+    return setUShortSetting(m_prefGeneral, "log_level", static_cast<uint16_t>(level));
 }
 
 bool Config::setSyslogServer(const std::string& server, uint16_t port) {
@@ -142,13 +136,7 @@ bool Config::setSyslogServer(const std::string& server, uint16_t port) {
 }
 
 bool Config::enableSyslog(bool enable) {
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putBool("syslog_enabled", enable);
-
-    m_preferences.end();
-    return true;
+    return setBoolSetting(m_prefGeneral, "syslog_enabled", enable);
 }
 
 bool Config::getTestMode() {
@@ -156,13 +144,7 @@ bool Config::getTestMode() {
 }
 
 bool Config::setTestMode(bool enable) {
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putBool("testmode", enable);
-
-    m_preferences.end();
-    return true;
+    return setBoolSetting(m_prefGeneral, "testmode", enable);
 }
 
 std::string Config::getToken() {
@@ -235,13 +217,7 @@ std::string Config::getSoftwareVersion() {
 }
 
 bool Config::enableNtp(bool enable) {
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putBool("ntp_enabled", enable);
-
-    m_preferences.end();
-    return true;
+    return setBoolSetting(m_prefGeneral, "ntp_enabled", enable);
 }
 
 bool Config::isNtpEnabled() {
@@ -326,9 +302,7 @@ uint8_t Config::getVolume() {
 }
 
 void Config::setVolume(uint8_t volume) {
-    m_preferences.begin(m_prefGeneral, false);
-    m_preferences.putUChar("volume", volume);
-    m_preferences.end();
+    setUCharSetting(m_prefGeneral, "volume", volume);
 }
 
 ExtPortMode Config::getExternalPortMode(uint8_t port) {
@@ -345,13 +319,7 @@ ExtPortMode Config::getExternalPortMode(uint8_t port) {
 bool Config::setExternalPortMode(uint8_t port, ExtPortMode mode) {
     char keyname[8];
     snprintf(keyname, sizeof(keyname), "port%u", port);
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putUChar(keyname, mode);
-
-    m_preferences.end();
-    return true;
+    return setUCharSetting(m_prefGeneral, keyname, static_cast<uint8_t>(mode));
 }
 
 std::string Config::getExternalPortUart(uint8_t port) {
@@ -381,12 +349,7 @@ bool Config::setIrSendCore(uint16_t core) {
     if (core > 1) {
         core = 1;
     }
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putUShort("irsend_core", core);
-    m_preferences.end();
-    return true;
+    return setUShortSetting(m_prefGeneral, "irsend_core", core);
 }
 
 uint16_t Config::getIrSendPriority() {
@@ -397,12 +360,7 @@ bool Config::setIrSendPriority(uint16_t priority) {
     if (priority >= configMAX_PRIORITIES) {
         priority = configMAX_PRIORITIES - 1;
     }
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putUShort("irsend_prio", priority);
-    m_preferences.end();
-    return true;
+    return setUShortSetting(m_prefGeneral, "irsend_prio", priority);
 }
 
 uint16_t Config::getIrLearnCore() {
@@ -413,12 +371,7 @@ bool Config::setIrLearnCore(uint16_t core) {
     if (core > 1) {
         core = 1;
     }
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putUShort("irlearn_core", core);
-    m_preferences.end();
-    return true;
+    return setUShortSetting(m_prefGeneral, "irlearn_core", core);
 }
 
 uint16_t Config::getIrLearnPriority() {
@@ -429,22 +382,11 @@ bool Config::setIrLearnPriority(uint16_t priority) {
     if (priority >= configMAX_PRIORITIES) {
         priority = configMAX_PRIORITIES - 1;
     }
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putUShort("irlearn_prio", priority);
-    m_preferences.end();
-    return true;
+    return setUShortSetting(m_prefGeneral, "irlearn_prio", priority);
 }
 
 bool Config::enableGcServer(bool enable) {
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putBool("gc_srv", enable);
-
-    m_preferences.end();
-    return true;
+    return setBoolSetting(m_prefGeneral, "gc_srv", enable);
 }
 
 bool Config::isGcServerEnabled() {
@@ -452,17 +394,67 @@ bool Config::isGcServerEnabled() {
 }
 
 bool Config::enableGcServerBeacon(bool enable) {
-    if (!m_preferences.begin(m_prefGeneral, false)) {
-        return false;
-    }
-    m_preferences.putBool("gc_amxb", enable);
-
-    m_preferences.end();
-    return true;
+    return setBoolSetting(m_prefGeneral, "gc_amxb", enable);
 }
 
 bool Config::isGcServerBeaconEnabled() {
     return getBoolSetting(m_prefGeneral, "gc_amxb", false);
+}
+
+bool Config::enableSerialTcp(bool enable) {
+    return setBoolSetting(m_prefGeneral, "serial_tcp", enable);
+}
+
+bool Config::isSerialTcpEnabled() {
+    return getBoolSetting(m_prefGeneral, "serial_tcp", false);
+}
+
+uint8_t Config::getSerialBuffering(uint8_t port) {
+    char keyname[16];
+    snprintf(keyname, sizeof(keyname), "serial%u_bm", port);
+    return getUCharSetting(m_prefGeneral, keyname, 0);
+}
+
+bool Config::setSerialBuffering(uint8_t port, uint8_t mode) {
+    char keyname[16];
+    snprintf(keyname, sizeof(keyname), "serial%u_bm", port);
+    return setUCharSetting(m_prefGeneral, keyname, mode);
+}
+
+uint8_t Config::getSerialTerminatorChar(uint8_t port) {
+    char keyname[16];
+    snprintf(keyname, sizeof(keyname), "serial%u_tc", port);
+    return getUCharSetting(m_prefGeneral, keyname, '\n');
+}
+
+bool Config::setSerialTerminatorChar(uint8_t port, uint8_t terminator) {
+    char keyname[16];
+    snprintf(keyname, sizeof(keyname), "serial%u_tc", port);
+    return setUCharSetting(m_prefGeneral, keyname, terminator);
+}
+
+uint16_t Config::getSerialBufferSize(uint8_t port) {
+    char keyname[16];
+    snprintf(keyname, sizeof(keyname), "serial%u_bs", port);
+    return getUShortSetting(m_prefGeneral, keyname, 512);
+}
+
+bool Config::setSerialBufferSize(uint8_t port, uint16_t size) {
+    char keyname[16];
+    snprintf(keyname, sizeof(keyname), "serial%u_bs", port);
+    return setUShortSetting(m_prefGeneral, keyname, size);
+}
+
+uint16_t Config::getSerialTimeout(uint8_t port) {
+    char keyname[16];
+    snprintf(keyname, sizeof(keyname), "serial%u_to", port);
+    return getUShortSetting(m_prefGeneral, keyname, 100);
+}
+
+bool Config::setSerialTimeout(uint8_t port, uint16_t timeout_ms) {
+    char keyname[16];
+    snprintf(keyname, sizeof(keyname), "serial%u_to", port);
+    return setUShortSetting(m_prefGeneral, keyname, timeout_ms);
 }
 
 // reset config to defaults
@@ -512,12 +504,30 @@ std::string Config::getStringSetting(const char* partition, const char* key, con
     return value;
 }
 
+bool Config::setStringSetting(const char* partition, const char* key, const std::string& value) {
+    if (!m_preferences.begin(partition, false)) {
+        return false;
+    }
+    size_t len = m_preferences.putString(key, value);
+    m_preferences.end();
+    return len > 0;
+}
+
 bool Config::getBoolSetting(const char* partition, const char* key, bool defaultValue) {
     m_preferences.begin(partition, false);
     auto value = m_preferences.getBool(key, defaultValue);
     m_preferences.end();
 
     return value;
+}
+
+bool Config::setBoolSetting(const char* partition, const char* key, bool value) {
+    if (!m_preferences.begin(partition, false)) {
+        return false;
+    }
+    m_preferences.putBool(key, value);
+    m_preferences.end();
+    return true;
 }
 
 uint8_t Config::getUCharSetting(const char* partition, const char* key, uint8_t defaultValue) {
@@ -528,12 +538,30 @@ uint8_t Config::getUCharSetting(const char* partition, const char* key, uint8_t 
     return value;
 }
 
+bool Config::setUCharSetting(const char* partition, const char* key, uint8_t value) {
+    if (!m_preferences.begin(partition, false)) {
+        return false;
+    }
+    m_preferences.putUChar(key, value);
+    m_preferences.end();
+    return true;
+}
+
 uint16_t Config::getUShortSetting(const char* partition, const char* key, uint16_t defaultValue) {
     m_preferences.begin(partition, false);
     auto value = m_preferences.getUShort(key, defaultValue);
     m_preferences.end();
 
     return value;
+}
+
+bool Config::setUShortSetting(const char* partition, const char* key, uint16_t value) {
+    if (!m_preferences.begin(partition, false)) {
+        return false;
+    }
+    m_preferences.putUShort(key, value);
+    m_preferences.end();
+    return true;
 }
 
 int Config::getIntSetting(const char* partition, const char* key, int defaultValue) {

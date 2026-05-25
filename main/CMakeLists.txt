@@ -24,5 +24,6 @@ idf_component_register(
     infrared
     network
     preferences
+    serial_bridge
     webserver
 )

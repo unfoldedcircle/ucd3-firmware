@@ -201,3 +201,43 @@ Trigger impulse:
 
 - `duration`: time in milliseconds to set output trigger high
 
+## RS232 Communication
+
+Send data:
+```json
+{
+  "type": "dock",
+  "command": "send_serial",
+  "port": 1,
+  "data": "Hello RS232\n"
+}
+```
+
+Enable serial data receive events:
+```json
+{
+  "type": "dock",
+  "command": "enable_serial_events",
+  "port": 1,
+  "enable": true
+}
+```
+
+Serial data event:
+```json
+{
+  "type": "event",
+  "msg": "serial_data",
+  "port": 1,
+  "data": "<RECEIVED_DATA_AS_UTF8>"
+}
+```
+
+Enable TCP serial server:
+```json
+{
+  "type": "dock",
+  "command": "set_serial_tcp",
+  "enable": true
+}
+```

@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+    "serial_bridge.cpp"
+    "serial_port_buffer.cpp"
+    INCLUDE_DIRS
+    "include"
+    REQUIRES
+    driver
+    esp_event
+    log
+)
