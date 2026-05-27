@@ -11,6 +11,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "esp_check.h"
 #include "esp_eth.h"
@@ -121,6 +124,14 @@ static esp_err_t set_common_headers(httpd_req_t *req) {
     return ret;
 }
 
+bool is_directory(const char *path) {
+    struct stat statbuf;
+    if (stat(path, &statbuf) != 0) {
+        return false;
+    }
+    return S_ISDIR(statbuf.st_mode);
+}
+
 /// @brief Send HTTP response with the contents of the requested file
 /// @param req http request
 /// @return ESP_OK if successfully sent, ESP_FAIL if the url doesn't exist or the file couldn't be read
@@ -132,6 +143,14 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req) {
     strlcat(filepath, req->uri, sizeof(filepath));
     if (req->uri[strlen(req->uri) - 1] == '/') {
         strlcat(filepath, "index.html", sizeof(filepath));
+    } else if (is_directory(filepath)) {
+        // Redirect to directory
+        strlcpy(filepath, req->uri, sizeof(filepath));
+        strlcat(filepath, "/", sizeof(filepath));
+        httpd_resp_set_status(req, "307 Temporary Redirect");
+        httpd_resp_set_hdr(req, "Location", filepath);
+        httpd_resp_send(req, NULL, 0);
+        return ESP_OK;
     }
 
     int fd = open(filepath, O_RDONLY, 0);
