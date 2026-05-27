@@ -59,4 +59,10 @@ class RemoteCharger {
     uint64_t        last_vcc_event_time_;
     charger_state_t last_charger_state_;
     uint8_t         change_state_count_;
+    bool            pending_over_current_;
+    int32_t         pending_over_current_value_;
+    bool            pending_charging_on_;
+    bool            pending_charging_off_;
+    bool            pending_vcc_low_;
+    int32_t         pending_vcc_low_value_;
 };

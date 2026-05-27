@@ -27,7 +27,13 @@ RemoteCharger::RemoteCharger(std::unique_ptr<AdcReader> reader, std::shared_ptr<
       last_vcc_time_(0),
       last_vcc_event_time_(0),
       last_charger_state_(CHARGER_DISABLED),
-      change_state_count_(0) {
+      change_state_count_(0),
+      pending_over_current_(false),
+      pending_over_current_value_(0),
+      pending_charging_on_(false),
+      pending_charging_off_(false),
+      pending_vcc_low_(false),
+      pending_vcc_low_value_(0) {
     assert(adc_reader_);
 }
 
@@ -86,8 +92,11 @@ bool RemoteCharger::checkOverCurrent(int voltage) {
     ESP_LOGE(TAG, "Charging overcurrent protection: shut off charger! Detected charging current: %umA", voltage * 10);
 
     uc_event_error_t event = {.error = UC_ERROR_OVER_CURRENT, .esp_err = 0, .value = voltage * 10, .fatal = true};
-    ESP_ERROR_CHECK_WITHOUT_ABORT(
-        esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(10 * 1000)));
+    if (esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(200)) != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to post overcurrent event, will retry");
+        pending_over_current_ = true;
+        pending_over_current_value_ = voltage * 10;
+    }
 
     return true;
 }
@@ -121,9 +130,17 @@ void RemoteCharger::checkCharging(int voltage) {
     if (change_state_count_ == CONFIG_UCD_CHARGER_STATE_MEASURE_COUNT) {
         change_state_count_++;
         ESP_LOGI(TAG, "Charging state changed: %s (%dmV)", state == CHARGER_CHARGING ? "ON" : "OFF", voltage);
-        ESP_ERROR_CHECK_WITHOUT_ABORT(
-            esp_event_post(UC_DOCK_EVENTS, state == CHARGER_CHARGING ? UC_EVENT_CHARGING_ON : UC_EVENT_CHARGING_OFF,
-                           NULL, 0, pdMS_TO_TICKS(200)));
+        uint32_t event_id = state == CHARGER_CHARGING ? UC_EVENT_CHARGING_ON : UC_EVENT_CHARGING_OFF;
+        if (esp_event_post(UC_DOCK_EVENTS, event_id, NULL, 0, pdMS_TO_TICKS(200)) != ESP_OK) {
+            ESP_LOGW(TAG, "Failed to post charging state event, will retry");
+            if (state == CHARGER_CHARGING) {
+                pending_charging_on_ = true;
+                pending_charging_off_ = false;  // Override any pending off
+            } else {
+                pending_charging_off_ = true;
+                pending_charging_on_ = false;  // Override any pending on
+            }
+        }
     }
 
     if (vcc_reader_) {
@@ -143,8 +160,12 @@ void RemoteCharger::checkCharging(int voltage) {
                         last_vcc_event_time_ = now;
                         uc_event_error_t event = {
                             .error = UC_ERROR_VCC_LOW, .esp_err = 0, .value = vcc, .fatal = false};
-                        ESP_ERROR_CHECK_WITHOUT_ABORT(
-                            esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(200)));
+                        if (esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(200)) !=
+                            ESP_OK) {
+                            ESP_LOGW(TAG, "Failed to post VCC low event, will retry");
+                            pending_vcc_low_ = true;
+                            pending_vcc_low_value_ = vcc;
+                        }
                     }
                 }
             }
@@ -153,12 +174,38 @@ void RemoteCharger::checkCharging(int voltage) {
 }
 
 void RemoteCharger::chargerTimerCb(TimerHandle_t timer_id) {
+    RemoteCharger *that = (RemoteCharger *)pvTimerGetTimerID(timer_id);
+
+    // Always retry pending events
+    if (that->pending_over_current_) {
+        uc_event_error_t event = {
+            .error = UC_ERROR_OVER_CURRENT, .esp_err = 0, .value = that->pending_over_current_value_, .fatal = true};
+        if (esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(200)) == ESP_OK) {
+            that->pending_over_current_ = false;
+        }
+    }
+    if (that->pending_charging_on_) {
+        if (esp_event_post(UC_DOCK_EVENTS, UC_EVENT_CHARGING_ON, NULL, 0, pdMS_TO_TICKS(200)) == ESP_OK) {
+            that->pending_charging_on_ = false;
+        }
+    }
+    if (that->pending_charging_off_) {
+        if (esp_event_post(UC_DOCK_EVENTS, UC_EVENT_CHARGING_OFF, NULL, 0, pdMS_TO_TICKS(200)) == ESP_OK) {
+            that->pending_charging_off_ = false;
+        }
+    }
+    if (that->pending_vcc_low_) {
+        uc_event_error_t event = {
+            .error = UC_ERROR_VCC_LOW, .esp_err = 0, .value = that->pending_vcc_low_value_, .fatal = false};
+        if (esp_event_post(UC_DOCK_EVENTS, UC_EVENT_ERROR, &event, sizeof(event), pdMS_TO_TICKS(200)) == ESP_OK) {
+            that->pending_vcc_low_ = false;
+        }
+    }
+
     if (!gpio_get_level(CHARGING_ENABLE)) {
         // ADC reading cannot be used if charging is disabled
         return;
     }
-
-    RemoteCharger *that = (RemoteCharger *)pvTimerGetTimerID(timer_id);
 
     int voltage = 0;
     if (that->adc_reader_->read(&voltage) != ESP_OK) {

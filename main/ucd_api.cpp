@@ -54,6 +54,8 @@ static const char *msgCode = "code";
 static const char *msgError = "error";
 static const char *msgToken = "token";
 static const char *msgWifiPwd = "wifi_password";
+/// @brief The time in ticks to wait for the unauthenticated_fds_mutex_ to become available.
+static TickType_t AUTH_MUTEX_BLOCK_TIME = pdMS_TO_TICKS(200);
 
 std::string get_uptime(void) {
     char     timestring[20];
@@ -227,7 +229,7 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                     return ESP_OK;
                 }
 
-                if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+                if (xSemaphoreTake(unauthenticated_fds_mutex_, AUTH_MUTEX_BLOCK_TIME) != pdTRUE) {
                     ESP_LOGE(TAG, "Failed to lock FDs in connect");
                     return ESP_FAIL;
                 }
@@ -255,7 +257,7 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                     sockfdSendIR_ = -1;
                 }
 
-                if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+                if (xSemaphoreTake(unauthenticated_fds_mutex_, AUTH_MUTEX_BLOCK_TIME) != pdTRUE) {
                     ESP_LOGE(TAG, "Failed to lock FDs in disconnect");
                 } else {
                     unauthenticated_fds_.erase(sockfd);
@@ -360,7 +362,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         if (value == config_->getToken()) {
             // add client to authorized clients
             if (web->setAuthenticated(sockfd) == ESP_OK) {
-                if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+                if (xSemaphoreTake(unauthenticated_fds_mutex_, AUTH_MUTEX_BLOCK_TIME) != pdTRUE) {
                     ESP_LOGE(TAG, "Failed to lock FDs");
                     return ESP_FAIL;
                 }
@@ -955,7 +957,7 @@ void DockApi::authTimeoutCallback(TimerHandle_t timer_id) {
 }
 
 void DockApi::checkAuthTimeouts() {
-    if (xSemaphoreTake(unauthenticated_fds_mutex_, pdMS_TO_TICKS(5000)) != pdTRUE) {
+    if (xSemaphoreTake(unauthenticated_fds_mutex_, AUTH_MUTEX_BLOCK_TIME) != pdTRUE) {
         ESP_LOGE(TAG, "Failed to lock FDs in timer");
         return;
     }
