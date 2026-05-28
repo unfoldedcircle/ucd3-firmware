@@ -132,6 +132,24 @@ bool is_directory(const char *path) {
     return S_ISDIR(statbuf.st_mode);
 }
 
+/// Detect if this file was gzipped in frogfs.yaml
+static bool is_precompressed(const char *path) {
+    // Note: at the moment all files are served from the read-only FrogFS filesystem.
+    // In case we'll also serve dynamic files from the flash filesystem in the future, the file path needs to be
+    // checked.
+    const char *compressed_exts[] = {".js", ".css", ".html", ".ico", ".svg", NULL};
+    const char *ext = strrchr(path, '.');
+    if (!ext) {
+        return false;
+    }
+    for (int i = 0; compressed_exts[i]; i++) {
+        if (strcmp(ext, compressed_exts[i]) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /// @brief Send HTTP response with the contents of the requested file
 /// @param req http request
 /// @return ESP_OK if successfully sent, ESP_FAIL if the url doesn't exist or the file couldn't be read
@@ -165,6 +183,10 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
+    // make sure that the "Connection: close" header is set for all responses, so that the client doesn't keep the
+    // socket open.
+    set_common_headers(req);
+
     // ETag: firmware version for all requests.
     // Note: we only have a read-only FrogFs filesystem at the moment and don't serve dynamic files from the flash
     // filesystem, so this is sufficient.
@@ -182,7 +204,21 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req) {
         }
     }
 
-    set_common_headers(req);
+    if (is_precompressed(filepath)) {
+        char accept_enc[64] = {0};
+        httpd_req_get_hdr_value_str(req, "Accept-Encoding", accept_enc, sizeof(accept_enc));
+        if (strstr(accept_enc, "gzip")) {
+            // Inform the client browser to decompress this raw payload
+            httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+            // Now just send gzipped file as-is from FrogFS
+        } else {
+            // Client doesn't support gzip! Shouldn't happen in 2026 :-D
+            ESP_LOGW(TAG, "Client doesn't support gzip, but file is precompressed: %s", filepath);
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Content-Encoding: gzip is required!");
+            return ESP_OK;
+        }
+    }
+
     set_content_type_from_file(req, filepath);
     httpd_resp_set_hdr(req, "ETag", etag);
     httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
