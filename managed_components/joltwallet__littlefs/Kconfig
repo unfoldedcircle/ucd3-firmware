@@ -243,9 +243,18 @@ menu "LittleFS"
 
         config LITTLEFS_MALLOC_STRATEGY_SPIRAM
             bool "SPIRAM heap"
-            depends on SPIRAM_USE_MALLOC && ESP32_SPIRAM_SUPPORT
+            depends on SPIRAM_USE_MALLOC || SPIRAM_USE_CAPS_ALLOC
             help
                 Uses ESP-IDF heap_caps_malloc to allocate from SPIRAM heap.
+                Allocation fails if SPIRAM is exhausted; internal heap is not used.
+
+        config LITTLEFS_MALLOC_STRATEGY_SPIRAM_PREFER
+            bool "SPIRAM heap, fall back to default heap"
+            help
+                Uses ESP-IDF heap_caps_malloc_prefer to allocate from SPIRAM heap,
+                falling back to the default heap (typically internal RAM) if the
+                SPIRAM allocation fails. Choose this when you want SPIRAM to be
+                used opportunistically without hard-failing under SPIRAM pressure.
 
     endchoice
 
@@ -254,5 +263,20 @@ menu "LittleFS"
         default "y"
         help
             Selects whether littlefs performs runtime assert checks.
+
+    config LITTLEFS_MMAP_PARTITION
+        bool "Memory map LITTLEFS partitions"
+        default "n"
+        help
+            Use esp_partition_mmap to map the partitions to memory, which can provide a significant
+            performance boost in some cases. Make sure the chip you're using has enough available address
+            space to map the partition (for the ESP32 there is 4MB available).
+
+    config LITTLEFS_WDT_RESET
+        bool "Reset task watchdog during flash operations"
+        default "n"
+        help
+            Enable calling esp_task_wdt_reset() during flash read/write/erase operations
+            to prevent task watchdog timeouts during long-running filesystem operations.
 
 endmenu

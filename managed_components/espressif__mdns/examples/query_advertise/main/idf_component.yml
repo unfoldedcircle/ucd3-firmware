@@ -1,8 +1,6 @@
 dependencies:
-  ## Required IDF version
-  idf: ">=5.0"
   espressif/mdns:
-    version: "^1.0.0"
-    override_path: "../../../"
+    version: ^1.0.0
+  idf: '>=5.0'
   protocol_examples_common:
     path: ${IDF_PATH}/examples/common_components/protocol_examples_common

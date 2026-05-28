@@ -12,6 +12,8 @@
 
 #include "esp_err.h"
 #include "esp_vfs.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 #include "frogfs_config.h"
 #include "frogfs/vfs.h"
@@ -34,6 +36,7 @@ typedef struct {
     frogfs_fs_t *fs;
     char base_path[ESP_VFS_PATH_MAX + 1];
     size_t fh_len;
+    SemaphoreHandle_t fh_sem;
     frogfs_fh_t *fh[];
 } frogfs_vfs_t;
 
@@ -74,7 +77,7 @@ static ssize_t frogfs_vfs_read(void *ctx, int fd, void *data, size_t size)
     return frogfs_read(vfs->fh[fd], data, size);
 }
 
-static int frogfs_vfs_open(void *ctx, const char *path, int flags, int mode)
+static int frogfs_vfs_open_unsafe(void *ctx, const char *path, int flags, int mode)
 {
     frogfs_vfs_t *vfs = (frogfs_vfs_t *) ctx;
 
@@ -106,6 +109,15 @@ static int frogfs_vfs_open(void *ctx, const char *path, int flags, int mode)
     }
 
     return -1;
+}
+
+static int frogfs_vfs_open(void *ctx, const char *path, int flags, int mode)
+{
+    frogfs_vfs_t *vfs = (frogfs_vfs_t *) ctx;
+	xSemaphoreTake(vfs->fh_sem, portMAX_DELAY);
+	int res = frogfs_vfs_open_unsafe(ctx, path, flags, mode);
+	xSemaphoreGive(vfs->fh_sem);
+	return res;
 }
 
 static int frogfs_vfs_close(void *ctx, int fd)
@@ -327,6 +339,7 @@ esp_err_t frogfs_vfs_register(const frogfs_vfs_conf_t *conf)
         return ESP_ERR_NO_MEM;
     }
 
+	vfs->fh_sem = xSemaphoreCreateMutex();
     vfs->fs = conf->fs;
     strlcpy(vfs->base_path, conf->base_path, sizeof(vfs->base_path));
     vfs->fh_len = conf->max_files;
@@ -339,4 +352,27 @@ esp_err_t frogfs_vfs_register(const frogfs_vfs_conf_t *conf)
 
     s_frogfs_vfs[index] = vfs;
     return ESP_OK;
+}
+
+esp_err_t frogfs_vfs_deregister(const char *base_path)
+{
+    assert(base_path != NULL);
+
+    for (int i = 0; i < CONFIG_FROGFS_MAX_PARTITIONS; i++) {
+        if (s_frogfs_vfs[i] == NULL) {
+            continue;
+        }
+        
+        if (strcmp(s_frogfs_vfs[i]->base_path, base_path) == 0) {
+            esp_err_t err = esp_vfs_unregister(base_path);
+            if (err != ESP_OK) {
+                return err;
+            }
+            vSemaphoreDelete(s_frogfs_vfs[i]->fh_sem);
+            free(s_frogfs_vfs[i]);
+            s_frogfs_vfs[i] = NULL;
+            return ESP_OK;
+        }
+    }
+    return ESP_ERR_NOT_FOUND;
 }

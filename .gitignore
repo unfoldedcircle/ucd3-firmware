@@ -1,5 +1,6 @@
 .devcontainer
 .vscode
+.venv
 /bin
 build
 sdkconfig
@@ -23,3 +24,4 @@ tmp
 *.pem
 /issues
 /release
+_issues

@@ -1,12 +1,12 @@
 ## IDF Component Manager Manifest File
 ## Pin versions: managed components are checked in and have to be updated manually
 dependencies:
-  espressif/mdns: "==1.8.2"
-  espressif/led_indicator: "==2.0.1"
-  espressif/led_strip: "==3.0.1~1"
+  espressif/mdns: "==1.11.1"
+  espressif/led_indicator: "==2.1.2"
+  espressif/led_strip: "==3.0.3"
   espressif/button: "==3.5.0"
-  jkent/frogfs: "==5.3.0"
-  joltwallet/littlefs: "==1.16.4"
+  jkent/frogfs: "==5.5.0"
+  joltwallet/littlefs: "==1.22.1"
   # couldn't get it to work yet with lvgl 9.2.2
   lvgl/lvgl: "==8.4.0"
   esp_lvgl_port: "==2.4.4"

@@ -6,7 +6,7 @@ macro(generate_frogfs_rules)
         set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
     endif()
 
-    cmake_parse_arguments(ARG "" "CONFIG;NAME" "TOOLS" ${ARGN})
+    cmake_parse_arguments(ARG "" "CONFIG;NAME;REQUIREMENTS" "TOOLS;PIP" ${ARGN})
     if(NOT DEFINED ARG_CONFIG)
         set(ARG_CONFIG frogfs.yaml)
     endif()
@@ -36,11 +36,21 @@ macro(generate_frogfs_rules)
         set_property(TARGET frogfs_venv PROPERTY ADDITIONAL_CLEAN_FILES "${venv}")
     endif()
 
+    # Build the commands list for requirements installation
+    set(_frogfs_req_cmds)
+    list(APPEND _frogfs_req_cmds COMMAND ${Python3_VENV_EXECUTABLE} -m pip install -r ${frogfs_DIR}/requirements.txt)
+    if (ARG_REQUIREMENTS)
+        list(APPEND _frogfs_req_cmds COMMAND ${Python3_VENV_EXECUTABLE} -m pip install -r ${ARG_REQUIREMENTS})
+    endif()
+    if (ARG_PIP)
+        list(APPEND _frogfs_req_cmds COMMAND ${Python3_VENV_EXECUTABLE} -m pip install ${ARG_PIP})
+    endif()
+
     if (NOT TARGET frogfs_requirements)
         add_custom_target(frogfs_requirements
-            COMMAND ${Python3_VENV_EXECUTABLE} -m pip install -r ${frogfs_DIR}/requirements.txt
+            ${_frogfs_req_cmds}
             COMMAND ${CMAKE_COMMAND} -E touch ${Python3_VENV}.stamp
-            DEPENDS ${frogfs_DIR}/requirements.txt
+            DEPENDS ${frogfs_DIR}/requirements.txt $<$<BOOL:${ARG_REQUIREMENTS}>:${ARG_REQUIREMENTS}>
             BYPRODUCTS ${Python3_VENV}.stamp
             COMMENT "Installing Python requirements"
         )
@@ -55,15 +65,14 @@ macro(generate_frogfs_rules)
         COMMENT "Running mkfrogfs.py for ${ARG_NAME}.bin"
         USES_TERMINAL
     )
+    add_dependencies(frogfs_preprocess_${ARG_NAME} frogfs_requirements)
 
     file(GLOB_RECURSE cache LIST_DIRECTORIES true CONFIGURE_DEPENDS "${BUILD_DIR}/${ARG_NAME}-cache/*")
     set_property(TARGET frogfs_preprocess_${ARG_NAME} PROPERTY ADDITIONAL_CLEAN_FILES "${cache}")
     file(GLOB_RECURSE node_modules FOLLOW_SYMLINKS LIST_DIRECTORIES true CONFIGURE_DEPENDS "${BUILD_DIR}/node_modules/*")
     set_property(TARGET frogfs_preprocess_${ARG_NAME} APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${node_modules};${BUILD_DIR}/node_modules")
 
-    if (${frogfs_DIR}/requirements.txt IS_NEWER_THAN ${Python3_VENV}.stamp)
-        add_dependencies(frogfs_preprocess_${ARG_NAME} frogfs_requirements)
-    endif()
+    # Always ensure Python requirements are installed before preprocess
 endmacro()
 
 function(target_add_frogfs target)

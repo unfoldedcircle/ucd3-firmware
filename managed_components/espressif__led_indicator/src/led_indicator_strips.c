@@ -11,7 +11,6 @@
  */
 
 #include <math.h>
-#include <sys/param.h>  // For MIN/MAX(a, b)
 #include "esp_log.h"
 #include "led_indicator_strips.h"
 #include "led_strip.h"
@@ -28,8 +27,6 @@
         ESP_LOGE(TAG, "%s(%d): %s", __FUNCTION__, __LINE__, str); \
         action;                                                   \
     }
-
-static uint32_t max_brightness = MAX_BRIGHTNESS;
 
 typedef struct {
     led_strip_handle_t led_strip;
@@ -48,7 +45,7 @@ static esp_err_t led_indicator_strips_init(void *param, void **ret_strips)
     p_strip->max_index = cfg->led_strip_cfg.max_leds;
     LED_STRIPS_CHECK(NULL != p_strip, "calloc failed", return ESP_ERR_NO_MEM);
     switch (cfg->led_strip_driver) {
-#if !CONFIG_IDF_TARGET_ESP32C2
+#if CONFIG_SOC_RMT_SUPPORTED
     case LED_STRIP_RMT: {
         ret = led_strip_new_rmt_device(&cfg->led_strip_cfg, &cfg->led_strip_rmt_cfg, &p_strip->led_strip);
         LED_STRIPS_CHECK(ret == ESP_OK, "Created LED strip object with RMT backend", goto fail);
@@ -91,7 +88,7 @@ static esp_err_t led_indicator_strips_deinit(void *strips)
 static esp_err_t led_indicator_strips_set_on_off(void *strips, bool on_off)
 {
     led_strips_t *p_strip = (led_strips_t *)strips;
-    p_strip->ihsv.v = on_off ? max_brightness : 0;
+    p_strip->ihsv.v = on_off ? MAX_BRIGHTNESS : 0;
     esp_err_t err = ESP_OK;
     if (p_strip->ihsv.i == MAX_INDEX) {
         for (int j = 0; j < p_strip->max_index; j++) {
@@ -148,8 +145,6 @@ static esp_err_t led_indicator_strips_set_hsv(void *strips, uint32_t ihsv_value)
     led_strips_t *p_strip = (led_strips_t *)strips;
     p_strip->ihsv.value = ihsv_value;
 
-    p_strip->ihsv.v = MIN(max_brightness, p_strip->ihsv.v);
-
     esp_err_t err = ESP_OK;
     if (p_strip->ihsv.i == MAX_INDEX) {
         for (int j = 0; j < p_strip->max_index; j++) {
@@ -174,8 +169,7 @@ static esp_err_t led_indicator_strips_set_brightness(void *strips, uint32_t ihsv
 {
     led_strips_t *p_strip = (led_strips_t *)strips;
     p_strip->ihsv.i = GET_INDEX(ihsv);
-    max_brightness =  GET_BRIGHTNESS(ihsv);
-    p_strip->ihsv.v = max_brightness;
+    p_strip->ihsv.v = GET_BRIGHTNESS(ihsv);
 
     esp_err_t err = ESP_OK;
     if (p_strip->ihsv.i == MAX_INDEX) {

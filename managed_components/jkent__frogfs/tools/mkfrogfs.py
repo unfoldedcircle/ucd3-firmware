@@ -5,6 +5,9 @@ import json
 import os
 import zlib
 from argparse import ArgumentParser
+import subprocess
+import sys
+import hashlib
 from fnmatch import fnmatch
 from glob import glob
 from sys import stderr
@@ -30,7 +33,8 @@ def load_config() -> dict:
     with open(config_file, 'r') as f:
         doc = yaml.safe_load(f)
 
-    config = {'define': {}, 'collect': {}, 'filter': []}
+    config = {'define': {}, 'collect': {}, 'filter': [],
+              'python_requirements': [], 'python_packages': []}
 
     def add_define(name, value):
         value = expand_variables(value, config['define'])
@@ -92,6 +96,35 @@ def load_config() -> dict:
             add_filter(pattern, actions)
     else:
         raise Exception('unexpected type for filter')
+
+    # Optional: extra python dependencies
+
+    def _normalize_requirements(val):
+        if not val:
+            return []
+        if isinstance(val, str):
+            return [val]
+        if isinstance(val, list):
+            return list(val)
+        raise Exception('unexpected type for python requirements')
+
+    def _normalize_packages(val):
+        if not val:
+            return []
+        if isinstance(val, str):
+            return [val]
+        if isinstance(val, list):
+            return list(val)
+        raise Exception('unexpected type for python packages')
+
+    # Enforce single style: top-level keys only
+    reqs = _normalize_requirements(doc.get('python_requirements'))
+    pkgs = _normalize_packages(doc.get('python_packages'))
+
+    # Expand variables in paths and values
+    reqs = [expand_variables(r, config['define']) for r in reqs]
+    config['python_requirements'] = reqs
+    config['python_packages'] = pkgs
 
     return config
 
@@ -232,6 +265,17 @@ def load_state() -> None:
             ent['real_size'] = state.get('real_size')
             ent['transform'] = state.get('transform', {})
 
+def filter_rank(filter) -> int:
+    '''Compute the rank for the filter. Filters with higher rank takes precedence over filters with lower rank'''
+
+    if filter == '*':
+         return 0
+
+    ext = len(filter.split('.'))
+    path = len(filter.split('/'))
+    return (ext - 1) + (path - 1) * 2
+
+
 def apply_rules() -> None:
     '''Applies preprocessing rules for entries'''
     global dirty
@@ -244,6 +288,16 @@ def apply_rules() -> None:
         for filter, actions in config['filter']:
             if not fnmatch(dest, filter):
                 continue
+
+            rank = filter_rank(filter)
+            if ent.get('rank') is not None:
+                if ent['rank'] > rank:
+                    continue
+                else:
+                    # A filter with a higher rank exists, clear previous transform to avoid mixing transforms order
+                    xforms = {}
+
+            ent['rank'] = rank
             for action, args in actions:
                 parts = action.split()
                 enable = True
@@ -326,9 +380,10 @@ def preprocess(ent: dict) -> None:
             if 'meta' in transform:
                 dest = pipe_script(transform['path'], args, str.encode(ent['dest'])).decode()
                 ent['dest'] = dest
+                ent['name'] = dest.split('/')[-1]
                 print(f'done as {dest}', file=stderr)
             else:
-                data = pipe_script(transform['path'], args, data)
+                data = pipe_script(transform['path'], args, data) if isinstance(args, dict) else data
                 print('done', file=stderr)
 
         if ent['compress']:
@@ -522,7 +577,7 @@ def generate_dir_header(dirent: dict) -> None:
     dirent['data_size'] = 0
 
 def generate_entry_headers() -> None:
-    '''Iterate entries and call their respective generate header funciton'''
+    '''Iterate entries and call their respective generate header function'''
     for ent in entries.values():
         if ent['type'] == 'file':
             generate_file_header(ent)
@@ -567,7 +622,7 @@ def append_hashtable() -> None:
     '''Generate hashtable for entries'''
     global data
 
-    hashed_entries = {djb2_hash(k): v for k,v in entries.items()}
+    hashed_entries = {djb2_hash(v['dest']): v for k,v in entries.items()}
     hashed_entries = dict(sorted(hashed_entries.items(), key=lambda e: e))
 
     for hash, ent in hashed_entries.items():
@@ -639,6 +694,65 @@ if __name__ == '__main__':
     # Initial setup
     config  = load_config()
     entries = collect_entries()
+    # Optionally install extra Python deps defined in config
+    def install_extra_python_deps() -> None:
+        # No-ops if nothing specified
+        req_files = config.get('python_requirements', []) or []
+        pkgs = config.get('python_packages', []) or []
+        if not req_files and not pkgs:
+            return
+
+        # Build a content hash of requirements + packages to avoid redundant installs
+        h = hashlib.sha256()
+        for rf in sorted(req_files):
+            try:
+                with open(rf, 'rb') as f:
+                    h.update(b'F:')
+                    h.update(os.path.abspath(rf).encode('utf-8'))
+                    h.update(b'\0')
+                    h.update(f.read())
+                    h.update(b'\n')
+            except FileNotFoundError:
+                raise Exception(f'python_requirements file not found: {rf}')
+        for p in sorted(pkgs):
+            h.update(b'P:')
+            h.update(p.encode('utf-8'))
+            h.update(b'\n')
+
+        stamp_dir = build_dir
+        os.makedirs(stamp_dir, exist_ok=True)
+        stamp_file = os.path.join(stamp_dir, 'frogfs-venv-extra.stamp')
+        new_digest = h.hexdigest()
+        old_digest = None
+        try:
+            with open(stamp_file, 'r') as sf:
+                old_digest = sf.read().strip()
+        except Exception:
+            pass
+
+        if old_digest == new_digest:
+            return
+
+        # Install requirements files first
+        for rf in req_files:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-r', rf])
+
+        # Then named packages (if any)
+        if pkgs:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', *pkgs])
+
+        with open(stamp_file, 'w') as sf:
+            sf.write(new_digest)
+
+    install_extra_python_deps()
+    # Re-attempt optional imports that may now be satisfied
+    try:
+        if heatshrink2 is None:
+            import importlib
+            heatshrink2 = importlib.import_module('heatshrink2')
+    except Exception:
+        pass
+
     transforms = load_transforms()
     discards = {}
     dirty = False

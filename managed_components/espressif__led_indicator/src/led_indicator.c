@@ -199,20 +199,8 @@ static void _blink_list_runner(TimerHandle_t xTimer)
                 ESP_LOGW(TAG, "LED_BLINK_RGB Skip: no hal_indicator_set_rgb function");
                 break;
             }
-
-            // START HACK convert RGB to HSV to use the patched brightness setting in the LED strip
-            uint32_t hsv_value = led_indicator_rgb2hsv(p_blink_step_value.value);
-            led_indicator_ihsv_t ihsv = {
-                .value = hsv_value,
-            };
-            ihsv.i = p_blink_step_value.i;
-
-            p_led_indicator->hal_indicator_set_hsv(p_led_indicator->hardware_data, _ihsv_convert_to_gamma(ihsv.value));
-            p_led_indicator->current_fade_value = ihsv;
-            // END HACK
-            // Original RGB code:
-            // p_led_indicator->hal_indicator_set_rgb(p_led_indicator->hardware_data, _irgb_convert_to_gamma(p_blink_step_value.value));
-            // p_led_indicator->current_fade_value.value = led_indicator_rgb2hsv(p_blink_step_value.value);
+            p_led_indicator->hal_indicator_set_rgb(p_led_indicator->hardware_data, _irgb_convert_to_gamma(p_blink_step_value.value));
+            p_led_indicator->current_fade_value.value = led_indicator_rgb2hsv(p_blink_step_value.value);
 
             p_led_indicator->current_fade_value.i = p_blink_step_value.i;
             p_led_indicator->last_fade_value = p_led_indicator->current_fade_value;
@@ -644,7 +632,6 @@ esp_err_t led_indicator_set_on_off(led_indicator_handle_t handle, bool on_off)
     }
     xSemaphoreTake(p_led_indicator->mutex, portMAX_DELAY);
     p_led_indicator->hal_indicator_set_on_off(p_led_indicator->hardware_data, on_off);
-    // TODO use configured max brightness instead of full brightness
     p_led_indicator->current_fade_value.v = on_off ? BRIGHTNESS_MAX : BRIGHTNESS_MIN;
     p_led_indicator->last_fade_value = p_led_indicator->current_fade_value;
     xSemaphoreGive(p_led_indicator->mutex);
@@ -659,10 +646,8 @@ esp_err_t led_indicator_set_brightness(led_indicator_handle_t handle, uint32_t b
         ESP_LOGW(TAG, "LED indicator does not have the hal_indicator_set_brightness function");
         return ESP_FAIL;
     }
-    // TODO save as configured max brightness
     xSemaphoreTake(p_led_indicator->mutex, portMAX_DELAY);
-    // Removed `led_indicator_get_gamma_value(brightness)` gamma correction, otherwise values 0-22 are all black (no LED visible)
-    p_led_indicator->hal_indicator_set_brightness(p_led_indicator->hardware_data, brightness);
+    p_led_indicator->hal_indicator_set_brightness(p_led_indicator->hardware_data, led_indicator_get_gamma_value(brightness));
     led_indicator_ihsv_t ihsv = {
         .value = brightness,
     };
@@ -692,7 +677,6 @@ esp_err_t led_indicator_set_hsv(led_indicator_handle_t handle, uint32_t ihsv_val
         ESP_LOGW(TAG, "LED indicator does not have the hal_indicator_set_hsv function");
         return ESP_FAIL;
     }
-    // TODO adjust to configured max brightness
     xSemaphoreTake(p_led_indicator->mutex, portMAX_DELAY);
     p_led_indicator->hal_indicator_set_hsv(p_led_indicator->hardware_data, _ihsv_convert_to_gamma(ihsv_value));
     p_led_indicator->current_fade_value.value = ihsv_value;
@@ -727,7 +711,6 @@ esp_err_t led_indicator_set_rgb(led_indicator_handle_t handle, uint32_t irgb_val
     led_indicator_ihsv_t ihsv = {
         .value = led_indicator_rgb2hsv(irgb_value),
     };
-    // TODO adjust to configured max brightness
     xSemaphoreTake(p_led_indicator->mutex, portMAX_DELAY);
     p_led_indicator->hal_indicator_set_rgb(p_led_indicator->hardware_data, _irgb_convert_to_gamma(irgb_value));
     p_led_indicator->current_fade_value = ihsv;
