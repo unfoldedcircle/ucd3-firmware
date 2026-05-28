@@ -1,14 +1,26 @@
 collect:
   - $cwd/webroot
+
 filter:
-  "*.DS_Store":
+  "**/.DS_Store":
     - discard
-  "*.html":
+  "**/*.bak":
+    - discard
+
+  "**/*.js":
+    - uglify-js
+    # Run host-level gzip to bypass transparent decompression of FrogFs when reading the file back.
+    - gzip -9 -f -c
+
+  "**/*.css":
+    - uglifycss
+    - gzip -9 -f -c
+
+  "**/*.html":
     - html-minifier
-  # '*.css':
-  #   - uglifycss
-  #   - compress deflate
-  # '*.js':
-  #   - compress deflate
-  # '*.svg':
-  #   - compress deflate
+    - gzip -9 -f -c
+
+  "**/*.ico":
+    - gzip -9 -f -c
+  "**/*.svg":
+    - gzip -9 -f -c
