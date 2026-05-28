@@ -1,6 +1,37 @@
 "use strict";
 
 // ============================================================
+// Theme Management
+// ============================================================
+var Theme = {
+  _theme: "dark",
+
+  init: function() {
+    this._theme = localStorage.getItem("theme") || "dark";
+    this.apply(this._theme);
+    this.initSelector();
+  },
+
+  apply: function(theme) {
+    this._theme = theme;
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  },
+
+  initSelector: function() {
+    var select = document.getElementById("theme-select");
+    if (!select) return;
+
+    select.value = this._theme;
+
+    var self = this;
+    select.addEventListener("change", function() {
+      self.apply(this.value);
+    });
+  }
+};
+
+// ============================================================
 // Internationalization
 // ============================================================
 var I18N = {
@@ -370,7 +401,7 @@ var UI = {
       case "ir": Pages.IR.load(); break;
       case "ports": Pages.Ports.load(); break;
       case "ota": Pages.OTA.load(); break;
-      // case "logs": Pages.Logs.load(); break;
+        // case "logs": Pages.Logs.load(); break;
     }
   },
 
@@ -432,10 +463,10 @@ Pages.Status = {
       document.getElementById("s-version").textContent = data.version || "\u2014";
       document.getElementById("s-serial").textContent = data.serial || "\u2014";
       document.getElementById("s-ethernet").textContent = data.ethernet
-        ? I18N.t("st_connected") : I18N.t("st_disconnected");
+          ? I18N.t("st_connected") : I18N.t("st_disconnected");
       document.getElementById("s-wifi").textContent = data.wifi
-        ? I18N.t("st_connected") + (data.ssid ? " (" + data.ssid + ")" : "")
-        : I18N.t("st_disconnected");
+          ? I18N.t("st_connected") + (data.ssid ? " (" + data.ssid + ")" : "")
+          : I18N.t("st_disconnected");
       document.getElementById("s-uptime").textContent = data.uptime || "\u2014";
       document.getElementById("s-heap").textContent = data.free_heap || "\u2014";
       document.getElementById("s-reset").textContent = data.reset_reason || "\u2014";
@@ -471,8 +502,8 @@ Pages.General = {
       var name = document.getElementById("cfg-name").value.trim();
       if (!name) return;
       WS.request("set_config", { friendly_name: name })
-        .then(function() { Toast.success(I18N.t("t_name_saved")); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_name_saved")); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     document.getElementById("btn-save-brightness").addEventListener("click", function() {
@@ -482,8 +513,8 @@ Pages.General = {
         status_led: Math.round(ledPct / 100 * 255),
         eth_led: Math.round(ethPct / 100 * 255)
       })
-        .then(function() { Toast.success(I18N.t("t_brightness_saved")); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_brightness_saved")); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     document.getElementById("btn-save-token").addEventListener("click", function() {
@@ -502,8 +533,8 @@ Pages.General = {
 
     document.getElementById("btn-identify").addEventListener("click", function() {
       WS.request("identify")
-        .then(function() { Toast.success(I18N.t("t_identify")); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_identify")); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     document.getElementById("btn-reboot").addEventListener("click", function() {
@@ -530,9 +561,9 @@ Pages.Network = {
   load: function() {
     WS.request("get_sysinfo").then(function(data) {
       document.getElementById("net-eth").textContent = data.ethernet
-        ? I18N.t("st_connected") : I18N.t("st_disconnected");
+          ? I18N.t("st_connected") : I18N.t("st_disconnected");
       document.getElementById("net-wifi").textContent = data.wifi
-        ? I18N.t("st_connected") : I18N.t("st_disconnected");
+          ? I18N.t("st_connected") : I18N.t("st_disconnected");
       document.getElementById("net-ssid").textContent = data.ssid || "\u2014";
       document.getElementById("cfg-ssid").value = data.ssid || "";
     }).catch(function(e) { Toast.error(e); });
@@ -553,8 +584,8 @@ Pages.Network = {
       }
       if (!confirm(I18N.t("confirm_wifi"))) return;
       WS.request("set_config", { ssid: ssid, wifi_password: pw })
-        .then(function() { Toast.success(I18N.t("t_wifi_saved")); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_wifi_saved")); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     // Password reveal toggle
@@ -640,8 +671,8 @@ Pages.IR = {
       };
 
       WS.request("ir_send", data)
-        .then(function() { Toast.success(I18N.t("t_ir_sent")); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_ir_sent")); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     // Learn IR toggle
@@ -751,7 +782,7 @@ Pages.Ports = {
     }
 
     WS.request("send_serial", { port: port, data: data })
-      .catch(function(e) { Toast.error(e); });
+        .catch(function(e) { Toast.error(e); });
     input.value = "";
   },
 
@@ -790,14 +821,14 @@ Pages.Ports = {
 
     document.getElementById("btn-port" + n + "-trig-on").addEventListener("click", function() {
       WS.request("set_port_trigger", { port: n, trigger: true })
-        .then(function() { Toast.success(I18N.t("t_trigger_on")); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_trigger_on")); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     document.getElementById("btn-port" + n + "-trig-off").addEventListener("click", function() {
       WS.request("set_port_trigger", { port: n, trigger: false })
-        .then(function() { Toast.success(I18N.t("t_trigger_off")); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_trigger_off")); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     document.getElementById("btn-port" + n + "-impulse").addEventListener("click", function() {
@@ -807,8 +838,8 @@ Pages.Ports = {
         return;
       }
       WS.request("set_port_trigger", { port: n, trigger: true, duration: ms })
-        .then(function() { Toast.success(I18N.t("t_impulse", { ms: ms })); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_impulse", { ms: ms })); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     document.getElementById("btn-port" + n + "-uart").addEventListener("click", function() {
@@ -822,8 +853,8 @@ Pages.Ports = {
           parity: document.getElementById("port" + n + "-parity").value
         }
       })
-        .then(function() { Toast.success(I18N.t("t_uart_applied")); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_uart_applied")); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     document.getElementById("btn-port" + n + "-serial-cfg").addEventListener("click", function() {
@@ -833,8 +864,8 @@ Pages.Ports = {
         buffering: document.getElementById("port" + n + "-buffering").value,
         terminator: Pages.Ports.hexToChar(hex)
       })
-        .then(function() { Toast.success(I18N.t("t_buffering_applied")); })
-        .catch(function(e) { Toast.error(e); });
+          .then(function() { Toast.success(I18N.t("t_buffering_applied")); })
+          .catch(function(e) { Toast.error(e); });
     });
 
     document.getElementById("btn-port" + n + "-console").addEventListener("click", function() {
@@ -842,7 +873,7 @@ Pages.Ports = {
       WS.request("enable_serial_events", { port: n, enable: enable }).then(function() {
         self.serialEnabled[n] = enable;
         document.getElementById("btn-port" + n + "-console").textContent =
-          enable ? I18N.t("btn_disable_console") : I18N.t("btn_enable_console");
+            enable ? I18N.t("btn_disable_console") : I18N.t("btn_enable_console");
         Toast.success(enable ? I18N.t("t_console_on") : I18N.t("t_console_off"));
       }).catch(function(e) { Toast.error(e); });
     });
@@ -1000,9 +1031,10 @@ Pages.Logs = {
 */
 
 // ============================================================
-// Initialization
+// Application Initialization
 // ============================================================
 document.addEventListener("DOMContentLoaded", function() {
+  Theme.init();
   I18N.init();
   Pages.General.init();
   Pages.Network.init();

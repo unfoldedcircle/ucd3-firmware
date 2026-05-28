@@ -1,3 +1,136 @@
+/* === Theme Variables === */
+:root {
+  --bg-color: rgb(20, 20, 20);
+  --text-color: rgb(234, 244, 245);
+  --link-color: rgb(88, 88, 88);
+  --card-bg: black;
+  --nav-bg: black;
+  --nav-text: rgb(120, 120, 120);
+  --nav-text-hover: rgb(180, 180, 180);
+  --nav-text-active: rgb(234, 244, 245);
+  --nav-border: transparent;
+  --border-color: rgb(60, 60, 60);
+  --border-light: rgba(84, 84, 84, 0.48);
+  --border-faint: rgba(84, 84, 84, 0.24);
+  --input-bg: rgb(30, 30, 30);
+  --input-text: rgb(234, 244, 245);
+  --input-border: rgb(60, 60, 60);
+  --input-focus-border: rgb(120, 120, 120);
+  --label-color: rgb(140, 140, 140);
+  --title-color: rgb(88, 88, 88);
+  --content-text: rgb(234, 244, 245);
+  --h3-color: rgb(160, 160, 160);
+  --note-color: rgb(120, 120, 120);
+  --btn-bg: rgb(50, 50, 50);
+  --btn-text: rgb(234, 244, 245);
+  --btn-border: rgb(80, 80, 80);
+  --btn-hover-bg: rgb(70, 70, 70);
+  --btn-active-bg: rgb(40, 40, 40);
+  --btn-warn-border: rgb(180, 130, 0);
+  --btn-warn-hover-bg: rgb(60, 50, 20);
+  --btn-danger-border: rgb(180, 50, 50);
+  --btn-danger-hover-bg: rgb(60, 20, 20);
+  --btn-link-color: rgb(120, 120, 120);
+  --btn-link-hover-color: rgb(180, 180, 180);
+  --console-bg: rgb(10, 10, 10);
+  --console-border: rgb(40, 40, 40);
+  --console-text: rgb(200, 200, 200);
+  --progress-bg: rgb(30, 30, 30);
+  --progress-fill: rgb(80, 140, 80);
+  --toast-ok-bg: rgb(30, 60, 30);
+  --toast-ok-border: #4a4;
+  --toast-ok-text: rgb(180, 230, 180);
+  --toast-err-bg: rgb(60, 30, 30);
+  --toast-err-border: #a44;
+  --toast-err-text: rgb(230, 180, 180);
+  --overlay-bg: rgba(0, 0, 0, 0.85);
+  --login-box-bg: rgb(30, 30, 30);
+  --login-box-border: rgb(60, 60, 60);
+  --login-err-color: #a44;
+  --footer-sep-color: rgb(60, 60, 60);
+  --footer-select-bg: rgb(30, 30, 30);
+  --footer-select-border: rgb(60, 60, 60);
+  --footer-select-text: rgb(200, 200, 200);
+  --footer-link-color: rgb(88, 88, 88);
+  --status-dot-ok: #4a4;
+  --status-dot-err: #a44;
+  --status-dot-warn: #aa4;
+  --conn-status-text: rgb(140, 140, 140);
+  --range-text: rgb(160, 160, 160);
+  --checkbox-text: rgb(234, 244, 245);
+  --checkbox-disabled: rgb(80, 80, 80);
+  --accent-color: rgb(234, 244, 245);
+  --login-box-text: rgb(234, 244, 245);
+  --h1-text: rgb(234, 244, 245);
+  --h2-text: rgb(234, 244, 245);
+}
+
+[data-theme="light"] {
+  --bg-color: rgb(245, 245, 245);
+  --text-color: rgb(20, 20, 20);
+  --link-color: rgb(100, 100, 100);
+  --card-bg: rgb(255, 255, 255);
+  --nav-bg: rgb(230, 230, 230);
+  --nav-text: rgb(80, 80, 80);
+  --nav-text-hover: rgb(40, 40, 40);
+  --nav-text-active: rgb(0, 0, 0);
+  --nav-border: transparent;
+  --border-color: rgb(200, 200, 200);
+  --border-light: rgba(180, 180, 180, 0.6);
+  --border-faint: rgba(180, 180, 180, 0.3);
+  --input-bg: rgb(255, 255, 255);
+  --input-text: rgb(20, 20, 20);
+  --input-border: rgb(200, 200, 200);
+  --input-focus-border: rgb(100, 100, 100);
+  --label-color: rgb(80, 80, 80);
+  --title-color: rgb(100, 100, 100);
+  --content-text: rgb(20, 20, 20);
+  --h3-color: rgb(90, 90, 90);
+  --note-color: rgb(110, 110, 110);
+  --btn-bg: rgb(220, 220, 220);
+  --btn-text: rgb(20, 20, 20);
+  --btn-border: rgb(180, 180, 180);
+  --btn-hover-bg: rgb(200, 200, 200);
+  --btn-active-bg: rgb(190, 190, 190);
+  --btn-warn-border: rgb(180, 130, 0);
+  --btn-warn-hover-bg: rgb(240, 220, 180);
+  --btn-danger-border: rgb(180, 50, 50);
+  --btn-danger-hover-bg: rgb(240, 200, 200);
+  --btn-link-color: rgb(100, 100, 100);
+  --btn-link-hover-color: rgb(40, 40, 40);
+  --console-bg: rgb(240, 240, 240);
+  --console-border: rgb(200, 200, 200);
+  --console-text: rgb(40, 40, 40);
+  --progress-bg: rgb(220, 220, 220);
+  --progress-fill: rgb(60, 140, 60);
+  --toast-ok-bg: rgb(220, 240, 220);
+  --toast-ok-border: #393;
+  --toast-ok-text: rgb(20, 80, 20);
+  --toast-err-bg: rgb(240, 220, 220);
+  --toast-err-border: #933;
+  --toast-err-text: rgb(80, 20, 20);
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  --login-box-bg: rgb(255, 255, 255);
+  --login-box-border: rgb(200, 200, 200);
+  --login-err-color: #c33;
+  --footer-sep-color: rgb(200, 200, 200);
+  --footer-select-bg: rgb(255, 255, 255);
+  --footer-select-border: rgb(200, 200, 200);
+  --footer-select-text: rgb(40, 40, 40);
+  --footer-link-color: rgb(100, 100, 100);
+  --status-dot-ok: #393;
+  --status-dot-err: #933;
+  --status-dot-warn: #993;
+  --conn-status-text: rgb(90, 90, 90);
+  --range-text: rgb(90, 90, 90);
+  --checkbox-text: rgb(20, 20, 20);
+  --checkbox-disabled: rgb(160, 160, 160);
+  --accent-color: rgb(60, 120, 200);
+  --login-box-text: rgb(20, 20, 20);
+  --h1-text: rgb(20, 20, 20);
+  --h2-text: rgb(20, 20, 20);
+}
+
 /* === Base === */
 *,
 *::before,
@@ -6,16 +139,16 @@
 }
 
 body {
-  background-color: rgb(20, 20, 20);
+  background-color: var(--bg-color);
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.5;
-  color: rgb(234, 244, 245);
+  color: var(--text-color);
   margin: 0;
   padding: 0;
 }
 
 a {
-  color: rgb(88, 88, 88);
+  color: var(--link-color);
   text-decoration: none;
 }
 
@@ -39,20 +172,22 @@ h1 {
   font-size: 22px;
   font-weight: 300;
   margin: 8px 0 4px 0;
+  color: var(--h1-text);
 }
 
 h2 {
   font-size: 16px;
   font-weight: 400;
   margin: 0 0 12px 0;
+  color: var(--h2-text);
 }
 
 h3 {
   font-size: 14px;
   font-weight: 400;
   margin: 16px 0 8px 0;
-  color: rgb(160, 160, 160);
-  border-top: 1px solid rgba(84, 84, 84, 0.48);
+  color: var(--h3-color);
+  border-top: 1px solid var(--border-light);
   padding-top: 12px;
 }
 
@@ -61,7 +196,7 @@ nav {
   display: flex;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  background: black;
+  background: var(--nav-bg);
   border-radius: 8px;
   margin-bottom: 16px;
   scrollbar-width: none;
@@ -73,26 +208,26 @@ nav::-webkit-scrollbar {
 
 nav a {
   padding: 10px 16px;
-  color: rgb(120, 120, 120);
+  color: var(--nav-text);
   text-decoration: none;
   white-space: nowrap;
-  border-bottom: 2px solid transparent;
+  border-bottom: 2px solid var(--nav-border);
   font-size: 14px;
 }
 
 nav a:hover {
-  color: rgb(180, 180, 180);
+  color: var(--nav-text-hover);
   text-decoration: none;
 }
 
 nav a.active {
-  color: rgb(234, 244, 245);
-  border-bottom-color: rgb(234, 244, 245);
+  color: var(--nav-text-active);
+  border-bottom-color: var(--nav-text-active);
 }
 
 /* === Cards === */
 .card {
-  background: black;
+  background: var(--card-bg);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
@@ -106,7 +241,7 @@ ul {
 }
 
 li {
-  border-bottom: 1px solid rgba(84, 84, 84, 0.48);
+  border-bottom: 1px solid var(--border-light);
   padding: 0;
   display: flex;
 }
@@ -118,28 +253,29 @@ li:last-child {
 .title {
   min-width: 120px;
   padding: 8px 10px;
-  color: rgb(88, 88, 88);
+  color: var(--title-color);
   font-size: 14px;
   flex-shrink: 0;
 }
 
 .content {
-  border-left: 1px solid rgba(84, 84, 84, 0.48);
+  border-left: 1px solid var(--border-light);
   padding: 8px 10px;
   font-size: 14px;
   word-break: break-word;
+  color: var(--content-text);
 }
 
 /* === Forms === */
 label {
   display: block;
-  color: rgb(140, 140, 140);
+  color: var(--label-color);
   font-size: 13px;
   margin: 10px 0 4px 0;
 }
 
 .label-inline {
-  color: rgb(140, 140, 140);
+  color: var(--label-color);
   font-size: 13px;
   margin-right: 8px;
 }
@@ -148,10 +284,10 @@ input[type="text"],
 input[type="password"],
 input[type="number"],
 select {
-  background: rgb(30, 30, 30);
-  border: 1px solid rgb(60, 60, 60);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 4px;
-  color: rgb(234, 244, 245);
+  color: var(--input-text);
   font-size: 14px;
   padding: 6px 8px;
   width: 100%;
@@ -159,12 +295,12 @@ select {
 
 input[type="file"] {
   font-size: 14px;
-  color: rgb(234, 244, 245);
+  color: var(--input-text);
 }
 
 input[type="range"] {
   width: 100%;
-  accent-color: rgb(234, 244, 245);
+  accent-color: var(--accent-color);
 }
 
 input:disabled,
@@ -175,7 +311,7 @@ select:disabled {
 input:focus,
 select:focus {
   outline: none;
-  border-color: rgb(120, 120, 120);
+  border-color: var(--input-focus-border);
 }
 
 .input-sm {
@@ -221,7 +357,7 @@ select:focus {
   min-width: 30px;
   text-align: right;
   font-size: 13px;
-  color: rgb(160, 160, 160);
+  color: var(--range-text);
 }
 
 .input-reveal {
@@ -236,9 +372,9 @@ select:focus {
 /* === Buttons === */
 button {
   padding: 6px 16px;
-  background: rgb(50, 50, 50);
-  color: rgb(234, 244, 245);
-  border: 1px solid rgb(80, 80, 80);
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--btn-border);
   border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
@@ -246,11 +382,11 @@ button {
 }
 
 button:hover {
-  background: rgb(70, 70, 70);
+  background: var(--btn-hover-bg);
 }
 
 button:active {
-  background: rgb(40, 40, 40);
+  background: var(--btn-active-bg);
 }
 
 button:disabled {
@@ -259,19 +395,19 @@ button:disabled {
 }
 
 .btn-warn {
-  border-color: rgb(180, 130, 0);
+  border-color: var(--btn-warn-border);
 }
 
 .btn-warn:hover {
-  background: rgb(60, 50, 20);
+  background: var(--btn-warn-hover-bg);
 }
 
 .btn-danger {
-  border-color: rgb(180, 50, 50);
+  border-color: var(--btn-danger-border);
 }
 
 .btn-danger:hover {
-  background: rgb(60, 20, 20);
+  background: var(--btn-danger-hover-bg);
 }
 
 .btn-group {
@@ -283,7 +419,7 @@ button:disabled {
 .btn-link {
   background: none;
   border: none;
-  color: rgb(120, 120, 120);
+  color: var(--btn-link-color);
   padding: 0 0 0 12px;
   font-size: 13px;
   cursor: pointer;
@@ -291,7 +427,7 @@ button:disabled {
 }
 
 .btn-link:hover {
-  color: rgb(180, 180, 180);
+  color: var(--btn-link-hover-color);
   background: none;
 }
 
@@ -304,7 +440,7 @@ button:disabled {
 /* === Connection Status Indicator === */
 #conn-status {
   font-size: 13px;
-  color: rgb(140, 140, 140);
+  color: var(--conn-status-text);
 }
 
 .status-dot {
@@ -317,21 +453,21 @@ button:disabled {
 }
 
 .status-dot.ok {
-  background: #4a4;
+  background: var(--status-dot-ok);
 }
 
 .status-dot.err {
-  background: #a44;
+  background: var(--status-dot-err);
 }
 
 .status-dot.warn {
-  background: #aa4;
+  background: var(--status-dot-warn);
 }
 
 /* === Console === */
 .console {
-  background: rgb(10, 10, 10);
-  border: 1px solid rgb(40, 40, 40);
+  background: var(--console-bg);
+  border: 1px solid var(--console-border);
   border-radius: 4px;
   padding: 8px;
   margin: 8px 0;
@@ -345,7 +481,7 @@ button:disabled {
   font-size: 12px;
   white-space: pre-wrap;
   word-break: break-all;
-  color: rgb(200, 200, 200);
+  color: var(--console-text);
 }
 
 .console-send {
@@ -372,17 +508,17 @@ progress {
 }
 
 progress::-webkit-progress-bar {
-  background: rgb(30, 30, 30);
+  background: var(--progress-bg);
   border-radius: 4px;
 }
 
 progress::-webkit-progress-value {
-  background: rgb(80, 140, 80);
+  background: var(--progress-fill);
   border-radius: 4px;
 }
 
 progress::-moz-progress-bar {
-  background: rgb(80, 140, 80);
+  background: var(--progress-fill);
   border-radius: 4px;
 }
 
@@ -401,22 +537,22 @@ progress::-moz-progress-bar {
 }
 
 .toast-ok {
-  background: rgb(30, 60, 30);
-  border: 1px solid #4a4;
-  color: rgb(180, 230, 180);
+  background: var(--toast-ok-bg);
+  border: 1px solid var(--toast-ok-border);
+  color: var(--toast-ok-text);
 }
 
 .toast-err {
-  background: rgb(60, 30, 30);
-  border: 1px solid #a44;
-  color: rgb(230, 180, 180);
+  background: var(--toast-err-bg);
+  border: 1px solid var(--toast-err-border);
+  color: var(--toast-err-text);
 }
 
 /* === Login Overlay === */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--overlay-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -424,12 +560,13 @@ progress::-moz-progress-bar {
 }
 
 .login-box {
-  background: rgb(30, 30, 30);
-  border: 1px solid rgb(60, 60, 60);
+  background: var(--login-box-bg);
+  border: 1px solid var(--login-box-border);
   border-radius: 8px;
   padding: 24px;
   width: 280px;
   text-align: center;
+  color: var(--login-box-text);
 }
 
 .login-box img {
@@ -450,7 +587,7 @@ progress::-moz-progress-bar {
 }
 
 .login-box .err {
-  color: #a44;
+  color: var(--login-err-color);
   font-size: 13px;
   margin-top: 8px;
 }
@@ -458,7 +595,7 @@ progress::-moz-progress-bar {
 /* === Notes === */
 .note {
   font-size: 12px;
-  color: rgb(120, 120, 120);
+  color: var(--note-color);
   margin-top: 8px;
 }
 
@@ -467,7 +604,7 @@ footer {
   text-align: center;
   margin-top: 20px;
   padding-top: 12px;
-  border-top: 1px solid rgba(84, 84, 84, 0.24);
+  border-top: 1px solid var(--border-faint);
   font-size: 13px;
   display: flex;
   align-items: center;
@@ -476,25 +613,25 @@ footer {
 }
 
 footer select {
-  background: rgb(30, 30, 30);
-  border: 1px solid rgb(60, 60, 60);
+  background: var(--footer-select-bg);
+  border: 1px solid var(--footer-select-border);
   border-radius: 4px;
-  color: rgb(200, 200, 200);
+  color: var(--footer-select-text);
   font-size: 12px;
   padding: 2px 4px;
   width: auto;
 }
 
 .footer-sep {
-  color: rgb(60, 60, 60);
+  color: var(--footer-sep-color);
 }
 
 /* === Textarea === */
 textarea {
-  background: rgb(30, 30, 30);
-  border: 1px solid rgb(60, 60, 60);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 4px;
-  color: rgb(234, 244, 245);
+  color: var(--input-text);
   font-family: monospace;
   font-size: 13px;
   padding: 8px;
@@ -505,7 +642,7 @@ textarea {
 
 textarea:focus {
   outline: none;
-  border-color: rgb(120, 120, 120);
+  border-color: var(--input-focus-border);
 }
 
 /* === Checkbox group === */
@@ -519,19 +656,19 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: rgb(234, 244, 245);
+  color: var(--checkbox-text);
   font-size: 14px;
   margin: 0;
   cursor: pointer;
 }
 
 .cb-label.disabled {
-  color: rgb(80, 80, 80);
+  color: var(--checkbox-disabled);
   cursor: default;
 }
 
 .cb-label input[type="checkbox"] {
-  accent-color: rgb(234, 244, 245);
+  accent-color: var(--accent-color);
   width: 16px;
   height: 16px;
 }
