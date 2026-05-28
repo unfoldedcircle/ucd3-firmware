@@ -1,68 +1,458 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>		
-		<meta charset="utf-8">
-		<link rel="stylesheet" href="ucd.css">
-		<title>Remote 3 - Smart Charging Dock</title>
-	</head>
-	<body>	 
-		<div class="wrapper">
-			<div class="header">
-				<img width="60px" src="logo.svg" alt="UC logo">
-				<h1>Remote 3 - Smart Charging Dock</h1>
-			</div>
-			<div class="line-break"></div>
-			<ul id="contentList"></ul>
-			<p style="width: 100%; text-align: center;">
-				For more information and support, visit <a href="https://support.unfoldedcircle.com">support.unfoldedcircle.com</a>
-			</p>
-		</div>
-		<script id="rowTemplate" type="text/template">
-			<li>
-				<div class="title">{{title}}</div>
-				<div class="content">{{content}}</div>
-			</li>
-		</script>
-		<script>
-			const container = document.getElementById('contentList');
-			const row = document.getElementById('rowTemplate').innerHTML;
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UC Dock 3</title>
+  <link rel="stylesheet" href="app.css">
+  <script defer src="app.js"></script>
+  <script defer src="lang.js"></script>
+</head>
+<body>
+  <div class="wrapper">
+    <header class="header">
+      <img width="60" src="/logo.svg" alt="UC logo">
+      <h1>Unfolded Circle Smart Charging Dock</h1>
+      <div id="conn-status">
+        <span class="status-dot err"></span>
+        <span id="conn-text" data-i18n="st_disconnected">Disconnected</span>
+        <button id="btn-logout" class="btn-link hidden" data-i18n="btn_logout">Logout</button>
+      </div>
+    </header>
 
-			function getRow(template, title, content) {
-				if (content) {
-					return template.replace('{{title}}', title).replace('{{content}}', content)
-				} else {
-					return ''
-				}
-			}
-			function fetchInfo() {
-				const {location} = window
+    <nav id="main-nav">
+      <a href="#" data-page="status" class="active" data-i18n="nav_status">Status</a>
+      <a href="#" data-page="general" data-i18n="nav_general">General</a>
+      <a href="#" data-page="network" data-i18n="nav_network">Network</a>
+      <a href="#" data-page="ir" data-i18n="nav_ir">IR</a>
+      <a href="#" data-page="ports" data-i18n="nav_ports">Ports</a>
+      <a href="#" data-page="ota" data-i18n="nav_ota">OTA</a>
+      <!-- <a href="#" data-page="logs">Logs</a> -->
+    </nav>
 
-				fetch(`${location.protocol}//${location.host}/api/pub/info`)
-				.then(response => response.json())
-				.then(info => {
-					container.innerHTML = 
-					getRow(row, 'Name', info.name) +
-					getRow(row, 'Hostname', info.hostname) +
-					getRow(row, 'Version', info.version) +
-					getRow(row, 'Serial', info.serial) +
-					getRow(row, 'Model', info.model) +
-					getRow(row, 'Revision', info.revision) +
-					getRow(row, 'Free heap', info.free_heap) +
-					getRow(row, 'Reset reason', info.reset_reason) +
-					getRow(row, 'Uptime', info.uptime) +
-					getRow(row, 'Time', (() => {
-						const timeValue = info.time;
-						const date = timeValue ? new Date(timeValue) : null;
-						return date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : '';
-					})())
-				})
-				.catch(err => {
-					console.error(err)
-					container.innerHTML = '<li>Failed to fetch dock information.</li>'
-				})
-			}
+    <main id="content">
 
-			fetchInfo();
-		</script>
-	</body>
+      <!-- ============ Status ============ -->
+      <section id="page-status">
+        <ul id="status-list">
+          <li><span class="title" data-i18n="lbl_name">Name</span><span class="content" id="s-name">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_hostname">Hostname</span><span class="content" id="s-hostname">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_model">Model</span><span class="content" id="s-model">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_revision">Revision</span><span class="content" id="s-revision">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_version">Version</span><span class="content" id="s-version">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_serial">Serial</span><span class="content" id="s-serial">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_ethernet">Ethernet</span><span class="content" id="s-ethernet">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_wifi">WiFi</span><span class="content" id="s-wifi">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_uptime">Uptime</span><span class="content" id="s-uptime">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_free_heap">Free heap</span><span class="content" id="s-heap">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_reset_reason">Reset reason</span><span class="content" id="s-reset">&mdash;</span></li>
+        </ul>
+      </section>
+
+      <!-- ============ General ============ -->
+      <section id="page-general" class="hidden">
+        <div class="card">
+          <h2 data-i18n="hdr_device_name">Device Name</h2>
+          <div class="form-row form-inline">
+            <input type="text" id="cfg-name" maxlength="40" data-i18n-ph="ph_friendly_name" placeholder="Friendly name">
+            <button id="btn-save-name" data-i18n="btn_save">Save</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 data-i18n="hdr_led_brightness">LED Brightness</h2>
+          <div class="form-row">
+            <label for="cfg-led" data-i18n="lbl_status_led">Status LED</label>
+            <div class="range-row">
+              <input type="range" id="cfg-led" min="0" max="100">
+              <span id="cfg-led-val">0%</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="cfg-eth-led" data-i18n="lbl_eth_led">Ethernet LED</label>
+            <div class="range-row">
+              <input type="range" id="cfg-eth-led" min="0" max="100">
+              <span id="cfg-eth-led-val">0%</span>
+            </div>
+          </div>
+          <!-- <div class="form-row">
+            <label for="cfg-volume">Speaker Volume</label>
+            <div class="range-row">
+              <input type="range" id="cfg-volume" min="0" max="100">
+              <span id="cfg-volume-val">0</span>
+            </div>
+          </div> -->
+          <button id="btn-save-brightness" data-i18n="btn_apply">Apply</button>
+        </div>
+
+        <div class="card">
+          <h2 data-i18n="hdr_access_token">Access Token</h2>
+          <div class="form-row form-inline">
+            <input type="password" id="cfg-token" minlength="4" maxlength="40" data-i18n-ph="ph_token" placeholder="Access Token">
+            <button id="btn-save-token" data-i18n="btn_change">Change</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 data-i18n="hdr_actions">Actions</h2>
+          <div class="btn-group">
+            <button id="btn-identify" data-i18n="btn_identify">Identify</button>
+            <button id="btn-reboot" class="btn-warn" data-i18n="btn_reboot">Reboot</button>
+            <button id="btn-reset" class="btn-danger" data-i18n="btn_reset">Factory Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Network ============ -->
+      <section id="page-network" class="hidden">
+        <div class="card">
+          <h2 data-i18n="hdr_conn_status">Connection Status</h2>
+          <ul>
+            <li><span class="title" data-i18n="lbl_ethernet">Ethernet</span><span class="content" id="net-eth">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_wifi">WiFi</span><span class="content" id="net-wifi">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_ssid">SSID</span><span class="content" id="net-ssid">&mdash;</span></li>
+          </ul>
+          <p class="note" data-i18n="note_eth_priority">Ethernet has priority over WiFi.</p>
+        </div>
+
+        <div class="card">
+          <h2 data-i18n="hdr_wifi_config">WiFi Configuration</h2>
+          <div class="form-row">
+            <label for="cfg-ssid" data-i18n="lbl_ssid">SSID</label>
+            <input type="text" id="cfg-ssid" maxlength="32">
+              <!-- <button id="btn-scan" disabled>Scan</button> -->
+          </div>
+          <div class="form-row">
+            <label for="cfg-wifi-pw" data-i18n="lbl_password">Password</label>
+            <div class="input-reveal">
+              <input type="password" id="cfg-wifi-pw" maxlength="63">
+              <button type="button" id="btn-reveal-wifi" data-i18n="btn_show">Show</button>
+            </div>
+          </div>
+          <button id="btn-save-wifi" data-i18n="btn_apply">Apply</button>
+          <p class="note" data-i18n="note_wifi_restart">The dock will restart after applying WiFi changes.</p>
+        </div>
+      </section>
+
+      <!-- ============ IR ============ -->
+      <section id="page-ir" class="hidden">
+        <div class="card">
+          <h2 data-i18n="hdr_send_ir">Send IR</h2>
+          <div class="form-row">
+            <label for="ir-code" data-i18n="lbl_ir_code">IR Code</label>
+            <textarea id="ir-code" rows="4" data-i18n-ph="ph_ir_code" placeholder="e.g. 4;0x10;12;0 or PRONTO hex"></textarea>
+          </div>
+          <div class="form-row form-inline">
+            <label for="ir-format" data-i18n="lbl_format">Format</label>
+            <select id="ir-format">
+              <option value="hex">HEX</option>
+              <option value="pronto">PRONTO</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label data-i18n="lbl_output">Output</label>
+            <div class="checkbox-group">
+              <label class="cb-label"><input type="checkbox" id="ir-int-side" checked> <span data-i18n="lbl_internal">Internal</span></label>
+              <label class="cb-label" id="ir-ext1-label"><input type="checkbox" id="ir-ext1"> Port 1</label>
+              <label class="cb-label" id="ir-ext2-label"><input type="checkbox" id="ir-ext2"> Port 2</label>
+            </div>
+          </div>
+          <button id="btn-ir-send" data-i18n="btn_send">Send</button>
+        </div>
+
+        <div class="card">
+          <h2 data-i18n="hdr_learn_ir">Learn IR</h2>
+          <div class="btn-group">
+            <button id="btn-ir-learn" data-i18n="btn_start_learning">Start Learning</button>
+            <button id="btn-ir-clear" data-i18n="btn_clear">Clear</button>
+          </div>
+          <div class="console">
+            <pre id="ir-learn-output"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Ports ============ -->
+      <section id="page-ports" class="hidden">
+
+        <!-- Port 1 -->
+        <div class="card" id="port-1-card">
+          <h2><span data-i18n="hdr_ext_port">External Port</span> 1</h2>
+          <div class="form-row form-inline">
+            <label for="port1-mode" data-i18n="lbl_mode">Mode</label>
+            <select id="port1-mode">
+              <option value="AUTO">AUTO</option>
+              <option value="NONE">NONE</option>
+              <option value="IR_BLASTER">IR Blaster</option>
+              <option value="IR_EMITTER_MONO_PLUG">IR Emitter (Mono)</option>
+              <option value="IR_EMITTER_STEREO_PLUG">IR Emitter (Stereo)</option>
+              <option value="TRIGGER_5V">Trigger 5V</option>
+              <option value="RS232">RS232</option>
+            </select>
+            <button id="btn-port1-mode" data-i18n="btn_apply">Apply</button>
+          </div>
+          <div class="form-row">
+            <span class="label-inline" data-i18n="lbl_active">Active:</span>
+            <span id="port1-active">&mdash;</span>
+          </div>
+
+          <!-- Trigger controls -->
+          <div id="port1-trigger" class="hidden">
+            <h3 data-i18n="hdr_trigger">Trigger Control</h3>
+            <div class="btn-group">
+              <button id="btn-port1-trig-on">ON</button>
+              <button id="btn-port1-trig-off">OFF</button>
+            </div>
+            <div class="form-row form-inline">
+              <label for="port1-impulse" data-i18n="lbl_impulse">Impulse (ms)</label>
+              <input type="number" id="port1-impulse" min="1" value="500">
+              <button id="btn-port1-impulse" data-i18n="btn_send">Send</button>
+            </div>
+          </div>
+
+          <!-- RS232 settings -->
+          <div id="port1-rs232" class="hidden">
+            <h3 data-i18n="hdr_uart">UART Configuration</h3>
+            <div class="form-row">
+              <label for="port1-baud" data-i18n="lbl_baud_rate">Baud Rate</label>
+              <select id="port1-baud">
+                <option value="300">300</option>
+                <option value="1200">1200</option>
+                <option value="2400">2400</option>
+                <option value="4800">4800</option>
+                <option value="9600" selected>9600</option>
+                <option value="19200">19200</option>
+                <option value="38400">38400</option>
+                <option value="57600">57600</option>
+                <option value="115200">115200</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port1-databits" data-i18n="lbl_data_bits">Data Bits</label>
+              <select id="port1-databits">
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8" selected>8</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port1-stopbits" data-i18n="lbl_stop_bits">Stop Bits</label>
+              <select id="port1-stopbits">
+                <option value="1" selected>1</option>
+                <option value="1.5">1.5</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port1-parity" data-i18n="lbl_parity">Parity</label>
+              <select id="port1-parity">
+                <option value="none" selected>None</option>
+                <option value="even">Even</option>
+                <option value="odd">Odd</option>
+              </select>
+            </div>
+            <button id="btn-port1-uart" data-i18n="btn_apply_uart">Apply UART</button>
+
+            <h3 data-i18n="hdr_serial_console">Serial Console</h3>
+            <div class="form-row form-inline">
+              <label for="port1-buffering" data-i18n="lbl_buffering">Buffering</label>
+              <select id="port1-buffering">
+                <option value="chunk">Chunk</option>
+                <option value="line">Line</option>
+              </select>
+              <label for="port1-terminator" data-i18n="lbl_terminator">Terminator</label>
+              <input type="text" id="port1-terminator" value="0x0D" class="input-sm" placeholder="0x0D">
+            </div>
+            <button id="btn-port1-serial-cfg" data-i18n="btn_apply_buffering">Apply Buffering</button>
+
+            <div class="form-row console-controls">
+              <button id="btn-port1-console" data-i18n="btn_enable_console">Enable Console</button>
+              <button id="btn-port1-clear" data-i18n="btn_clear">Clear</button>
+            </div>
+            <div class="console">
+              <pre id="port1-output"></pre>
+            </div>
+            <div class="form-row form-inline console-send">
+              <input type="text" id="port1-input" data-i18n-ph="ph_send_command" placeholder="Send command">
+              <button id="btn-port1-send" data-i18n="btn_send">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Port 2 -->
+        <div class="card" id="port-2-card">
+          <h2><span data-i18n="hdr_ext_port">External Port</span> 2</h2>
+          <div class="form-row form-inline">
+            <label for="port2-mode" data-i18n="lbl_mode">Mode</label>
+            <select id="port2-mode">
+              <option value="AUTO">AUTO</option>
+              <option value="NONE">NONE</option>
+              <option value="IR_BLASTER">IR Blaster</option>
+              <option value="IR_EMITTER_MONO_PLUG">IR Emitter (Mono)</option>
+              <option value="IR_EMITTER_STEREO_PLUG">IR Emitter (Stereo)</option>
+              <option value="TRIGGER_5V">Trigger 5V</option>
+              <option value="RS232">RS232</option>
+            </select>
+            <button id="btn-port2-mode" data-i18n="btn_apply">Apply</button>
+          </div>
+          <div class="form-row">
+            <span class="label-inline" data-i18n="lbl_active">Active:</span>
+            <span id="port2-active">&mdash;</span>
+          </div>
+
+          <!-- Trigger controls -->
+          <div id="port2-trigger" class="hidden">
+            <h3 data-i18n="hdr_trigger">Trigger Control</h3>
+            <div class="btn-group">
+              <button id="btn-port2-trig-on">ON</button>
+              <button id="btn-port2-trig-off">OFF</button>
+            </div>
+            <div class="form-row form-inline">
+              <label for="port2-impulse" data-i18n="lbl_impulse">Impulse (ms)</label>
+              <input type="number" id="port2-impulse" min="1" value="500">
+              <button id="btn-port2-impulse" data-i18n="btn_send">Send</button>
+            </div>
+          </div>
+
+          <!-- RS232 settings -->
+          <div id="port2-rs232" class="hidden">
+            <h3 data-i18n="hdr_uart">UART Configuration</h3>
+            <div class="form-row">
+              <label for="port2-baud" data-i18n="lbl_baud_rate">Baud Rate</label>
+              <select id="port2-baud">
+                <option value="300">300</option>
+                <option value="1200">1200</option>
+                <option value="2400">2400</option>
+                <option value="4800">4800</option>
+                <option value="9600" selected>9600</option>
+                <option value="19200">19200</option>
+                <option value="38400">38400</option>
+                <option value="57600">57600</option>
+                <option value="115200">115200</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port2-databits" data-i18n="lbl_data_bits">Data Bits</label>
+              <select id="port2-databits">
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8" selected>8</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port2-stopbits" data-i18n="lbl_stop_bits">Stop Bits</label>
+              <select id="port2-stopbits">
+                <option value="1" selected>1</option>
+                <option value="1.5">1.5</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port2-parity" data-i18n="lbl_parity">Parity</label>
+              <select id="port2-parity">
+                <option value="none" selected>None</option>
+                <option value="even">Even</option>
+                <option value="odd">Odd</option>
+              </select>
+            </div>
+            <button id="btn-port2-uart" data-i18n="btn_apply_uart">Apply UART</button>
+
+            <h3 data-i18n="hdr_serial_console">Serial Console</h3>
+            <div class="form-row form-inline">
+              <label for="port2-buffering" data-i18n="lbl_buffering">Buffering</label>
+              <select id="port2-buffering">
+                <option value="chunk">Chunk</option>
+                <option value="line">Line</option>
+              </select>
+              <label for="port2-terminator" data-i18n="lbl_terminator">Terminator</label>
+              <input type="text" id="port2-terminator" value="0x0D" class="input-sm" placeholder="0x0D">
+            </div>
+            <button id="btn-port2-serial-cfg" data-i18n="btn_apply_buffering">Apply Buffering</button>
+
+            <div class="form-row console-controls">
+              <button id="btn-port2-console" data-i18n="btn_enable_console">Enable Console</button>
+              <button id="btn-port2-clear" data-i18n="btn_clear">Clear</button>
+            </div>
+            <div class="console">
+              <pre id="port2-output"></pre>
+            </div>
+            <div class="form-row form-inline console-send">
+              <input type="text" id="port2-input" data-i18n-ph="ph_send_command" placeholder="Send command">
+              <button id="btn-port2-send" data-i18n="btn_send">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ OTA ============ -->
+      <section id="page-ota" class="hidden">
+        <div class="card">
+          <h2 data-i18n="hdr_fw_update">Firmware Update</h2>
+          <p><span data-i18n="lbl_current_version">Current version:</span> <span id="ota-version">&mdash;</span></p>
+          <div class="form-row">
+            <input type="file" id="ota-file" accept=".bin">
+          </div>
+          <button id="btn-upload" data-i18n="btn_upload">Upload</button>
+          <progress id="ota-progress" class="hidden" max="100" value="0"></progress>
+          <p id="ota-status"></p>
+          <p class="note" data-i18n="note_no_disconnect">Do not disconnect the dock during update.</p>
+        </div>
+      </section>
+
+      <!-- ============ Logs (prepared) ============ -->
+      <!--
+      <section id="page-logs" class="hidden">
+        <div class="card">
+          <h2>System Log</h2>
+          <div class="form-row">
+            <label for="log-level">Log Level</label>
+            <select id="log-level">
+              <option value="3">ERROR</option>
+              <option value="4">WARNING</option>
+              <option value="5">NOTICE</option>
+              <option value="6" selected>INFO</option>
+              <option value="7">DEBUG</option>
+            </select>
+          </div>
+          <div class="form-row form-inline">
+            <label><input type="checkbox" id="log-syslog"> Syslog</label>
+            <input type="text" id="log-syslog-host" placeholder="Host" maxlength="64" disabled>
+            <input type="number" id="log-syslog-port" value="514" min="1" max="65535" disabled class="input-sm">
+          </div>
+          <button id="btn-log-cfg">Apply</button>
+
+          <div class="console">
+            <pre id="log-output"></pre>
+          </div>
+          <div class="btn-group">
+            <button id="btn-log-clear">Clear</button>
+            <button id="btn-log-pause">Pause</button>
+          </div>
+        </div>
+      </section>
+      -->
+
+    </main>
+
+    <footer>
+      <select id="lang-select" aria-label="Language"></select>
+      <span class="footer-sep">|</span>
+      <a href="https://support.unfoldedcircle.com">support.unfoldedcircle.com</a>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <div id="login-overlay" class="overlay hidden">
+    <div class="login-box">
+      <img width="40" src="/logo.svg" alt="UC logo">
+      <h2 data-i18n="hdr_auth">Authentication</h2>
+      <input type="password" id="login-pw" data-i18n-ph="ph_token" placeholder="Access Token" autocomplete="current-password">
+      <button id="login-btn" data-i18n="btn_login">Login</button>
+      <p id="login-err" class="err hidden"></p>
+    </div>
+  </div>
+</body>
 </html>

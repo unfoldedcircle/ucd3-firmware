@@ -6,10 +6,15 @@ filter:
     - discard
   "**/*.bak":
     - discard
+  "**/lang":
+    - discard
 
-  "**/*.js":
+  "webroot/app.js":
     - uglify-js
-    # Run host-level gzip to bypass transparent decompression of FrogFs when reading the file back.
+    - gzip -9 -f -c
+
+  # uglify-js doesn't work with the generated lang.js, so we just gzip it
+  "webroot/lang.js":
     - gzip -9 -f -c
 
   "**/*.css":
