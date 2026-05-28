@@ -8,8 +8,9 @@
 #include "freertos/semphr.h"
 #include "esp_vfs.h"
 #include "esp_partition.h"
+#include "esp_littlefs.h"
 #include "littlefs/lfs.h"
-#include <sdkconfig.h>
+#include "sdkconfig.h"
 
 #ifdef CONFIG_LITTLEFS_SDMMC_SUPPORT
 #include <sdmmc_cmd.h>
@@ -17,6 +18,12 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#if CONFIG_LITTLEFS_USE_MTIME
+    #define ESP_LITTLEFS_ATTR_COUNT 1
+#else
+    #define ESP_LITTLEFS_ATTR_COUNT 0
 #endif
 
 /**
@@ -37,7 +44,16 @@ extern "C" {
  */
 typedef struct _vfs_littlefs_file_t {
     lfs_file_t file;
-    uint32_t   hash;
+
+    /* Allocate all other necessary buffers */
+    struct lfs_file_config lfs_file_config;
+    uint8_t lfs_buffer[CONFIG_LITTLEFS_CACHE_SIZE];
+#if ESP_LITTLEFS_ATTR_COUNT
+    struct lfs_attr lfs_attr[ESP_LITTLEFS_ATTR_COUNT];
+    time_t lfs_attr_time_buffer;
+#endif
+
+    uint32_t hash;
     struct _vfs_littlefs_file_t * next;       /*!< Pointer to next file in Singly Linked List */
 #ifndef CONFIG_LITTLEFS_USE_ONLY_HASH
     char     * path;
@@ -51,11 +67,25 @@ typedef struct {
     lfs_t *fs;                                /*!< Handle to the underlying littlefs */
     SemaphoreHandle_t lock;                   /*!< FS lock */
 
+    // TODO(next major release): partition, sdcard, and bdl_handle are mutually exclusive
+    // and should be refactored into a union with a backend_type discriminator.
 #ifdef CONFIG_LITTLEFS_SDMMC_SUPPORT
     sdmmc_card_t *sdcard;                     /*!< The SD card driver handle on which littlefs is located */
 #endif
 
     const esp_partition_t* partition;         /*!< The partition on which littlefs is located */
+#if ESP_LITTLEFS_HAS_BLOCKDEV
+    esp_blockdev_handle_t  bdl_handle;          /*!< Optional block device layer handle backing LittleFS */
+    /** When true, BDL \c erase_before_write is false: LittleFS \c block_size is derived from read/program sizes
+     *  (not geometry \c erase_size). Physical erase alignment is not enforced in this path. */
+    bool                   bdl_logical_block_mode;
+#endif
+
+#ifdef CONFIG_LITTLEFS_MMAP_PARTITION
+    const void *mmap_data;                    /*!< Buffer of mmapped partition */
+    esp_partition_mmap_handle_t mmap_handle;  /*!< Handle to mmapped partition */
+#endif
+
     char base_path[ESP_VFS_PATH_MAX+1];       /*!< Mount point */
 
     struct lfs_config cfg;                    /*!< littlefs Mount configuration */
@@ -67,6 +97,18 @@ typedef struct {
     uint16_t             fd_count;            /*!< The count of opened file descriptor used to speed up computation */
     bool                 read_only;           /*!< Filesystem is read-only */
 } esp_littlefs_t;
+
+#ifdef CONFIG_LITTLEFS_MMAP_PARTITION
+/**
+ * @brief Read a region in a block, only for use with an mmapped partition.
+ *
+ * Negative error codes are propogated to the user.
+ *
+ * @return errorcode. 0 on success.
+ */
+int littlefs_esp_part_read_mmap(const struct lfs_config *c, lfs_block_t block,
+                           lfs_off_t off, void *buffer, lfs_size_t size);
+#endif
 
 /**
  * @brief Read a region in a block.
@@ -109,6 +151,61 @@ int littlefs_esp_part_erase(const struct lfs_config *c, lfs_block_t block);
  * @return errorcode. 0 on success.
  */
 int littlefs_esp_part_sync(const struct lfs_config *c);
+
+#if ESP_LITTLEFS_HAS_BLOCKDEV
+
+/**
+ * @brief Read a region in a block via esp_blockdev.
+ *
+ * Negative error codes are propagated to the user.
+ *
+ * Expects `c->context` to point to an initialized `esp_littlefs_t` with `bdl_handle` set.
+ *
+ * @return errorcode. 0 on success.
+ */
+int littlefs_bdl_read(const struct lfs_config *c, lfs_block_t block,
+                      lfs_off_t off, void *buffer, lfs_size_t size);
+
+/**
+ * @brief Program a region in a block via esp_blockdev.
+ *
+ * The block must have previously been erased.
+ * Negative error codes are propagated to the user.
+ * May return LFS_ERR_CORRUPT if the block should be considered bad.
+ *
+ * Expects `c->context` to point to an initialized `esp_littlefs_t` with `bdl_handle` set.
+ *
+ * @return errorcode. 0 on success.
+ */
+int littlefs_bdl_write(const struct lfs_config *c, lfs_block_t block,
+                       lfs_off_t off, const void *buffer, lfs_size_t size);
+
+/**
+ * @brief Erase a block via esp_blockdev.
+ *
+ * A block must be erased before being programmed.
+ * The state of an erased block is undefined.
+ * Negative error codes are propagated to the user.
+ * May return LFS_ERR_CORRUPT if the block should be considered bad.
+ *
+ * Expects `c->context` to point to an initialized `esp_littlefs_t` with `bdl_handle` set.
+ *
+ * @return errorcode. 0 on success.
+ */
+int littlefs_bdl_erase(const struct lfs_config *c, lfs_block_t block);
+
+/**
+ * @brief Sync the state of the underlying block device via esp_blockdev.
+ *
+ * Negative error codes are propagated to the user.
+ *
+ * Expects `c->context` to point to an initialized `esp_littlefs_t` with `bdl_handle` set.
+ *
+ * @return errorcode. 0 on success.
+ */
+int littlefs_bdl_sync(const struct lfs_config *c);
+
+#endif /* ESP_LITTLEFS_HAS_BLOCKDEV */
 
 #ifdef CONFIG_LITTLEFS_SDMMC_SUPPORT
 

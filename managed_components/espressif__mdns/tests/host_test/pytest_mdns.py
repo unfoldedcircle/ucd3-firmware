@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Unlicense OR CC0-1.0
 import logging
 
@@ -65,6 +65,32 @@ def test_add_service(mdns_console, dig_app):
     dig_app.check_record('_http._tcp.local', query_type='PTR', expected=True)
 
 
+def test_ptr_additional_records_for_service(dig_app):
+    # Query PTR for the service type and ensure SRV/TXT are in Additional (RFC 6763 §12.1)
+    resp = dig_app.run_query('_http._tcp.local', query_type='PTR')
+    # Answer section should have at least one PTR to the instance
+    answers = dig_app.parse_answer_section(resp, 'PTR')
+    assert any('test_service._http._tcp.local' in a for a in answers)
+    # Additional section should include SRV and TXT for the same instance
+    dig_app.check_additional(resp, 'SRV', 'test_service._http._tcp.local', expected=True)
+    dig_app.check_additional(resp, 'TXT', 'test_service._http._tcp.local', expected=True)
+
+
+def test_instance_any_answer_records(dig_app):
+    """Query ANY for the service instance and ensure SRV/TXT are in Answer (Q/A path)."""
+    resp = dig_app.run_query('test_service._http._tcp.local', query_type='ANY')
+
+    # Answer section should contain SRV and TXT records for the instance
+    srv_answers = dig_app.parse_section(resp, 'answer', 'SRV')
+    txt_answers = dig_app.parse_section(resp, 'answer', 'TXT')
+    assert any('test_service._http._tcp.local' in a for a in srv_answers)
+    assert any('test_service._http._tcp.local' in a for a in txt_answers)
+
+    # We should not see a PTR for the generic service name in the Answer section
+    ptr_answers = dig_app.parse_section(resp, 'answer', 'PTR')
+    assert not any('_http._tcp.local' in a for a in ptr_answers)
+
+
 def test_remove_service(mdns_console, dig_app):
     mdns_console.send_input('mdns_service_remove _http _tcp')
     mdns_console.send_input('mdns_service_lookup _http _tcp')
@@ -95,6 +121,23 @@ def test_add_delegated_service(mdns_console, dig_app):
     mdns_console.get_output('PTR : extern')
     dig_app.check_record('_test2._tcp.local', query_type='PTR', expected=True)
     dig_app.check_record('extern._test2._tcp.local', query_type='SRV', expected=True)
+
+
+def test_service_discovery_dns_sd(dig_app):
+    """Query _services._dns-sd._udp.local PTR to discover registered service types (RFC 6763 §9)."""
+    resp = dig_app.run_query('_services._dns-sd._udp.local', query_type='PTR')
+    answers = dig_app.parse_answer_section(resp, 'PTR')
+    assert any('_test._tcp.local' in a for a in answers), \
+        f'Expected _test._tcp.local in DNS-SD response, got: {answers}'
+    assert any('_test2._tcp.local' in a for a in answers), \
+        f'Expected _test2._tcp.local in DNS-SD response, got: {answers}'
+
+
+def test_service_discovery_query(mdns_console):
+    """Test querier-side: query _services._dns-sd._udp via mdns_query_ptr (exercises multi-label splitting)."""
+    mdns_console.send_input('mdns_query_ptr _services._dns-sd _udp -t 2000 -m 10')
+    mdns_console.get_output('Query PTR: _services._dns-sd._udp.local')
+    mdns_console.get_output('mdns>')
 
 
 def test_remove_delegated_service(mdns_console, dig_app):

@@ -64,6 +64,24 @@ TEST_CASE("can format unmounted partition", "[littlefs]")
     test_teardown();
 }
 
+TEST_CASE("NULL label mounts first littlefs partition.", "[littlefs]")
+{
+    esp_littlefs_format(littlefs_test_partition_label);
+    const esp_vfs_littlefs_conf_t conf = {
+        .base_path = littlefs_base_path,
+        .partition_label = NULL,
+        .format_if_mount_failed = true
+    };
+    TEST_ESP_OK(esp_vfs_littlefs_register(&conf));
+    TEST_ASSERT_TRUE( heap_caps_check_integrity_all(true) );
+
+    TEST_ASSERT_TRUE( esp_littlefs_mounted(NULL) );
+    TEST_ASSERT_TRUE( esp_littlefs_mounted("named_part") );
+
+    TEST_ESP_OK(esp_vfs_littlefs_unregister(NULL));
+    TEST_ASSERT_TRUE( heap_caps_check_integrity_all(true) );
+}
+
 TEST_CASE("can create and write file", "[littlefs]")
 {
     test_setup();
@@ -321,30 +339,31 @@ TEST_CASE("mtime support", "[littlefs]")
     struct stat st;
     TEST_ASSERT_EQUAL(0, test_littlefs_stat(filename, &st));
     printf("mtime=%d\n", (int) st.st_mtime);
-    TEST_ASSERT(st.st_mtime >= t_before_create
-             && st.st_mtime <= t_after_create);
+    TEST_ASSERT(st.st_mtime >= t_before_create);
+    TEST_ASSERT(st.st_mtime <= t_after_create);
 
-    /* Wait a bit, open again, check that mtime is updated */
+    /* Wait a bit, open & close again, check that mtime is updated */
     vTaskDelay(2000 / portTICK_PERIOD_MS);
-    time_t t_before_open = time(NULL);
+    time_t t_before_close = time(NULL);
     FILE *f = fopen(filename, "a");
-    time_t t_after_open = time(NULL);
+    TEST_ASSERT_EQUAL(0, fclose(f));
+    time_t t_after_close = time(NULL);
     TEST_ASSERT_EQUAL(0, test_littlefs_stat(filename, &st));
     printf("mtime=%d\n", (int) st.st_mtime);
-    TEST_ASSERT(st.st_mtime >= t_before_open
-             && st.st_mtime <= t_after_open);
-    TEST_ASSERT_EQUAL(0, fclose(f));
+    time_t append_mtime = st.st_mtime;
+    TEST_ASSERT(append_mtime >= t_before_close);
+    TEST_ASSERT(append_mtime <= t_after_close);
 
     /* Wait a bit, open for reading, check that mtime is not updated */
     vTaskDelay(2000 / portTICK_PERIOD_MS);
-    time_t t_before_open_ro = time(NULL);
+    time_t t_before_close_ro = time(NULL);
     f = fopen(filename, "r");
+    TEST_ASSERT_EQUAL(0, fclose(f));
     TEST_ASSERT_EQUAL(0, test_littlefs_stat(filename, &st));
     printf("mtime=%d\n", (int) st.st_mtime);
-    TEST_ASSERT(t_before_open_ro > t_after_open
-             && st.st_mtime >= t_before_open
-             && st.st_mtime <= t_after_open);
-    TEST_ASSERT_EQUAL(0, fclose(f));
+    TEST_ASSERT(t_before_close_ro > t_after_close);  // sufficient time has passed for this test to be valid.
+    // make sure the st_mtime is the same as bfore
+    TEST_ASSERT(st.st_mtime == append_mtime);
 
     test_teardown();
 }
@@ -743,7 +762,15 @@ TEST_CASE("Rewriting file frees space immediately (#7426)", "[littlefs]")
 
 TEST_CASE("esp_littlefs_info returns used_bytes > total_bytes", "[littlefs]")
 {
-    // https://github.com/joltwallet/esp_littlefs/issues/66
+    /* https://github.com/joltwallet/esp_littlefs/issues/66
+     *
+     * lfs_fs_size can report more blocks in use than the filesystem has,
+     * causing esp_littlefs_info to return used_bytes > total_bytes.
+     * When the caller computes free = total - used, this underflows to ~4GB.
+     *
+     * Mitigation: get_total_and_used_bytes clamps used to MIN(total, ...).
+     * This test fills the partition while asserting total >= used every step.
+     */
     test_setup();
     const char foo[] = "foofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoo";
 
@@ -751,7 +778,9 @@ TEST_CASE("esp_littlefs_info returns used_bytes > total_bytes", "[littlefs]")
     for (size_t i = 0; i < 7; ++i) {
         snprintf(names[i], sizeof(names[i]), littlefs_base_path "/%d", i + 1);
         unlink(names[i]);  // Make sure these files don't exist
+    }
 
+    for (size_t i = 0; i < 7; ++i) {
         FILE* f = fopen(names[i], "wb");
         TEST_ASSERT_NOT_NULL(f);
         char val = 'c';
@@ -762,25 +791,39 @@ TEST_CASE("esp_littlefs_info returns used_bytes > total_bytes", "[littlefs]")
         TEST_ASSERT_EQUAL(0, fclose(f));
     }
 
-    bool disk_full = false;
+    /* When the filesystem is nearly full, littlefs may internally recover
+     * from NOSPC (e.g. metadata compaction succeeds without a split) so
+     * neither fwrite nor fclose reports an error.  Detect this steady-state
+     * by stopping once used_bytes stops growing. */
+    size_t total = 0, used = 0, prev_used = 0;
+    int stall_count = 0;
     int i = 0;
-    while(!disk_full){
+    while(true){
         char *filename = names[i % 7];
         FILE* f = fopen(filename, "a+b");
         TEST_ASSERT_NOT_NULL(f);
         size_t n_bytes = 200 + i % 17;
         int amount_written = fwrite(foo, n_bytes, 1, f);
         if(amount_written != 1) {
-            disk_full = true;
+            break;
         }
         if(0 != fclose(f)){
-            disk_full = true;
+            break;
         }
 
-        size_t total = 0, used = 0;
+        total = 0; used = 0;
         TEST_ESP_OK(esp_littlefs_info(littlefs_test_partition_label, &total, &used));
         TEST_ASSERT_GREATER_OR_EQUAL_INT(used, total);
         //printf("used: %d total: %d\n", used, total);
+
+        if (used == prev_used && (total - used) <= 2 * 4096) {
+            if (++stall_count >= 10) {
+                break;
+            }
+        } else {
+            stall_count = 0;
+        }
+        prev_used = used;
         i++;
     }
     test_teardown();

@@ -7,7 +7,7 @@ documentation: https://docs.espressif.com/projects/esp-protocols/mdns/docs/lates
 issues: https://github.com/espressif/esp-protocols/issues
 repository: git://github.com/espressif/esp-protocols.git
 repository_info:
-  commit_sha: e9d7350219dfb5e39eb56e5ef60c094190888c55
+  commit_sha: 09e0dafe9e53f0a0abcd83b20dc79f9fecf902bd
   path: components/mdns
 url: https://github.com/espressif/esp-protocols/tree/master/components/mdns
-version: 1.8.2
+version: 1.11.1

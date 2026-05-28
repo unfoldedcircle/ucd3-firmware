@@ -14,6 +14,7 @@ Transform filters include:
   * babel-minify
   * deflate
   * gzip
+  * brotli
   * html-minifier
   * rename
   * terminate
@@ -30,8 +31,9 @@ Transform filters are intended to be _compile-time_ operations that do not
 incur a run-time cost while compression filters are **expected** to incur a
 _run-time_ decompression cost.
 
-This means for an HTTP server, zlib (deflate) or gzip compressed files can be
-passed through untouched! This saves processing time and bandwidth.
+This means for an HTTP server, zlib (deflate), brotli (br) or gzip compressed
+files can be passed through untouched! This saves processing time and bandwidth.
+Beware however that some browsers don't accept brotli content other HTTP (only HTTPS).
 
 # Getting started with ESP-IDF
 
@@ -41,7 +43,7 @@ To use this component with ESP-IDF, within your projects directory run
 
 ## Embedding a FrogFS image
 
-Embed FrogFS within your project binary with the folowing CMake function:
+Embed FrogFS within your project binary with the following CMake function:
 
     target_add_frogfs(<target> [CONFIG yaml] [NAME name])
 
@@ -58,6 +60,19 @@ project(my_project)
 
 target_add_frogfs(${PROJECT_NAME}.elf)
 ```
+
+You can also preinstall extra Python dependencies into FrogFS’s build
+virtualenv via CMake:
+
+```cmake
+target_add_frogfs(${PROJECT_NAME}.elf
+    # CONFIG and NAME as before
+    REQUIREMENTS ${CMAKE_SOURCE_DIR}/tools/frogfs-extra-requirements.txt
+    PIP "heatshrink2>=0.13.0"
+)
+```
+`REQUIREMENTS` points to an additional requirements file, and `PIP` accepts a
+space-separated list of requirement specifiers.
 
 In C, this results in these two global symbols being available to your
 application:
@@ -76,7 +91,7 @@ application. A CMake function is provided to output a binary with target
     declare_frogfs_bin(path [CONFIG yaml] [NAME name])
 
 If **CONFIG** is not specified, `frogfs.yaml` is used. If **NAME** is not
-specifed, `frogfs` is used.
+specified, `frogfs` is used.
 
 Here's an example of what you can add to your toplevel CMakeLists.txt:
 
@@ -103,17 +118,30 @@ Define is a list or dict of variable definitions. There are 2 predefined
 variables: `$cwd` and `$frogfs`. You can also reference environment variables
 with the `${ENV:varname}` syntax.
 
-Collect 'gathers' up files and directories and places them in the frogfs root.
-Glob patterns are allowed in the 'basename' component of the path. There are 3
-ways to specify sources; they cn be a string, list, or dictionary. If it's a
-string, the path(s) become the root directory. If a list, the paths are merged
-in order and become the root directory. If a dict is used, the paths are
-merged into the destination of choice; empty string being the root directory.
-Variables are expanded for both source and destination.
+Collect 'gathers' up files and directories and places them in the frogfs
+filesystem. Glob patterns are allowed in paths. It is recommended to use a
+list, but a string can be used. If paths end with a slash, the contents of
+that path are placed in the destination. Otherwise, the path itself is placed
+in the destination. The destination defaults to the root directory, or in the
+case of a dictionary key, a root relative path is used.
+
+For example:
+
+```yaml
+collect:
+  - files/*        # everything in files except dotfiles in /
+  - files/         # everything in files in /
+  - files          # files directory in / (/files)
+  - files/*: dir   # everything in files except dotfiles in /dir
+  - files/: dir    # everything in files in /dir
+  - files: dir     # files directory in /dir (/dir/files)
+```
+
+Variables can be used on both source paths and destination paths.
 
 Filter allows you to do post-processing on the files before they are
 integrated. Filter is a list or dict of dicts; with a glob pattern to a list
-of verbs. Varibales are expanded and all patterns are evaluated for each file
+of verbs. Variables are expanded and all patterns are evaluated for each file
 or directory, top down. Transforms are applied first, then an optional final
 compression before caching the file.
 
@@ -121,6 +149,45 @@ Verbs are applied in descending order. You can prefix a transforms or the
 `compress` verb with `no` to disable it. There are a couple of special verbs:
 `discard` which prevents inclusion and `cache` (default), which caches the
 file in the build cache. See `frogfs_example.yaml` for example usage.
+
+### Extra Python dependencies
+
+You can ask FrogFS to install additional Python packages into the build-time
+virtualenv used by `mkfrogfs.py`. This helps enable optional features like
+`heatshrink` compression without modifying the project’s default
+`requirements.txt`.
+
+- `python_requirements`: a path or list of paths to `requirements.txt` files.
+- `python_packages`: a list of requirement specifiers (e.g. `pkg`, `pkg==1.2`).
+
+Example:
+
+```yaml
+define:
+  - project: $cwd
+
+collect:
+  - $project/web/*: /
+
+filter:
+  - "**/*.bin":
+      - compress heatshrink: { window: 11, lookahead: 4 }
+
+# Install heatshrink2 into the build venv
+python_requirements:
+   - tools/frogfs-extra-requirements.txt
+
+# or
+
+python_packages:
+  - brotli~=1.2.0
+  - heatshrink2~=0.14.0
+  - zopfli~=0.4.1
+```
+
+When these settings are present, `mkfrogfs.py` installs them into the same
+virtualenv that CMake creates for FrogFS. Installs are cached using a content
+hash, so subsequent builds only reinstall when the inputs change.
 
 ## Usage
 
@@ -132,12 +199,14 @@ preventing you from mix and matching both at the same time, however.
 
 ### Shared initialization
 
-Configuration requries defining a `frogfs_config_t` structure and passing it
+Configuration requires defining a `frogfs_config_t` structure and passing it
 to `frogfs_init`. Two different ways to specify the filesystem:
 
   1. a memory address using the `addr` variable:
 
 ```C
+extern const uint8_t frogfs_bin[];
+
 frogfs_config_t frogfs_config = {
     .addr = frogfs_bin,
 };
@@ -231,7 +300,7 @@ add your own transforms by creating a `tools` directory in your projects root
 directory, with a filename starting with `transform-` and ending with `.js` or
 `.py`. Transform tools take data on stdin and produce output on stdout.
 
-Both transform and compresors can accept arguments. See `frogfs_example.yaml`
+Both transform and compressors can accept arguments. See `frogfs_example.yaml`
 for an example.
 
 # History and Acknowledgements

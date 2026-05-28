@@ -21,7 +21,7 @@ extern "C"
 // Software library version
 // Major (top-nibble), incremented on backwards incompatible changes
 // Minor (bottom-nibble), incremented on feature additions
-#define LFS_VERSION 0x0002000a
+#define LFS_VERSION 0x0002000b
 #define LFS_VERSION_MAJOR (0xffff & (LFS_VERSION >> 16))
 #define LFS_VERSION_MINOR (0xffff & (LFS_VERSION >>  0))
 
@@ -135,14 +135,15 @@ enum lfs_open_flags {
 
     // internally used flags
 #ifndef LFS_READONLY
-    LFS_F_DIRTY   = 0x010000, // File does not match storage
-    LFS_F_WRITING = 0x020000, // File has been written since last flush
+    LFS_F_DIRTY   = 0x00010000, // File does not match storage due to write
+    LFS_F_DUSTY   = 0x00020000, // File does not match storage due to desync
+    LFS_F_WRITING = 0x00040000, // File has been written since last flush
 #endif
-    LFS_F_READING = 0x040000, // File has been read since last flush
+    LFS_F_READING = 0x00080000, // File has been read since last flush
 #ifndef LFS_READONLY
-    LFS_F_ERRED   = 0x080000, // An error occurred during write
+    LFS_F_ERRED   = 0x00100000, // An error occurred during write
 #endif
-    LFS_F_INLINE  = 0x100000, // Currently inlined in directory entry
+    LFS_F_INLINE  = 0x01000000, // Currently inlined in directory entry
 };
 
 // File seek flags
@@ -766,7 +767,11 @@ int lfs_fs_gc(lfs_t *lfs);
 // Grows the filesystem to a new size, updating the superblock with the new
 // block count.
 //
-// Note: This is irreversible.
+// If LFS_SHRINKNONRELOCATING is defined, this function will also accept
+// block_counts smaller than the current configuration, after checking
+// that none of the blocks that are being removed are in use.
+// Note that littlefs's pseudorandom block allocation means that
+// this is very unlikely to work in the general case.
 //
 // Returns a negative error code on failure.
 int lfs_fs_grow(lfs_t *lfs, lfs_size_t block_count);

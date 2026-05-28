@@ -7,7 +7,7 @@ dependencies:
 description: LED indicator driver
 repository: git://github.com/espressif/esp-iot-solution.git
 repository_info:
-  commit_sha: 09fe2f7800edcfea6ade9e3f0db4297e2adf9938
+  commit_sha: 12032bce815ed8700df5c84c717f8b76d38cb306
   path: components/led/led_indicator
 url: https://github.com/espressif/esp-iot-solution/tree/master/components/led/led_indicator
-version: 2.0.1
+version: 2.1.2
