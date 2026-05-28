@@ -165,8 +165,27 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
+    // ETag: firmware version for all requests.
+    // Note: we only have a read-only FrogFs filesystem at the moment and don't serve dynamic files from the flash
+    // filesystem, so this is sufficient.
+    char etag[48];
+    snprintf(etag, sizeof(etag), "\"%s\"", DOCK_VERSION);
+
+    // Check If-None-Match
+    char if_none_match[48] = {0};
+    if (httpd_req_get_hdr_value_str(req, "If-None-Match", if_none_match, sizeof(if_none_match)) == ESP_OK) {
+        if (strcmp(if_none_match, etag) == 0) {
+            close(fd);
+            httpd_resp_set_status(req, "304 Not Modified");
+            httpd_resp_send(req, NULL, 0);
+            return ESP_OK;
+        }
+    }
+
     set_common_headers(req);
     set_content_type_from_file(req, filepath);
+    httpd_resp_set_hdr(req, "ETag", etag);
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
 
     char   *chunk = rest_context->scratch;
     ssize_t read_bytes;
