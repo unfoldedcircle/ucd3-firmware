@@ -53,7 +53,7 @@ NetworkBase::NetworkBase() {
     wifi_netif_ = nullptr;
     state_timer_ = nullptr;
     timer_tag_ = nullptr;
-    event_parameters_ = nullptr;
+    memset(&event_parameters_, 0, sizeof(event_parameters_));
 
     ESP_LOGI(
         TAG,
@@ -62,17 +62,32 @@ NetworkBase::NetworkBase() {
         CONFIG_NETWORK_MANAGER_DHCP_TIMEOUT, CONFIG_NETWORK_MANAGER_ETH_LINK_DOWN_REBOOT_TIMEOUT);
 }
 
+NetworkBase::~NetworkBase() {
+    FREE_AND_NULL(event_parameters_.ssid);
+    FREE_AND_NULL(event_parameters_.password);
+    FREE_AND_NULL(event_parameters_.sta_disconnected_event);
+}
+
 void NetworkBase::setEventParameters(queue_message *parameters) {
     assert(parameters);
 
-    // Warning: most queue_message fields contain allocated memory, which must be freed in the SM!
-    // TODO think about a better design to make sure memory is always freed.
-    // As a first step cloning the queue_message struct might help in freeing the old parameters.
+    // Deep copy parameters if provided.
+    FREE_AND_NULL(event_parameters_.ssid);
+    FREE_AND_NULL(event_parameters_.password);
+    FREE_AND_NULL(event_parameters_.sta_disconnected_event);
+    if (parameters->ssid) {
+        event_parameters_.ssid = strdup_to_psram(parameters->ssid);
+    }
+    if (parameters->password) {
+        event_parameters_.password = strdup_to_psram(parameters->password);
+    }
+    if (parameters->sta_disconnected_event) {
+        event_parameters_.sta_disconnected_event = (wifi_event_sta_disconnected_t *)clone_to_psram(
+            parameters->sta_disconnected_event, sizeof(wifi_event_sta_disconnected_t));
+    }
 
-    ESP_LOGI(TAG, "setEventParameters, ssid=%s, pwd=%s", parameters->ssid ? parameters->ssid : "<null>",
-             parameters->password ? "****" : "<null>");
-
-    event_parameters_ = parameters;
+    ESP_LOGI(TAG, "setEventParameters, ssid=%s, pwd=%s", event_parameters_.ssid ? event_parameters_.ssid : "<null>",
+             event_parameters_.password ? "****" : "<null>");
 }
 
 bool NetworkBase::isWifiPreferred() {
@@ -257,9 +272,8 @@ void NetworkBase::connectActiveSsid() {
 }
 
 bool NetworkBase::isWifiErrReason(uint8_t reason) {
-    uint8_t wifi_reason = (event_parameters_ && event_parameters_->sta_disconnected_event)
-                              ? event_parameters_->sta_disconnected_event->reason
-                              : 0;
+    uint8_t wifi_reason =
+        (event_parameters_.sta_disconnected_event) ? event_parameters_.sta_disconnected_event->reason : 0;
     return wifi_reason == reason;
 }
 
@@ -267,10 +281,10 @@ void NetworkBase::connectWifi() {
     esp_err_t ret = ESP_OK;
     ESP_LOGI(TAG, "connectWifi");
 
-    if (event_parameters_) {
-        ret = network_wifi_connect(event_parameters_->ssid, event_parameters_->password);
-        FREE_AND_NULL(event_parameters_->ssid);
-        FREE_AND_NULL(event_parameters_->password);
+    if (event_parameters_.ssid) {
+        ret = network_wifi_connect(event_parameters_.ssid, event_parameters_.password);
+        FREE_AND_NULL(event_parameters_.ssid);
+        FREE_AND_NULL(event_parameters_.password);
     } else {
         ESP_LOGE(TAG, "Cannot connect to WiFi: missing AP parameters!");
         ret = ESP_ERR_INVALID_ARG;
@@ -301,9 +315,7 @@ void NetworkBase::clearWifiConfig() {
 
 void NetworkBase::clearEventParameters() {
     ESP_LOGI(TAG, "clearEventParameters");
-    if (event_parameters_) {
-        FREE_AND_NULL(event_parameters_->sta_disconnected_event);
-    }
+    FREE_AND_NULL(event_parameters_.sta_disconnected_event);
 }
 
 bool NetworkBase::shouldRetryActiveWifiConnection() {
@@ -490,8 +502,8 @@ void NetworkBase::setImprovProvisioning() {
     net_state.eth_link = is_eth_link_up();
     net_state.ip.type = ESP_IPADDR_TYPE_ANY;
 
-    if (event_parameters_) {
-        strncpy(reinterpret_cast<char *>(net_state.ssid), event_parameters_->ssid, sizeof(net_state.ssid));
+    if (event_parameters_.ssid) {
+        strncpy(reinterpret_cast<char *>(net_state.ssid), event_parameters_.ssid, sizeof(net_state.ssid));
     } else {
         ESP_LOGE(TAG, "UC_EVENT_IMPROV_PROVISIONING: missing AP parameters!");
     }

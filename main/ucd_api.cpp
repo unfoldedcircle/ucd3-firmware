@@ -10,7 +10,6 @@
 #include "esp_check.h"
 #include "esp_chip_info.h"
 #include "esp_event.h"
-#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_system.h"
 #include "esp_timer.h"
@@ -42,6 +41,9 @@ static const int API_FEATURE_FLAG_IR_SEND_HOLD = BIT1;
 
 // Available features.
 static const int API_FEATURE_FLAGS = API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE | API_FEATURE_FLAG_IR_SEND_HOLD;
+
+static const size_t SERIAL_BUFFER_SIZE_DEFAULT = 512;
+static const size_t SERIAL_BUFFER_SIZE_MAX = 16384;
 
 static const char *const TAG = "API";
 
@@ -209,11 +211,13 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
       sockfdSendIR_(-1),
       unauthenticated_fds_mutex_(xSemaphoreCreateMutex()),
       auth_timer_(nullptr),
+      serial_event_mutex_(xSemaphoreCreateMutex()),
       log_subscribers_mutex_(xSemaphoreCreateMutex()),
       log_callback_id_(-1) {
     assert(config_);
     assert(web_);
     assert(unauthenticated_fds_mutex_);
+    assert(serial_event_mutex_);
     assert(log_subscribers_mutex_);
 
     // Initialize log router and register callback
@@ -272,6 +276,12 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                     xSemaphoreGive(unauthenticated_fds_mutex_);
                 }
 
+                // Remove serial event subscriptions for this client
+                if (xSemaphoreTake(serial_event_mutex_, pdMS_TO_TICKS(1000)) == pdTRUE) {
+                    serial_event_fds_.erase(sockfd);
+                    xSemaphoreGive(serial_event_mutex_);
+                }
+
                 // Remove from log subscribers
                 if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(1000)) == pdTRUE) {
                     log_subscribers_.erase(sockfd);
@@ -297,6 +307,16 @@ DockApi::~DockApi() {
         xTimerStop(auth_timer_, pdMS_TO_TICKS(1000));
     }
     vSemaphoreDelete(unauthenticated_fds_mutex_);
+    vSemaphoreDelete(serial_event_mutex_);
+
+    for (int i = 0; i < EXTERNAL_PORT_COUNT; i++) {
+        if (bridges_[i]) {
+            serial_bridge_destroy(bridges_[i]);
+            bridges_[i] = nullptr;
+        }
+    }
+
+    deinitSerialBuffers();
 
     // Unregister log callback
     if (log_callback_id_ >= 0) {
@@ -322,6 +342,35 @@ esp_err_t DockApi::init() {
         }
         ESP_RETURN_ON_FALSE(xTimerStart(auth_timer_, pdMS_TO_TICKS(3000)), ESP_FAIL, TAG,
                             "Failed to start WS auth timer");
+    }
+
+    // Initialize serial buffer configurations from persistent storage
+    initSerialBuffers();
+
+    // Initialize serial bridge instances
+    bool tcp_enabled = config_->isSerialTcpEnabled();
+
+    for (auto const &[port, ext_port] : ports_) {
+        if (port < 1 || port > EXTERNAL_PORT_COUNT) {
+            continue;
+        }
+
+        serial_bridge_config_t br_cfg = {
+            .port_index = static_cast<uint8_t>(port),
+            .uart_num = ext_port->getUartPort(),
+            .uart_event_queue = ext_port->getUartEventQueue(),
+            .tcp_port = static_cast<uint16_t>(4998 + port),
+            .tcp_enabled = tcp_enabled,
+        };
+        bridges_[port - 1] = serial_bridge_create(&br_cfg);
+
+        if (bridges_[port - 1]) {
+            serial_bridge_set_rx_callback(bridges_[port - 1], serialRxCallback, this);
+
+            if (ext_port->getMode() == RS232) {
+                serial_bridge_start(bridges_[port - 1]);
+            }
+        }
     }
 
     return ESP_OK;
@@ -674,6 +723,14 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         code = processGetPortTrigger(root, responseDoc);
     } else if (command == "set_port_trigger") {
         code = processSetPortTrigger(root);
+    } else if (command == "enable_serial_events") {
+        code = processEnableSerialEvents(sockfd, root);
+    } else if (command == "send_serial") {
+        code = processSendSerial(root);
+    } else if (command == "set_serial_config") {
+        code = processSetSerialConfig(root);
+    } else if (command == "get_serial_config") {
+        code = processGetSerialConfig(root, responseDoc);
     } else if (command == "enable_log_events") {
         handleEnableLogEvents(sockfd, root, responseDoc);
         code = ESP_OK;
@@ -744,6 +801,29 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         cJSON_AddNumberToObject(responseDoc, "irsend_prio", config_->getIrSendPriority());
         cJSON_AddBoolToObject(responseDoc, "itach_emulation", config_->isGcServerEnabled());
         cJSON_AddBoolToObject(responseDoc, "itach_beacon", config_->isGcServerBeaconEnabled());
+    } else if (command == "set_serial_tcp") {
+        bool ok = false;
+        bool enable = cjson_get_bool(root, "enable", &ok);
+        if (!ok) {
+            code = 400;
+        } else if (config_->enableSerialTcp(enable)) {
+            // Restart all active bridges with new TCP setting
+            for (uint8_t i = 0; i < EXTERNAL_PORT_COUNT; i++) {
+                if (bridges_[i]) {
+                    bool was_running = serial_bridge_is_running(bridges_[i]);
+                    if (was_running) {
+                        serial_bridge_stop(bridges_[i]);
+                    }
+                    serial_bridge_set_tcp_enabled(bridges_[i], enable);
+                    if (was_running) {
+                        serial_bridge_start(bridges_[i]);
+                    }
+                }
+            }
+            code = 200;
+        } else {
+            code = 500;
+        }
     } else {
         code = 400;
         cJSON_AddStringToObject(responseDoc, msgError,
@@ -759,6 +839,387 @@ send_response:
     cJSON_Delete(responseDoc);
     cJSON_Delete(root);
     return ret;
+}
+
+uint16_t DockApi::processEnableSerialEvents(int sockfd, const cJSON *root) {
+    bool    ok = false;
+    uint8_t port = static_cast<uint8_t>(cjson_get_int(root, "port", &ok));
+    if (!ok || port == 0 || port > EXTERNAL_PORT_COUNT) {
+        return 400;
+    }
+
+    bool enable = cjson_get_bool(root, "enable", &ok);
+    if (!ok) {
+        return 400;
+    }
+
+    if (xSemaphoreTake(serial_event_mutex_, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        ESP_LOGE(TAG, "Failed to lock serial event mutex");
+        return 500;
+    }
+
+    uint8_t port_mask = 1 << (port - 1);
+
+    if (enable) {
+        serial_event_fds_[sockfd] |= port_mask;
+        ESP_LOGD(TAG, "WS client %d: serial events enabled for port %d", sockfd, port);
+    } else {
+        if (serial_event_fds_.contains(sockfd)) {
+            serial_event_fds_[sockfd] &= ~port_mask;
+            if (serial_event_fds_[sockfd] == 0) {
+                serial_event_fds_.erase(sockfd);
+            }
+        }
+        ESP_LOGD(TAG, "WS client %d: serial events disabled for port %d", sockfd, port);
+    }
+
+    xSemaphoreGive(serial_event_mutex_);
+    return 200;
+}
+
+uint16_t DockApi::processSendSerial(const cJSON *root) {
+    bool    ok = false;
+    uint8_t port = static_cast<uint8_t>(cjson_get_int(root, "port", &ok));
+    if (!ok || port == 0 || port > EXTERNAL_PORT_COUNT) {
+        return 400;
+    }
+
+    if (!ports_.contains(port)) {
+        return 400;
+    }
+
+    if (ports_[port]->getMode() != RS232) {
+        return 409;
+    }
+
+    const char *data = cjson_get_string(root, "data");
+    if (!data || strlen(data) == 0) {
+        return 400;
+    }
+
+    serial_bridge_t *br = bridges_[port - 1];
+    if (!br) {
+        return 409;
+    }
+
+    esp_err_t ret = serial_bridge_send_to_uart(br, reinterpret_cast<const uint8_t *>(data), strlen(data));
+    if (ret != ESP_OK) {
+        ESP_LOGW(TAG, "send_serial port %d failed: %s", port, esp_err_to_name(ret));
+        return 500;
+    }
+
+    return 200;
+}
+
+uint16_t DockApi::processSetSerialConfig(const cJSON *root) {
+    bool    ok = false;
+    uint8_t port = static_cast<uint8_t>(cjson_get_int(root, "port", &ok));
+    if (!ok || port == 0 || port > EXTERNAL_PORT_COUNT) {
+        return 400;
+    }
+
+    SerialPortBuffer &pbuf = serial_buffers_[port - 1];
+    bool              needs_realloc = false;
+
+    // buffering mode (optional)
+    const char *mode_str = cjson_get_string(root, "buffering");
+    if (mode_str) {
+        if (strcmp(mode_str, "chunk") == 0) {
+            pbuf.mode = SerialPortBuffer::CHUNK;
+        } else if (strcmp(mode_str, "line") == 0) {
+            pbuf.mode = SerialPortBuffer::LINE;
+        } else {
+            return 400;
+        }
+        config_->setSerialBuffering(port, pbuf.mode);
+    }
+
+    // terminator (optional)
+    const char *term_str = cjson_get_string(root, "terminator");
+    if (term_str && strlen(term_str) > 0) {
+        pbuf.terminator = static_cast<uint8_t>(term_str[0]);
+        config_->setSerialTerminatorChar(port, pbuf.terminator);
+    }
+
+    // buffer_size (optional)
+    if (cJSON_HasObjectItem(root, "buffer_size")) {
+        int size = cjson_get_int(root, "buffer_size", &ok);
+        if (!ok || size < 1) {
+            return 400;
+        }
+        if (static_cast<size_t>(size) > SERIAL_BUFFER_SIZE_MAX) {
+            return 400;
+        }
+        if (static_cast<size_t>(size) != pbuf.buffer_size) {
+            pbuf.buffer_size = static_cast<size_t>(size);
+            needs_realloc = true;
+        }
+        config_->setSerialBufferSize(port, static_cast<uint16_t>(size));
+    }
+
+    // timeout_ms (optional)
+    if (cJSON_HasObjectItem(root, "timeout_ms")) {
+        int timeout = cjson_get_int(root, "timeout_ms", &ok);
+        if (!ok || timeout < 0) {
+            return 400;
+        }
+        pbuf.timeout_ms = static_cast<uint32_t>(timeout);
+        config_->setSerialTimeout(port, static_cast<uint16_t>(timeout));
+    }
+
+    // Reallocate buffer if size changed
+    if (needs_realloc) {
+        if (xSemaphoreTake(pbuf.mutex, pdMS_TO_TICKS(1000)) == pdTRUE) {
+            // Flush any pending data before realloc
+            if (pbuf.len > 0) {
+                flushSerialBuffer(port, pbuf);
+            }
+            pbuf.deallocate();
+            if (!pbuf.allocate()) {
+                xSemaphoreGive(pbuf.mutex);
+                return 500;
+            }
+            xSemaphoreGive(pbuf.mutex);
+        } else {
+            return 500;
+        }
+    }
+
+    return 200;
+}
+
+uint16_t DockApi::processGetSerialConfig(const cJSON *root, cJSON *responseDoc) {
+    bool    ok = false;
+    uint8_t port = static_cast<uint8_t>(cjson_get_int(root, "port", &ok));
+    if (!ok || port == 0 || port > EXTERNAL_PORT_COUNT) {
+        return 400;
+    }
+
+    SerialPortBuffer &pbuf = serial_buffers_[port - 1];
+
+    cJSON_AddNumberToObject(responseDoc, "port", port);
+    cJSON_AddStringToObject(responseDoc, "buffering", pbuf.mode == SerialPortBuffer::LINE ? "line" : "chunk");
+
+    // Represent terminator as the escaped character
+    char term_buf[2] = {static_cast<char>(pbuf.terminator), '\0'};
+    cJSON_AddStringToObject(responseDoc, "terminator", term_buf);
+
+    cJSON_AddNumberToObject(responseDoc, "buffer_size", pbuf.buffer_size);
+    cJSON_AddNumberToObject(responseDoc, "timeout_ms", pbuf.timeout_ms);
+
+    return 200;
+}
+
+void DockApi::serialRxCallback(uint8_t port_index, const uint8_t *data, size_t len, void *user_ctx) {
+    auto *that = static_cast<DockApi *>(user_ctx);
+    that->handleSerialRx(port_index, data, len);
+}
+
+void DockApi::handleSerialRx(uint8_t port_index, const uint8_t *data, size_t len) {
+    if (port_index < 1 || port_index > EXTERNAL_PORT_COUNT) {
+        return;
+    }
+
+    SerialPortBuffer &pbuf = serial_buffers_[port_index - 1];
+
+    // Fast path: check if anyone is subscribed
+    // Mutex discipline:
+    // - The pbuf.mutex is held in line mode while data is being written to the buffer.
+    // - flushSerialBuffer is called within the mutex and then acquires the serial_event_mutex_ again.
+    // - The lock order is always: pbuf.mutex → serial_event_mutex_.
+    // As long as this remains consistent (never the other way around), there is no deadlock.
+    if (xSemaphoreTake(serial_event_mutex_, pdMS_TO_TICKS(10)) != pdTRUE) {
+        return;
+    }
+    bool    has_subscribers = false;
+    uint8_t port_mask = 1 << (port_index - 1);
+    for (auto const &[fd, mask] : serial_event_fds_) {
+        if (mask & port_mask) {
+            has_subscribers = true;
+            break;
+        }
+    }
+    xSemaphoreGive(serial_event_mutex_);
+
+    if (!has_subscribers) {
+        // No subscribers: discard any buffered data and skip processing
+        if (pbuf.len > 0) {
+            if (xSemaphoreTake(pbuf.mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+                pbuf.reset();
+                xSemaphoreGive(pbuf.mutex);
+            }
+        }
+        return;
+    }
+
+    // Idle tick (data == NULL): check timeout
+    if (data == NULL || len == 0) {
+        if (pbuf.mode == SerialPortBuffer::LINE && pbuf.len > 0 && pbuf.timeout_ms > 0) {
+            if (xSemaphoreTake(pbuf.mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+                if (pbuf.len > 0 && pbuf.last_rx_us > 0) {
+                    int64_t now_us = esp_timer_get_time();
+                    int64_t elapsed_ms = (now_us - pbuf.last_rx_us) / 1000;
+                    if (elapsed_ms >= pbuf.timeout_ms) {
+                        flushSerialBuffer(port_index, pbuf);
+                    }
+                }
+                xSemaphoreGive(pbuf.mutex);
+            }
+        }
+        return;
+    }
+
+    // Data received
+    if (pbuf.mode == SerialPortBuffer::CHUNK) {
+        // Chunk mode: send immediately, no buffering
+        sendSerialEvent(port_index, data, len);
+        return;
+    }
+
+    // Line mode: buffer until terminator or buffer full
+    if (xSemaphoreTake(pbuf.mutex, pdMS_TO_TICKS(50)) != pdTRUE) {
+        return;
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        if (pbuf.buf && pbuf.len < pbuf.buffer_size) {
+            pbuf.buf[pbuf.len++] = data[i];
+            pbuf.last_rx_us = esp_timer_get_time();
+        }
+
+        // Check for terminator
+        if (data[i] == pbuf.terminator) {
+            flushSerialBuffer(port_index, pbuf);
+        }
+        // Check for buffer full
+        else if (pbuf.len >= pbuf.buffer_size) {
+            flushSerialBuffer(port_index, pbuf);
+        }
+    }
+
+    xSemaphoreGive(pbuf.mutex);
+}
+
+void DockApi::flushSerialBuffer(uint8_t port_index, SerialPortBuffer &pbuf) {
+    if (pbuf.len == 0) {
+        return;
+    }
+
+    sendSerialEvent(port_index, pbuf.buf, pbuf.len);
+    pbuf.len = 0;
+    pbuf.last_rx_us = 0;
+}
+
+void DockApi::sendSerialEvent(uint8_t port_index, const uint8_t *data, size_t len) {
+    // Collect subscribed fds for this port
+    // Note: using std::vector for simplicity, assuming there won't be many subscribers.
+    // With multiple subscribers and high UART datarates, a static array of fixed size should be used.
+    if (xSemaphoreTake(serial_event_mutex_, pdMS_TO_TICKS(50)) != pdTRUE) {
+        return;
+    }
+
+    uint8_t          port_mask = 1 << (port_index - 1);
+    std::vector<int> subscribed_fds;
+    subscribed_fds.reserve(serial_event_fds_.size());
+
+    for (auto const &[fd, mask] : serial_event_fds_) {
+        if (mask & port_mask) {
+            subscribed_fds.push_back(fd);
+        }
+    }
+
+    xSemaphoreGive(serial_event_mutex_);
+
+    if (subscribed_fds.empty()) {
+        return;
+    }
+
+    // Convert Latin-1 to UTF-8
+    // Worst case: every byte becomes 2-byte UTF-8
+    size_t utf8_buf_size = len * 2 + 1;
+    char  *utf8_buf = static_cast<char *>(malloc(utf8_buf_size));
+    if (!utf8_buf) {
+        return;
+    }
+    latin1_to_utf8(data, len, utf8_buf, utf8_buf_size);
+
+    // Build JSON event
+    cJSON *event = cJSON_CreateObject();
+    if (!event) {
+        free(utf8_buf);
+        return;
+    }
+
+    cJSON_AddStringToObject(event, "type", "event");
+    cJSON_AddStringToObject(event, "msg", "serial_data");
+    cJSON_AddNumberToObject(event, "port", port_index);
+    cJSON_AddStringToObject(event, "data", utf8_buf);
+
+    free(utf8_buf);
+
+    char *msg = cJSON_PrintUnformatted(event);
+    cJSON_Delete(event);
+
+    if (!msg) {
+        return;
+    }
+
+    for (int fd : subscribed_fds) {
+        // Important: needs to be const char* to avoid freeing the buffer in sendWsTxt!
+        web_->sendWsTxt(fd, (const char *)msg);
+    }
+
+    cJSON_free(msg);
+}
+
+void DockApi::initSerialBuffers() {
+    for (uint8_t i = 0; i < EXTERNAL_PORT_COUNT; i++) {
+        loadSerialBufferConfig(i + 1);
+        serial_buffers_[i].allocate();
+    }
+}
+
+void DockApi::deinitSerialBuffers() {
+    for (uint8_t i = 0; i < EXTERNAL_PORT_COUNT; i++) {
+        if (serial_buffers_[i].mutex) {
+            vSemaphoreDelete(serial_buffers_[i].mutex);
+            serial_buffers_[i].mutex = nullptr;
+        }
+        serial_buffers_[i].deallocate();
+    }
+}
+
+void DockApi::loadSerialBufferConfig(uint8_t port) {
+    if (port < 1 || port > EXTERNAL_PORT_COUNT) return;
+
+    SerialPortBuffer &pbuf = serial_buffers_[port - 1];
+
+    // Load from persistent config
+    uint8_t mode = config_->getSerialBuffering(port);
+    if (mode == 1) {
+        pbuf.mode = SerialPortBuffer::CHUNK;
+    } else {
+        pbuf.mode = SerialPortBuffer::LINE;
+    }
+
+    uint8_t term = config_->getSerialTerminatorChar(port);
+    if (term != 0) {
+        pbuf.terminator = term;
+    } else {
+        pbuf.terminator = '\n';
+    }
+
+    uint16_t buf_size = config_->getSerialBufferSize(port);
+    if (buf_size == 0) {
+        pbuf.buffer_size = SERIAL_BUFFER_SIZE_DEFAULT;
+    } else if (buf_size > SERIAL_BUFFER_SIZE_MAX) {
+        pbuf.buffer_size = SERIAL_BUFFER_SIZE_MAX;
+    } else {
+        pbuf.buffer_size = buf_size;
+    }
+
+    uint16_t timeout = config_->getSerialTimeout(port);
+    pbuf.timeout_ms = (timeout == 0) ? 100 : timeout;
 }
 
 void DockApi::handleEnableLogEvents(int sockfd, const cJSON *root, cJSON *responseDoc) {
@@ -1007,6 +1468,11 @@ uint16_t DockApi::processSetPortMode(const cJSON *root) {
         return 503;
     }
 
+    // Stop serial bridge before mode change (prevents race with UART deinit)
+    if (ports_[port]->getMode() == RS232 && bridges_[port - 1]) {
+        serial_bridge_stop(bridges_[port - 1]);
+    }
+
     if (mode == RS232) {
         cJSON *uart = cJSON_GetObjectItem(root, "uart");
         if (!cJSON_IsObject(uart)) {
@@ -1033,6 +1499,11 @@ uint16_t DockApi::processSetPortMode(const cJSON *root) {
     switch (ret) {
         case ESP_OK:
             config_->setExternalPortMode(port, mode);
+            // Start bridge if switched to RS232
+            if (mode == RS232 && bridges_[port - 1]) {
+                serial_bridge_set_uart_queue(bridges_[port - 1], ports_[port]->getUartEventQueue());
+                serial_bridge_start(bridges_[port - 1]);
+            }
             return 200;
         case ESP_ERR_NOT_SUPPORTED:
             return 400;
@@ -1123,6 +1594,19 @@ void DockApi::dockEventHandler(void *arg, esp_event_base_t event_base, int32_t e
             if (!mode || mode->port > EXTERNAL_PORT_COUNT || !that->ports_.contains(mode->port)) {
                 ESP_LOGE(TAG, "%s:%ld: invalid port", event_base, event_id);
                 return;
+            }
+
+            // Sync serial bridge state for external mode changes (e.g. auto-detect at boot)
+            if (mode->port >= 1 && mode->port <= EXTERNAL_PORT_COUNT && mode->state == ESP_OK) {
+                serial_bridge_t *br = that->bridges_[mode->port - 1];
+                if (br) {
+                    if (mode->active_mode == RS232) {
+                        serial_bridge_set_uart_queue(br, that->ports_[mode->port]->getUartEventQueue());
+                        serial_bridge_start(br);
+                    } else {
+                        serial_bridge_stop(br);
+                    }
+                }
             }
 
             cJSON *responseDoc = cJSON_CreateObject();

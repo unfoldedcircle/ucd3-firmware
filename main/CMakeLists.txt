@@ -25,5 +25,6 @@ idf_component_register(
     log_router
     network
     preferences
+    serial_bridge
     webserver
 )

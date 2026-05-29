@@ -189,6 +189,50 @@ class Config {
     bool enableGcServerBeacon(bool enable);
     bool isGcServerBeaconEnabled();
 
+    // Serial TCP bridge configuration
+    bool enableSerialTcp(bool enable);
+    bool isSerialTcpEnabled();
+
+    /// @brief Get serial buffering mode for a port.
+    /// @param port port number, 1-based.
+    /// @return Buffer mode (0: "line", 1: "chunk"). Returns 0 if not configured.
+    uint8_t getSerialBuffering(uint8_t port);
+
+    /// @brief Set serial buffering mode for a port.
+    /// @param port port number, 1-based.
+    /// @param mode 0: "line", 1: "chunk"
+    bool setSerialBuffering(uint8_t port, uint8_t mode);
+
+    /// @brief Get serial terminator character for a port.
+    /// @param port port number, 1-based.
+    /// @return Terminator character. Returns '\n' if not configured.
+    uint8_t getSerialTerminatorChar(uint8_t port);
+
+    /// @brief Set serial terminator character for a port.
+    /// @param port port number, 1-based.
+    /// @param terminator Single terminator character.
+    bool setSerialTerminatorChar(uint8_t port, uint8_t terminator);
+
+    /// @brief Get serial buffer size for a port.
+    /// @param port port number, 1-based.
+    /// @return Buffer size in bytes. Returns 0 if not configured (use default).
+    uint16_t getSerialBufferSize(uint8_t port);
+
+    /// @brief Set serial buffer size for a port.
+    /// @param port port number, 1-based.
+    /// @param size Buffer size in bytes (1–16384).
+    bool setSerialBufferSize(uint8_t port, uint16_t size);
+
+    /// @brief Get serial timeout for a port.
+    /// @param port port number, 1-based.
+    /// @return Timeout in milliseconds. Returns 0 if not configured (use default).
+    uint16_t getSerialTimeout(uint8_t port);
+
+    /// @brief Set serial timeout for a port.
+    /// @param port port number, 1-based.
+    /// @param timeout_ms Timeout in milliseconds. 0 = no timeout.
+    bool setSerialTimeout(uint8_t port, uint16_t timeout_ms);
+
     // reset config to defaults
     void reset();
 
@@ -201,9 +245,13 @@ class Config {
 
     std::string getStringSetting(const char* partition, const char* key,
                                  const std::string defaultValue = std::string());
+    bool        setStringSetting(const char* partition, const char* key, const std::string& value);
     bool        getBoolSetting(const char* partition, const char* key, bool defaultValue = false);
+    bool        setBoolSetting(const char* partition, const char* key, bool value);
     uint8_t     getUCharSetting(const char* partition, const char* key, uint8_t defaultValue = 0);
+    bool        setUCharSetting(const char* partition, const char* key, uint8_t value);
     uint16_t    getUShortSetting(const char* partition, const char* key, uint16_t defaultValue = 0);
+    bool        setUShortSetting(const char* partition, const char* key, uint16_t value);
     int         getIntSetting(const char* partition, const char* key, int defaultValue = 0);
     uint32_t    getUIntSetting(const char* partition, const char* key, uint32_t defaultValue = 0);
 
