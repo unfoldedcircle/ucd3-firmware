@@ -7,10 +7,12 @@
 #include <stdlib.h>
 
 #include <map>
+#include <set>
 #include <string>
 
 #include "esp_heap_caps.h"
 #include "esp_http_server.h"
+#include "esp_log_level.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
 
@@ -80,6 +82,11 @@ class DockApi {
     void deinitSerialBuffers();
     void loadSerialBufferConfig(uint8_t port);
 
+    // Log streaming support
+    void             handleEnableLogEvents(int sockfd, const cJSON* root, cJSON* responseDoc);
+    void             sendLogToSubscribers(const char* tag, esp_log_level_t level, const char* message, size_t len);
+    static esp_err_t logCallback(const char* tag, esp_log_level_t level, const char* message, size_t len, void* ctx);
+
     Config*    config_;
     WebServer* web_;
     port_map_t ports_;
@@ -95,4 +102,9 @@ class DockApi {
     // Per-client serial event subscriptions: sockfd -> port bitmask (bit 0 = port 1, bit 1 = port 2)
     std::map<int, uint8_t> serial_event_fds_;
     SemaphoreHandle_t      serial_event_mutex_;
+
+    // Per-client log streaming subscriptions
+    std::set<int>     log_subscribers_;
+    SemaphoreHandle_t log_subscribers_mutex_;
+    int               log_callback_id_;
 };

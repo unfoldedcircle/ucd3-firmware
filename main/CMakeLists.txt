@@ -22,6 +22,7 @@ idf_component_register(
     display
     external_port
     infrared
+    log_router
     network
     preferences
     serial_bridge
