@@ -151,7 +151,14 @@ var I18N = {
 // ============================================================
 var WS = {
   socket: null,
-  url: "ws://" + location.host + "/ws",
+  url: (function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var host = location.host;
+    if (location.host === "localhost:9000" || location.host === "127.0.0.1:9000") {
+      host = urlParams.get("host") || "192.168.1.100";
+    }
+    return "ws://" + host + "/ws";
+  })(),
   token: null,
   authenticated: false,
   msgId: 0,
@@ -1181,4 +1188,10 @@ document.addEventListener("DOMContentLoaded", function() {
   Pages.OTA.init();
   Pages.Expert.init();
   UI.init();
+
+  // Dev mode indicator (localhost testing)
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    console.log("DEV MODE: Connected to", WS.url);
+    document.body.classList.add("dev-mode");
+  }
 });

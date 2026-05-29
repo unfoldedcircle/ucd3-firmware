@@ -814,3 +814,18 @@ textarea:focus {
     justify-content: flex-start;
   }
 }
+
+/* === Dev Mode Indicator === */
+body.dev-mode::before {
+  content: 'DEV';
+  position: fixed;
+  top: 0;
+  right: 0;
+  background: red;
+  color: white;
+  padding: 4px 8px;
+  font-size: 14px;
+  z-index: 9999;
+  border-bottom-left-radius: 4px;
+}
+
