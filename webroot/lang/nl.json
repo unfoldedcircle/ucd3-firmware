@@ -5,7 +5,8 @@
   "nav_ir": "IR",
   "nav_ports": "Poorten",
   "nav_ota": "OTA",
-  "nav_logs": "Logboek",
+  "nav_logs": "Logboeken",
+  "nav_expert": "Expert",
 
   "hdr_device_name": "Apparaatnaam",
   "hdr_led_brightness": "LED-helderheid",
@@ -20,7 +21,8 @@
   "hdr_uart": "UART-configuratie",
   "hdr_serial_console": "Seriële console",
   "hdr_fw_update": "Firmware-update",
-  "hdr_syslog": "Systeemlogboek",
+  "hdr_syslog": "Systeemlog",
+  "hdr_expert": "Expert instellingen",
   "hdr_auth": "Authenticatie",
 
   "lbl_name": "Naam",
@@ -54,6 +56,10 @@
   "lbl_current_version": "Huidige versie:",
   "lbl_log_level": "Logniveau",
   "lbl_filter": "Filter",
+  "lbl_itach_emulation": "iTach-emulatie *",
+  "lbl_amxb_beacon": "AMXB discovery beacon *",
+  "lbl_rs232_tcp": "RS232 TCP-server (poorten 4999, 5000)",
+  "lbl_reboot_required": "* herstart vereist",
 
   "ph_friendly_name": "Weergavenaam",
   "ph_token": "Toegangstoken",
@@ -85,8 +91,9 @@
   "btn_stop_streaming": "Streaming stoppen",
 
   "note_eth_priority": "Ethernet heeft voorrang op WiFi.",
-  "note_wifi_restart": "Het dock wordt herstart na het toepassen van WiFi-wijzigingen.",
-  "note_no_disconnect": "Koppel het dock niet los tijdens de update.",
+  "note_wifi_restart": "Het dock zal herstarten na het toepassen van WiFi-wijzigingen.",
+  "note_no_disconnect": "⚠️ <strong>Koppel het dock niet los tijdens de update.</strong>",
+  "note_expert_warning": "🧪 <strong>Experimentele functies</strong> - De onderstaande instellingen zijn early-access of ontwikkelingsfuncties die nog niet beschikbaar zijn in het standaardproduct. Ze zijn standaard uitgeschakeld en alleen bedoeld voor testdoeleinden. Ga voorzichtig te werk. We waarderen feedback, maar kunnen geen ondersteuning bieden.",
 
   "st_connected": "Verbonden",
   "st_disconnected": "Niet verbonden",
@@ -117,7 +124,10 @@
   "t_upload_done": "Firmware-update voltooid",
   "t_upload_success": "Update geslaagd. Herstarten\u2026",
   "t_logged_out": "Uitgelogd",
-  "t_logging_applied": "Logconfiguratie toegepast",
+  "t_logging_applied": "Log-configuratie toegepast",
+  "t_expert_saved": "Instellingen opgeslagen",
+  "t_expert_reboot": "Dock zal herstarten om wijzigingen te activeren",
+  "confirm_reboot_now": "Dock zal herstarten om wijzigingen te activeren. Pagina herladen?",
 
   "e_no_file": "Geen bestand geselecteerd",
   "e_not_auth": "Niet geauthenticeerd",

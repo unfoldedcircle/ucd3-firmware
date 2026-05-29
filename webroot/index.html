@@ -28,6 +28,7 @@
       <a href="#" data-page="ports" data-i18n="nav_ports">Ports</a>
       <a href="#" data-page="logs" data-i18n="nav_logs">Logs</a>
       <a href="#" data-page="ota" data-i18n="nav_ota">OTA</a>
+      <a href="#" data-page="expert" data-i18n="nav_expert">Expert</a>
     </nav>
 
     <main id="content">
@@ -422,7 +423,39 @@
           <button id="btn-upload" data-i18n="btn_upload">Upload</button>
           <progress id="ota-progress" class="hidden" max="100" value="0"></progress>
           <p id="ota-status"></p>
-          <p class="note" data-i18n="note_no_disconnect">Do not disconnect the dock during update.</p>
+          <p class="note note-warning" data-i18n-html="note_no_disconnect">⚠️ <strong>Do not disconnect the dock during update.</strong></p>
+        </div>
+      </section>
+
+      <!-- ============ Expert ============ -->
+      <section id="page-expert" class="hidden">
+        <div class="card">
+          <h2 data-i18n="hdr_expert">Expert</h2>
+          <p class="note note-warning" data-i18n-html="note_expert_warning">🧪 <strong>Experimental Features</strong> - The settings below are early-access or development features not yet available in the standard product. They are disabled by default and intended for testing purposes only. Proceed with caution. We appreciate feedback, but can't provide support.</p>
+
+          <div class="form-row">
+            <label class="cb-label">
+              <input type="checkbox" id="exp-rs232-tcp">
+              <span data-i18n="lbl_rs232_tcp">RS232 TCP server (ports 4999, 5000)</span>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="cb-label">
+              <input type="checkbox" id="exp-itach-emulation">
+              <span data-i18n="lbl_itach_emulation">iTach emulation</span>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="cb-label">
+              <input type="checkbox" id="exp-amxb-beacon">
+              <span data-i18n="lbl_amxb_beacon">AMXB discovery beacon</span>
+            </label>
+          </div>
+
+          <div class="form-row" style="margin-top: 16px;">
+            <button id="btn-expert-apply" data-i18n="btn_apply">Apply</button>
+          </div>
+          <p class="note" data-i18n="lbl_reboot_required">* reboot required</p>
         </div>
       </section>
 

@@ -6,6 +6,7 @@
   "nav_ports": "Anschlüsse",
   "nav_ota": "OTA",
   "nav_logs": "Logs",
+  "nav_expert": "Experte",
 
   "hdr_device_name": "Gerätename",
   "hdr_led_brightness": "LED-Helligkeit",
@@ -21,6 +22,7 @@
   "hdr_serial_console": "Serielle Konsole",
   "hdr_fw_update": "Firmware-Update",
   "hdr_syslog": "Systemprotokoll",
+  "hdr_expert": "Experten-Einstellungen",
   "hdr_auth": "Authentifizierung",
 
   "lbl_name": "Name",
@@ -54,6 +56,10 @@
   "lbl_current_version": "Aktuelle Version:",
   "lbl_log_level": "Log Level",
   "lbl_filter": "Filter",
+  "lbl_itach_emulation": "iTach-Emulation *",
+  "lbl_amxb_beacon": "AMXB Discovery-Beacon *",
+  "lbl_rs232_tcp": "RS232 TCP-Server (Ports 4999, 5000)",
+  "lbl_reboot_required": "* Neustart erforderlich",
 
   "ph_friendly_name": "Anzeigename",
   "ph_token": "Zugangstoken",
@@ -86,7 +92,8 @@
 
   "note_eth_priority": "Ethernet hat Vorrang vor WLAN.",
   "note_wifi_restart": "Das Dock wird nach Übernahme der WLAN-Einstellungen neu gestartet.",
-  "note_no_disconnect": "Dock während dem Update nicht trennen.",
+  "note_no_disconnect": "⚠️ <strong>Trennen Sie das Dock während des Updates nicht.</strong>",
+  "note_expert_warning": "🧪 <strong>Experimentelle Funktionen</strong> - Die folgenden Einstellungen sind Early-Access- oder Entwicklungsfunktionen, die im Standardprodukt noch nicht verfügbar sind. Sie sind standardmäßig deaktiviert und nur für Testzwecke gedacht. Gehen Sie mit Vorsicht vor. Wir freuen uns über Feedback, können aber keinen Support bieten.",
 
   "st_connected": "Verbunden",
   "st_disconnected": "Getrennt",
@@ -118,6 +125,9 @@
   "t_upload_success": "Update erfolgreich. Neustart\u2026",
   "t_logged_out": "Abgemeldet",
   "t_logging_applied": "Protokollkonfiguration übernommen",
+  "t_expert_saved": "Einstellungen gespeichert",
+  "t_expert_reboot": "Dock startet neu, um Änderungen zu aktivieren",
+  "confirm_reboot_now": "Dock wird neu gestartet, um Änderungen zu aktivieren. Seite neu laden?",
 
   "e_no_file": "Keine Datei ausgewählt",
   "e_not_auth": "Nicht authentifiziert",

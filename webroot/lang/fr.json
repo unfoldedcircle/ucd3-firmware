@@ -6,6 +6,7 @@
   "nav_ports": "Ports",
   "nav_ota": "OTA",
   "nav_logs": "Journal",
+  "nav_expert": "Expert",
 
   "hdr_device_name": "Nom de l'appareil",
   "hdr_led_brightness": "Luminosité LED",
@@ -21,6 +22,7 @@
   "hdr_serial_console": "Console série",
   "hdr_fw_update": "Mise à jour firmware",
   "hdr_syslog": "Journal système",
+  "hdr_expert": "Paramètres expert",
   "hdr_auth": "Authentification",
 
   "lbl_name": "Nom",
@@ -54,6 +56,10 @@
   "lbl_current_version": "Version actuelle :",
   "lbl_log_level": "Niveau de journal",
   "lbl_filter": "Filtre",
+  "lbl_itach_emulation": "Émulation iTach *",
+  "lbl_amxb_beacon": "Balise de découverte AMXB *",
+  "lbl_rs232_tcp": "Serveur TCP RS232 (ports 4999, 5000)",
+  "lbl_reboot_required": "* redémarrage requis",
 
   "ph_friendly_name": "Nom convivial",
   "ph_token": "Jeton d'accès",
@@ -86,7 +92,8 @@
 
   "note_eth_priority": "Ethernet a la priorité sur le WiFi.",
   "note_wifi_restart": "Le dock redémarrera après l'application des modifications WiFi.",
-  "note_no_disconnect": "Ne pas déconnecter le dock pendant la mise à jour.",
+  "note_no_disconnect": "⚠️ <strong>Ne déconnectez pas le dock pendant la mise à jour.</strong>",
+  "note_expert_warning": "🧪 <strong>Fonctionnalités expérimentales</strong> - Les paramètres ci-dessous sont des fonctionnalités d'accès anticipé ou de développement non encore disponibles dans le produit standard. Elles sont désactivées par défaut et destinées uniquement à des fins de test. Procédez avec prudence. Nous apprécions les retours, mais ne pouvons pas fournir de support.",
 
   "st_connected": "Connecté",
   "st_disconnected": "Déconnecté",
@@ -114,10 +121,13 @@
   "t_trigger_on": "Trigger ON",
   "t_trigger_off": "Trigger OFF",
   "t_impulse": "Impulsion envoyée ({ms} ms)",
-  "t_upload_done": "Mise à jour firmware terminée",
+  "t_upload_done": "Mise à jour du firmware terminée",
   "t_upload_success": "Mise à jour réussie. Redémarrage\u2026",
   "t_logged_out": "Déconnecté",
-  "t_logging_applied": "Configuration du journal appliquée",
+  "t_logging_applied": "Configuration de journalisation appliquée",
+  "t_expert_saved": "Paramètres enregistrés",
+  "t_expert_reboot": "Le dock va redémarrer pour activer les changements",
+  "confirm_reboot_now": "Le dock va redémarrer pour activer les changements. Recharger la page?",
 
   "e_no_file": "Aucun fichier sélectionné",
   "e_not_auth": "Non authentifié",

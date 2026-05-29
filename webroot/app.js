@@ -98,6 +98,11 @@ var I18N = {
       if (strings[key]) el.textContent = strings[key];
     });
 
+    document.querySelectorAll("[data-i18n-html]").forEach(function(el) {
+      var key = el.getAttribute("data-i18n-html");
+      if (strings[key]) el.innerHTML = strings[key];
+    });
+
     document.querySelectorAll("[data-i18n-ph]").forEach(function(el) {
       var key = el.getAttribute("data-i18n-ph");
       if (strings[key]) el.placeholder = strings[key];
@@ -204,6 +209,13 @@ var WS = {
         UI.showLogin(I18N.t("e_invalid_token"));
       }
       return;
+    }
+
+    // Check for global reboot required message
+    if (msg.code === 200 && msg.reboot === true) {
+      if (confirm(I18N.t("confirm_reboot_now"))) {
+        location.reload();
+      }
     }
 
     // Response correlation via req_id
@@ -325,7 +337,7 @@ var Toast = {
 var UI = {
   currentPage: "status",
   pendingPage: null,
-  authRequired: { general: true, network: true, ir: true, ports: true, ota: true, logs: true },
+  authRequired: { general: true, network: true, ir: true, ports: true, ota: true, logs: true, expert: true },
 
   init: function() {
     var self = this;
@@ -402,6 +414,7 @@ var UI = {
       case "ports": Pages.Ports.load(); break;
       case "logs": Pages.Logs.load(); break;
       case "ota": Pages.OTA.load(); break;
+      case "expert": Pages.Expert.load(); break;
     }
   },
 
@@ -1076,6 +1089,85 @@ Pages.Logs = {
 };
 
 // ============================================================
+// Page: Expert
+// ============================================================
+Pages.Expert = {
+  config: {
+    itach_emulation: false,
+    itach_beacon: false,
+    serial_tcp: false
+  },
+
+  load: function() {
+    var self = this;
+
+    // Get IR config (includes iTach settings)
+    WS.request("get_ir_config").then(function(data) {
+      if (data.itach_emulation !== undefined) {
+        self.config.itach_emulation = data.itach_emulation;
+        document.getElementById("exp-itach-emulation").checked = data.itach_emulation;
+      }
+      if (data.itach_beacon !== undefined) {
+        self.config.itach_beacon = data.itach_beacon;
+        document.getElementById("exp-amxb-beacon").checked = data.itach_beacon;
+      }
+    }).catch(function() {});
+
+    // Get serial TCP config
+    WS.request("get_serial_tcp").then(function(data) {
+      if (data.serial_tcp !== undefined) {
+        self.config.serial_tcp = data.serial_tcp;
+        document.getElementById("exp-rs232-tcp").checked = data.serial_tcp;
+      }
+    }).catch(function() {});
+  },
+
+  apply: function() {
+    var self = this;
+    var itachEmulation = document.getElementById("exp-itach-emulation").checked;
+    var itachBeacon = document.getElementById("exp-amxb-beacon").checked;
+    var serialTcp = document.getElementById("exp-rs232-tcp").checked;
+
+    // Apply iTach config if changed
+    if (itachEmulation !== this.config.itach_emulation || itachBeacon !== this.config.itach_beacon) {
+      WS.request("set_ir_config", {
+        itach_emulation: itachEmulation,
+        itach_beacon: itachBeacon
+      }).then(function(data) {
+        self.config.itach_emulation = itachEmulation;
+        self.config.itach_beacon = itachBeacon;
+      }).catch(function(e) {
+        Toast.error(e);
+      });
+    }
+
+    // Apply serial TCP config if changed
+    if (serialTcp !== this.config.serial_tcp) {
+      WS.request("set_serial_tcp", { enable: serialTcp })
+          .then(function() {
+            self.config.serial_tcp = serialTcp;
+          })
+          .catch(function(e) {
+            Toast.error(e);
+          });
+    }
+
+    // Show saved message (reboot message is shown globally in WS.onMessage)
+    setTimeout(function() {
+      Toast.success(I18N.t("t_expert_saved"));
+    }, 500);
+  },
+
+  init: function() {
+    var self = this;
+
+    document.getElementById("btn-expert-apply").addEventListener("click", function() {
+      self.apply();
+    });
+  }
+};
+
+// ============================================================
 // Application Initialization
 // ============================================================
 document.addEventListener("DOMContentLoaded", function() {
@@ -1087,5 +1179,6 @@ document.addEventListener("DOMContentLoaded", function() {
   Pages.Ports.init();
   Pages.Logs.init();
   Pages.OTA.init();
+  Pages.Expert.init();
   UI.init();
 });

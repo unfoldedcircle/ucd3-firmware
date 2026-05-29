@@ -6,6 +6,7 @@
   "nav_ports": "Portit",
   "nav_ota": "OTA",
   "nav_logs": "Lokit",
+  "nav_expert": "Asiantuntija",
 
   "hdr_device_name": "Laitteen nimi",
   "hdr_led_brightness": "LED-kirkkaus",
@@ -21,6 +22,7 @@
   "hdr_serial_console": "Sarjakonsoli",
   "hdr_fw_update": "Laiteohjelmiston päivitys",
   "hdr_syslog": "Järjestelmäloki",
+  "hdr_expert": "Asiantuntija",
   "hdr_auth": "Todennus",
 
   "lbl_name": "Nimi",
@@ -54,6 +56,10 @@
   "lbl_current_version": "Nykyinen versio:",
   "lbl_log_level": "Lokitaso",
   "lbl_filter": "Suodatin",
+  "lbl_itach_emulation": "iTach-emulointi *",
+  "lbl_amxb_beacon": "AMXB discovery beacon *",
+  "lbl_rs232_tcp": "RS232 TCP-palvelin (portit 4999, 5000)",
+  "lbl_reboot_required": "* uudelleenkäynnistys vaaditaan",
 
   "ph_friendly_name": "Kutsumanimi",
   "ph_token": "Käyttöoikeustunnus",
@@ -86,7 +92,8 @@
 
   "note_eth_priority": "Ethernetillä on etusija WiFiin nähden.",
   "note_wifi_restart": "Telakka käynnistyy uudelleen WiFi-muutosten jälkeen.",
-  "note_no_disconnect": "Älä irrota telakkaa päivityksen aikana.",
+  "note_no_disconnect": "⚠️ <strong>Älä irrota telakkaa päivityksen aikana.</strong>",
+  "note_expert_warning": "🧪 <strong>Kokeelliset ominaisuudet</strong> - Alla olevat asetukset ovat varhaisen pääsyn tai kehitysvaiheen ominaisuuksia, jotka eivät vielä ole saatavilla vakiotuotteessa. Ne on oletusarvoisesti poistettu käytöstä ja tarkoitettu vain testikäyttöön. Jatka varoen. Arvostamme palautetta, mutta emme voi tarjota tukea.",
 
   "st_connected": "Yhdistetty",
   "st_disconnected": "Yhteys katkaistu",
@@ -118,6 +125,9 @@
   "t_upload_success": "Päivitys onnistui. Käynnistetään uudelleen…",
   "t_logged_out": "Kirjauduttu ulos",
   "t_logging_applied": "Lokiasetukset käytetty",
+  "t_expert_saved": "Asetukset tallennettu",
+  "t_expert_reboot": "Telakka käynnistyy uudelleen aktivoidakseen muutokset",
+  "confirm_reboot_now": "Telakka käynnistyy uudelleen aktivoidakseen muutokset. Ladataanko sivu uudelleen?",
 
   "e_no_file": "Ei tiedostoa valittuna",
   "e_not_auth": "Ei todennettu",

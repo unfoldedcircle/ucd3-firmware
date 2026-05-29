@@ -6,6 +6,7 @@
   "nav_ports": "Ports",
   "nav_ota": "OTA",
   "nav_logs": "Logs",
+  "nav_expert": "Expert",
 
   "hdr_device_name": "Device Name",
   "hdr_led_brightness": "LED Brightness",
@@ -21,6 +22,7 @@
   "hdr_serial_console": "Serial Console",
   "hdr_fw_update": "Firmware Update",
   "hdr_syslog": "System Log",
+  "hdr_expert": "Expert settings",
   "hdr_auth": "Authentication",
 
   "lbl_name": "Name",
@@ -54,6 +56,10 @@
   "lbl_current_version": "Current version:",
   "lbl_log_level": "Log Level",
   "lbl_filter": "Filter",
+  "lbl_itach_emulation": "iTach emulation *",
+  "lbl_amxb_beacon": "AMXB discovery beacon *",
+  "lbl_rs232_tcp": "RS232 TCP server (ports 4999, 5000)",
+  "lbl_reboot_required": "* reboot required",
 
   "ph_friendly_name": "Friendly name",
   "ph_token": "Access Token",
@@ -86,7 +92,8 @@
 
   "note_eth_priority": "Ethernet has priority over WiFi.",
   "note_wifi_restart": "The dock will restart after applying WiFi changes.",
-  "note_no_disconnect": "Do not disconnect the dock during update.",
+  "note_expert_warning": "🧪 <strong>Experimental Features</strong> - The settings below are early-access or development features not yet available in the standard product. They are disabled by default and intended for testing purposes only. Proceed with caution. We appreciate feedback, but can't provide support.",
+  "note_no_disconnect": "⚠️ <strong>Do not disconnect the dock during update.</strong>",
 
   "st_connected": "Connected",
   "st_disconnected": "Disconnected",
@@ -118,6 +125,9 @@
   "t_upload_success": "Update successful. Rebooting\u2026",
   "t_logged_out": "Logged out",
   "t_logging_applied": "Logging configuration applied",
+  "t_expert_saved": "Settings saved",
+  "t_expert_reboot": "Dock will reboot to activate changes",
+  "confirm_reboot_now": "Dock will reboot to activate changes. Reload page?",
 
   "e_no_file": "No file selected",
   "e_not_auth": "Not authenticated",

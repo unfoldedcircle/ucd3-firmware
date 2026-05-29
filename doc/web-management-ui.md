@@ -36,17 +36,17 @@ IR control, serial communication, and firmware updates via a WebSocket JSON API.
 
 ## Constraints
 
-| Constraint | Detail |
-|------------|--------|
-| Target | ESP32-S3, IDF SDK 5.4 |
-| Flash budget | Kilobytes, not megabytes |
-| No frameworks | No React, Vue, Angular, jQuery, Bootstrap, etc. |
-| No Arduino | Pure IDF SDK and IDF components only |
-| No npm runtime | All tooling is build-time only |
-| Socket limit | ESP32 has limited concurrent sockets; responses use `Connection: close` |
-| Max WS connections | 5 concurrent WebSocket connections |
-| Browser support | Modern browsers on macOS, Linux, Windows, Android (desktop + mobile) |
-| File serving | Static files served via FrogFS (embedded filesystem) with gzip pre-compression |
+| Constraint         | Detail                                                                         |
+|--------------------|--------------------------------------------------------------------------------|
+| Target             | ESP32-S3, IDF SDK 5.4                                                          |
+| Flash budget       | Kilobytes, not megabytes                                                       |
+| No frameworks      | No React, Vue, Angular, jQuery, Bootstrap, etc.                                |
+| No Arduino         | Pure IDF SDK and IDF components only                                           |
+| No npm runtime     | All tooling is build-time only                                                 |
+| Socket limit       | ESP32 has limited concurrent sockets; responses use `Connection: close`        |
+| Max WS connections | 5 concurrent WebSocket connections                                             |
+| Browser support    | Modern browsers on macOS, Linux, Windows, Android (desktop + mobile)           |
+| File serving       | Static files served via FrogFS (embedded filesystem) with gzip pre-compression |
 
 ## File Structure
 
@@ -92,6 +92,7 @@ complicate minification or require transpilation. No module bundler is used.
 ### Script Loading Order
 
 ```html
+
 <script defer src="lang.js"></script>
 <script defer src="app.js"></script>
 ```
@@ -118,15 +119,15 @@ Chosen over hamburger menu (too hidden) and vertical sidebar (overkill for 6 pag
 
 ## Pages
 
-| Page | Auth Required | Description |
-|------|:---:|-------------|
-| Status | No | Read-only device info from `get_sysinfo` |
-| General | Yes | Device name, LED brightness, access token, system actions |
-| Network | Yes | WiFi SSID/password configuration, connection status |
-| IR | Yes | Send IR codes, IR learning with live output |
-| Ports | Yes | External port mode config, trigger control, RS232 console |
-| OTA | Yes | Firmware upload with progress |
-| Logs | Yes | Prepared but not active — real-time log streaming |
+| Page    | Auth Required | Description                                               |
+|---------|:-------------:|-----------------------------------------------------------|
+| Status  |      No       | Read-only device info from `get_sysinfo`                  |
+| General |      Yes      | Device name, LED brightness, access token, system actions |
+| Network |      Yes      | WiFi SSID/password configuration, connection status       |
+| IR      |      Yes      | Send IR codes, IR learning with live output               |
+| Ports   |      Yes      | External port mode config, trigger control, RS232 console |
+| OTA     |      Yes      | Firmware upload with progress                             |
+| Logs    |      Yes      | Prepared but not active — real-time log streaming         |
 
 ## WebSocket Communication
 
@@ -164,6 +165,7 @@ Request (client to dock):
 - `id` is reflected as `req_id` in the response for correlation
 
 Response (dock to client):
+
 ```json
 {
   "type": "dock",
@@ -264,13 +266,14 @@ See frogfs.yaml section below.
 ```javascript
 I18N.init()           // Detect language, resolve strings, apply to DOM
 I18N.t("key")        // Lookup for dynamic strings (toasts, confirms)
-I18N.t("key", {x:1}) // With template variables: "Port {x}" -> "Port 1"
+I18N.t("key", {x: 1}) // With template variables: "Port {x}" -> "Port 1"
 I18N.setLang("de")   // Switch language, re-render DOM
 ```
 
 ### DOM Binding
 
 ```html
+
 <button data-i18n="btn_save">Save</button>
 <input data-i18n-ph="ph_token" placeholder="Token">
 <span data-i18n-title="tip_info" title="Info">
@@ -305,37 +308,37 @@ files:
 
 ### i18n Key Naming Convention
 
-| Prefix | Usage | Example |
-|--------|-------|---------|
-| `nav_` | Navigation tab labels | `nav_general` |
-| `hdr_` | Section headings (h2, h3) | `hdr_device_name` |
-| `lbl_` | Form labels, list item titles | `lbl_baud_rate` |
-| `btn_` | Button text | `btn_save` |
-| `ph_` | Input placeholders | `ph_friendly_name` |
-| `note_` | Info/warning notes | `note_eth_priority` |
-| `st_` | Connection/status text | `st_connected` |
-| `t_` | Toast success messages | `t_name_saved` |
-| `e_` | Error messages | `e_ssid_required` |
-| `confirm_` | Confirmation dialog text | `confirm_reboot` |
+| Prefix     | Usage                         | Example             |
+|------------|-------------------------------|---------------------|
+| `nav_`     | Navigation tab labels         | `nav_general`       |
+| `hdr_`     | Section headings (h2, h3)     | `hdr_device_name`   |
+| `lbl_`     | Form labels, list item titles | `lbl_baud_rate`     |
+| `btn_`     | Button text                   | `btn_save`          |
+| `ph_`      | Input placeholders            | `ph_friendly_name`  |
+| `note_`    | Info/warning notes            | `note_eth_priority` |
+| `st_`      | Connection/status text        | `st_connected`      |
+| `t_`       | Toast success messages        | `t_name_saved`      |
+| `e_`       | Error messages                | `e_ssid_required`   |
+| `confirm_` | Confirmation dialog text      | `confirm_reboot`    |
 
 ## Size Projection
 
 | Languages | lang.js raw | lang.js gzip |
 |-----------|-------------|--------------|
-| 7 | ~27 KB | ~3.5 KB |
-| 17 | ~50 KB | ~6 KB |
-| 27 | ~75 KB | ~9 KB |
+| 7         | ~27 KB      | ~3.5 KB      |
+| 17        | ~50 KB      | ~6 KB        |
+| 27        | ~75 KB      | ~9 KB        |
 
 ### Total Flash Usage (all web files, gzipped)
 
-| File | gzip size |
-|------|-----------|
-| index.html | ~1.2 KB |
-| app.css | ~1.0 KB |
-| app.js | ~2.5 KB |
-| lang.js (7 languages) | ~3.5 KB |
-| logo.svg | ~0.5 KB |
-| Total | ~8.7 KB |
+| File                  | gzip size |
+|-----------------------|-----------|
+| index.html            | ~1.2 KB   |
+| app.css               | ~1.0 KB   |
+| app.js                | ~2.5 KB   |
+| lang.js (7 languages) | ~3.5 KB   |
+| logo.svg              | ~0.5 KB   |
+| Total                 | ~8.7 KB   |
 
 ## CSS Architecture
 
@@ -450,7 +453,7 @@ Key points:
 - `Cache-Control: no-cache` — browser caches but revalidates every request
 - 304 Not Modified returned when `If-None-Match` matches current version
 - After firmware update: new ETag forces fresh download
-  
+
 ## Prepared Features (Not Active)
 
 ### Logs Page
@@ -490,26 +493,50 @@ Key points:
 
 ### HTML ID Naming
 
-| Pattern | Usage | Example |
-|---------|-------|---------|
-| `page-{name}` | Section containers | `page-network` |
-| `btn-{action}` | Buttons | `btn-save-name` |
-| `cfg-{field}` | Configuration inputs | `cfg-ssid` |
-| `port{n}-{field}` | Port-specific elements | `port1-baud` |
-| `s-{field}` | Status page values | `s-version` |
-| `net-{field}` | Network page values | `net-eth` |
-| `ota-{field}` | OTA page elements | `ota-progress` |
-| `ir-{field}` | IR page elements | `ir-code` |
+| Pattern           | Usage                  | Example         |
+|-------------------|------------------------|-----------------|
+| `page-{name}`     | Section containers     | `page-network`  |
+| `btn-{action}`    | Buttons                | `btn-save-name` |
+| `cfg-{field}`     | Configuration inputs   | `cfg-ssid`      |
+| `port{n}-{field}` | Port-specific elements | `port1-baud`    |
+| `s-{field}`       | Status page values     | `s-version`     |
+| `net-{field}`     | Network page values    | `net-eth`       |
+| `ota-{field}`     | OTA page elements      | `ota-progress`  |
+| `ir-{field}`      | IR page elements       | `ir-code`       |
+
+## Development Mode
+
+Serve files locally without flashing the Dock to test the web-app, while using a WebSocket connection to a real Dock.
+
+Using Python (built-in, no installation needed):
+
+```shell
+cd webroot
+python3 -m http.server 9000
+```
+
+Or with Node.js:
+
+```shell
+cd webroot
+npx serve -l 9000
+```
+
+Now you can test with:
+
+```
+http://localhost:9000/?host=$IP_OF_DOCK3
+```
+
+⚠️ Remember to create the unified `webroot/lang.js` file from the language files with the [tools/build_lang.py](../tools/build_lang.py)
+script! You can also run the IDF firmware build command.
 
 ## Planned Features
 
 - Expert page
-  - Enable GC server
-  - Enable GC beacons
-  - Enable Serial TCP server
-  - Set PoE voltage
-  - TBD: Enable NTP
+    - Set PoE voltage
+    - TBD: Enable NTP
 - Ports RS232:
-  - define Terminator for send command. Is the receive terminator used at the moment or hard coded?
-  - configure buffer timeout
+    - define Terminator for send command. Is the receive terminator used at the moment or hard coded?
+    - configure buffer timeout
  

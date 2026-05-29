@@ -5,7 +5,8 @@
   "nav_ir": "IR",
   "nav_ports": "Puertos",
   "nav_ota": "OTA",
-  "nav_logs": "Registro",
+  "nav_logs": "Registros",
+  "nav_expert": "Experto",
 
   "hdr_device_name": "Nombre del dispositivo",
   "hdr_led_brightness": "Brillo LED",
@@ -22,6 +23,7 @@
   "hdr_fw_update": "Actualización de firmware",
   "hdr_syslog": "Registro del sistema",
   "hdr_auth": "Autenticación",
+  "hdr_expert": "Configuración de experto",
 
   "lbl_name": "Nombre",
   "lbl_hostname": "Nombre de host",
@@ -54,6 +56,10 @@
   "lbl_current_version": "Versión actual:",
   "lbl_log_level": "Nivel de registro",
   "lbl_filter": "Filtro",
+  "lbl_itach_emulation": "Emulación iTach *",
+  "lbl_amxb_beacon": "Baliza de descubrimiento AMXB *",
+  "lbl_rs232_tcp": "Servidor TCP RS232 (puertos 4999, 5000)",
+  "lbl_reboot_required": "* reinicio requerido",
 
   "ph_friendly_name": "Nombre descriptivo",
   "ph_token": "Token de acceso",
@@ -86,7 +92,8 @@
 
   "note_eth_priority": "Ethernet tiene prioridad sobre WiFi.",
   "note_wifi_restart": "El dock se reiniciará después de aplicar los cambios de WiFi.",
-  "note_no_disconnect": "No desconectar el dock durante la actualización.",
+  "note_no_disconnect": "⚠️ <strong>No desconecte el dock durante la actualización.</strong>",
+  "note_expert_warning": "🧪 <strong>Funciones experimentales</strong> - Las configuraciones siguientes son funciones de acceso anticipado o en desarrollo que aún no están disponibles en el producto estándar. Están desactivadas por defecto y destinadas solo para fines de prueba. Proceda con precaución. Apreciamos los comentarios, pero no podemos proporcionar soporte.",
 
   "st_connected": "Conectado",
   "st_disconnected": "Desconectado",
@@ -118,6 +125,9 @@
   "t_upload_success": "Actualización exitosa. Reiniciando\u2026",
   "t_logged_out": "Sesión cerrada",
   "t_logging_applied": "Configuración de registro aplicada",
+  "t_expert_saved": "Configuración guardada",
+  "t_expert_reboot": "El dock se reiniciará para activar los cambios",
+  "confirm_reboot_now": "El dock se reiniciará para activar los cambios. ¿Recargar página?",
 
   "e_no_file": "Ningún archivo seleccionado",
   "e_not_auth": "No autenticado",
