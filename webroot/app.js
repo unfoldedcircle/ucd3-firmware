@@ -167,6 +167,7 @@ var WS = {
   maxReconnectMs: 30000,
   reconnectTimer: null,
   eventHandlers: {},
+  statusRefreshTimer: null,
 
   connect: function() {
     if (this.socket && this.socket.readyState < 2) return;
@@ -209,11 +210,13 @@ var WS = {
         UI.setStatus("ok");
         UI.hideLogin();
         UI.onAuthenticated();
+        this.startStatusRefresh();
       } else {
         this.token = null;
         sessionStorage.removeItem("token");
         UI.setStatus("err");
         UI.showLogin(I18N.t("e_invalid_token"));
+        this.stopStatusRefresh();
       }
       return;
     }
@@ -285,6 +288,23 @@ var WS = {
     this.reconnectMs = Math.min(Math.round(this.reconnectMs * 1.5), this.maxReconnectMs);
   },
 
+  startStatusRefresh: function() {
+    var self = this;
+    this.stopStatusRefresh();
+    this.statusRefreshTimer = setInterval(function() {
+      if (self.authenticated && UI.currentPage === "status") {
+        Pages.Status.load();
+      }
+    }, 60000);
+  },
+
+  stopStatusRefresh: function() {
+    if (this.statusRefreshTimer) {
+      clearInterval(this.statusRefreshTimer);
+      this.statusRefreshTimer = null;
+    }
+  },
+
   rejectAllPending: function() {
     for (var id in this.pending) {
       if (this.pending.hasOwnProperty(id)) {
@@ -293,6 +313,7 @@ var WS = {
       }
     }
     this.pending = {};
+    this.stopStatusRefresh();
   },
 
   on: function(msg, handler) { this.eventHandlers[msg] = handler; },
@@ -357,6 +378,11 @@ var UI = {
       });
     });
 
+    // Login link in header
+    document.getElementById("btn-login-link").addEventListener("click", function() {
+      self.showLogin();
+    });
+
     // Login handlers
     document.getElementById("login-btn").addEventListener("click", function() {
       var pw = document.getElementById("login-pw").value;
@@ -410,6 +436,16 @@ var UI = {
     this.currentPage = page;
     this.loadPage(page);
     this.updateLogoutVisibility();
+
+    // Start/stop status refresh based on page
+    if (WS.authenticated) {
+      if (page === "status") {
+        WS.startStatusRefresh();
+        Pages.Status.load();
+      } else {
+        WS.stopStatusRefresh();
+      }
+    }
   },
 
   loadPage: function(page) {
@@ -433,8 +469,10 @@ var UI = {
   },
 
   updateLogoutVisibility: function() {
-    var btn = document.getElementById("btn-logout");
-    if (btn) btn.classList.toggle("hidden", !WS.authenticated);
+    var loginBtn = document.getElementById("btn-login-link");
+    var logoutBtn = document.getElementById("btn-logout");
+    if (loginBtn) loginBtn.classList.toggle("hidden", WS.authenticated);
+    if (logoutBtn) logoutBtn.classList.toggle("hidden", !WS.authenticated);
   },
 
   setStatus: function(state) {
