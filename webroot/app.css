@@ -433,8 +433,34 @@ button:disabled {
 
 .console-controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.console-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.console-filter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.console-filter label {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.console-filter select {
+  width: auto;
+  flex-shrink: 0;
 }
 
 /* === Connection Status Indicator === */
@@ -464,6 +490,24 @@ button:disabled {
   background: var(--status-dot-warn);
 }
 
+.console-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.console-controls label {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.console-controls select {
+  width: auto;
+  flex-shrink: 0;
+}
+
 /* === Console === */
 .console {
   background: var(--console-bg);
@@ -475,12 +519,19 @@ button:disabled {
   overflow-y: auto;
 }
 
+.console-log {
+  resize: vertical;
+  min-height: calc(8 * 1.4em + 16px);
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
 .console pre {
   margin: 0;
   font-family: monospace;
   font-size: 12px;
-  white-space: pre-wrap;
-  word-break: break-all;
+  white-space: pre;
+  word-break: normal;
   color: var(--console-text);
 }
 
@@ -720,5 +771,25 @@ textarea:focus {
 
   .btn-group button {
     flex: 1;
+  }
+
+  .console-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .console-buttons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .console-buttons button {
+    flex: 1;
+  }
+
+  .console-filter {
+    width: 100%;
+    justify-content: flex-start;
   }
 }

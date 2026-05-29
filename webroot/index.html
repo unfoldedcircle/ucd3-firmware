@@ -26,8 +26,8 @@
       <a href="#" data-page="network" data-i18n="nav_network">Network</a>
       <a href="#" data-page="ir" data-i18n="nav_ir">IR</a>
       <a href="#" data-page="ports" data-i18n="nav_ports">Ports</a>
+      <a href="#" data-page="logs" data-i18n="nav_logs">Logs</a>
       <a href="#" data-page="ota" data-i18n="nav_ota">OTA</a>
-      <!-- <a href="#" data-page="logs">Logs</a> -->
     </nav>
 
     <main id="content">
@@ -386,6 +386,31 @@
         </div>
       </section>
 
+      <!-- ============ Logs ============ -->
+      <section id="page-logs" class="hidden">
+        <div class="card">
+          <h2 data-i18n="hdr_syslog">System Log</h2>
+          <div class="form-row console-controls">
+            <div class="console-buttons">
+              <button id="btn-log-stream" data-i18n="btn_start_streaming">Start Streaming</button>
+              <button id="btn-log-clear" data-i18n="btn_clear">Clear</button>
+            </div>
+            <div class="console-filter">
+              <label for="log-filter" data-i18n="lbl_filter">Filter</label>
+              <select id="log-filter">
+                <option value="E">ERROR</option>
+                <option value="W">WARN</option>
+                <option value="I" selected>INFO</option>
+                <option value="D">DEBUG</option>
+              </select>
+            </div>
+          </div>
+          <div class="console console-log">
+            <pre id="log-output"></pre>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ OTA ============ -->
       <section id="page-ota" class="hidden">
         <div class="card">
@@ -400,39 +425,6 @@
           <p class="note" data-i18n="note_no_disconnect">Do not disconnect the dock during update.</p>
         </div>
       </section>
-
-      <!-- ============ Logs (prepared) ============ -->
-      <!--
-      <section id="page-logs" class="hidden">
-        <div class="card">
-          <h2>System Log</h2>
-          <div class="form-row">
-            <label for="log-level">Log Level</label>
-            <select id="log-level">
-              <option value="3">ERROR</option>
-              <option value="4">WARNING</option>
-              <option value="5">NOTICE</option>
-              <option value="6" selected>INFO</option>
-              <option value="7">DEBUG</option>
-            </select>
-          </div>
-          <div class="form-row form-inline">
-            <label><input type="checkbox" id="log-syslog"> Syslog</label>
-            <input type="text" id="log-syslog-host" placeholder="Host" maxlength="64" disabled>
-            <input type="number" id="log-syslog-port" value="514" min="1" max="65535" disabled class="input-sm">
-          </div>
-          <button id="btn-log-cfg">Apply</button>
-
-          <div class="console">
-            <pre id="log-output"></pre>
-          </div>
-          <div class="btn-group">
-            <button id="btn-log-clear">Clear</button>
-            <button id="btn-log-pause">Pause</button>
-          </div>
-        </div>
-      </section>
-      -->
 
     </main>
 

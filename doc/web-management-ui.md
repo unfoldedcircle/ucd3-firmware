@@ -503,8 +503,6 @@ Key points:
 
 ## Planned Features
 
-- Logs page
-  - Enable log streaming
 - Expert page
   - Enable GC server
   - Enable GC beacons

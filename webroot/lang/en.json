@@ -53,6 +53,7 @@
   "lbl_impulse": "Impulse (ms)",
   "lbl_current_version": "Current version:",
   "lbl_log_level": "Log Level",
+  "lbl_filter": "Filter",
 
   "ph_friendly_name": "Friendly name",
   "ph_token": "Access Token",
@@ -80,6 +81,8 @@
   "btn_apply_buffering": "Apply Buffering",
   "btn_pause": "Pause",
   "btn_resume": "Resume",
+  "btn_start_streaming": "Start Streaming",
+  "btn_stop_streaming": "Stop Streaming",
 
   "note_eth_priority": "Ethernet has priority over WiFi.",
   "note_wifi_restart": "The dock will restart after applying WiFi changes.",

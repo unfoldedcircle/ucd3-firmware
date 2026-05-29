@@ -53,6 +53,7 @@
   "lbl_impulse": "Impulssi (ms)",
   "lbl_current_version": "Nykyinen versio:",
   "lbl_log_level": "Lokitaso",
+  "lbl_filter": "Suodatin",
 
   "ph_friendly_name": "Kutsumanimi",
   "ph_token": "Käyttöoikeustunnus",
@@ -80,6 +81,8 @@
   "btn_apply_buffering": "Käytä puskurointi",
   "btn_pause": "Tauko",
   "btn_resume": "Jatka",
+  "btn_start_streaming": "Aloita suoratoisto",
+  "btn_stop_streaming": "Pysäytä suoratoisto",
 
   "note_eth_priority": "Ethernetillä on etusija WiFiin nähden.",
   "note_wifi_restart": "Telakka käynnistyy uudelleen WiFi-muutosten jälkeen.",

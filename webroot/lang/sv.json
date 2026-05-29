@@ -53,6 +53,7 @@
   "lbl_impulse": "Impuls (ms)",
   "lbl_current_version": "Nuvarande version:",
   "lbl_log_level": "Loggnivå",
+  "lbl_filter": "Filter",
 
   "ph_friendly_name": "Smeknamn",
   "ph_token": "Åtkomsttoken",
@@ -80,6 +81,8 @@
   "btn_apply_buffering": "Verkställ buffring",
   "btn_pause": "Pausa",
   "btn_resume": "Fortsätt",
+  "btn_start_streaming": "Starta strömning",
+  "btn_stop_streaming": "Stoppa strömning",
 
   "note_eth_priority": "Ethernet har prioritet över WiFi.",
   "note_wifi_restart": "Docken kommer att starta om efter WiFi-ändringar.",

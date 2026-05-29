@@ -53,6 +53,7 @@
   "lbl_impulse": "Impuls (ms)",
   "lbl_current_version": "Huidige versie:",
   "lbl_log_level": "Logniveau",
+  "lbl_filter": "Filter",
 
   "ph_friendly_name": "Weergavenaam",
   "ph_token": "Toegangstoken",
@@ -80,6 +81,8 @@
   "btn_apply_buffering": "Buffering toepassen",
   "btn_pause": "Pauze",
   "btn_resume": "Hervatten",
+  "btn_start_streaming": "Streaming starten",
+  "btn_stop_streaming": "Streaming stoppen",
 
   "note_eth_priority": "Ethernet heeft voorrang op WiFi.",
   "note_wifi_restart": "Het dock wordt herstart na het toepassen van WiFi-wijzigingen.",

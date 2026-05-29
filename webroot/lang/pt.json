@@ -53,6 +53,7 @@
   "lbl_impulse": "Impulso (ms)",
   "lbl_current_version": "Versão atual:",
   "lbl_log_level": "Nível de registo",
+  "lbl_filter": "Filtro",
 
   "ph_friendly_name": "Nome amigável",
   "ph_token": "Token de acesso",
@@ -80,6 +81,8 @@
   "btn_apply_buffering": "Aplicar buffering",
   "btn_pause": "Pausa",
   "btn_resume": "Retomar",
+  "btn_start_streaming": "Iniciar transmissão",
+  "btn_stop_streaming": "Parar transmissão",
 
   "note_eth_priority": "Ethernet tem prioridade sobre WiFi.",
   "note_wifi_restart": "O dock reiniciará após aplicar as alterações WiFi.",

@@ -400,8 +400,8 @@ var UI = {
       case "network": Pages.Network.load(); break;
       case "ir": Pages.IR.load(); break;
       case "ports": Pages.Ports.load(); break;
+      case "logs": Pages.Logs.load(); break;
       case "ota": Pages.OTA.load(); break;
-        // case "logs": Pages.Logs.load(); break;
     }
   },
 
@@ -973,62 +973,107 @@ Pages.OTA = {
 };
 
 // ============================================================
-// Page: Logs (prepared, not active)
+// Page: Logs
 // ============================================================
-/*
 Pages.Logs = {
-  paused: false,
+  streaming: false,
+  filterLevel: "I",
+  levelPriority: { "E": 0, "W": 1, "I": 2, "D": 3, "V": 4 },
 
   load: function() {
-    // Subscribe to log events if not already subscribed
+    var btn = document.getElementById("btn-log-stream");
+    if (btn) {
+      btn.textContent = this.streaming ? I18N.t("btn_stop_streaming") : I18N.t("btn_start_streaming");
+      btn.classList.toggle("btn-warn", this.streaming);
+    }
+    var filter = document.getElementById("log-filter");
+    if (filter) {
+      filter.value = this.filterLevel;
+    }
+  },
+
+  formatTimestamp: function() {
+    var now = new Date();
+    var h = String(now.getHours()).padStart(2, "0");
+    var m = String(now.getMinutes()).padStart(2, "0");
+    var s = String(now.getSeconds()).padStart(2, "0");
+    var ms = String(now.getMilliseconds()).padStart(3, "0");
+    return h + ":" + m + ":" + s + "." + ms;
+  },
+
+  shouldShowLog: function(level) {
+    var filterPriority = this.levelPriority[this.filterLevel] || 2;
+    var logPriority = this.levelPriority[level] || 2;
+    return logPriority <= filterPriority;
+  },
+
+  appendLog: function(msg) {
+    if (!this.shouldShowLog(msg.level)) {
+      return;
+    }
+
+    var output = document.getElementById("log-output");
+    if (!output) return;
+
+    var localTs = this.formatTimestamp();
+    var level = msg.level;
+    var line = level + " [" + localTs + " " + msg.ts + "] [" + msg.tag + "] " + msg.log + "\n";
+
+    output.textContent += line;
+
+    var container = output.parentElement;
+    container.scrollTop = container.scrollHeight;
+
+    if (output.textContent.length > 32768) {
+      output.textContent = output.textContent.slice(-30720);
+    }
+  },
+
+  toggleStreaming: function() {
+    var self = this;
+    var enable = !this.streaming;
+
+    WS.request("enable_log_events", { enable: enable })
+        .then(function() {
+          self.streaming = enable;
+          var btn = document.getElementById("btn-log-stream");
+          if (btn) {
+            btn.textContent = enable ? I18N.t("btn_stop_streaming") : I18N.t("btn_start_streaming");
+            btn.classList.toggle("btn-warn", enable);
+          }
+        })
+        .catch(function(e) {
+          Toast.error(e);
+        });
+  },
+
+  clearLog: function() {
+    var output = document.getElementById("log-output");
+    if (output) {
+      output.textContent = "";
+    }
   },
 
   init: function() {
     var self = this;
 
-    WS.on("log", function(msg) {
-      if (self.paused) return;
-      var output = document.getElementById("log-output");
-      if (!output) return;
-      output.textContent += msg.data + "\n";
-      var container = output.parentElement;
-      container.scrollTop = container.scrollHeight;
-      if (output.textContent.length > 8192) {
-        output.textContent = output.textContent.slice(-6144);
-      }
+    document.getElementById("btn-log-stream").addEventListener("click", function() {
+      self.toggleStreaming();
     });
 
     document.getElementById("btn-log-clear").addEventListener("click", function() {
-      document.getElementById("log-output").textContent = "";
+      self.clearLog();
     });
 
-    document.getElementById("btn-log-pause").addEventListener("click", function() {
-      self.paused = !self.paused;
-      this.textContent = self.paused ? I18N.t("btn_resume") : I18N.t("btn_pause");
+    document.getElementById("log-filter").addEventListener("change", function() {
+      self.filterLevel = this.value;
     });
 
-    document.getElementById("btn-log-cfg").addEventListener("click", function() {
-      var data = {
-        log_level: parseInt(document.getElementById("log-level").value)
-      };
-      var syslogEnabled = document.getElementById("log-syslog").checked;
-      data.syslog_enabled = syslogEnabled;
-      if (syslogEnabled) {
-        data.syslog_server = document.getElementById("log-syslog-host").value;
-        data.syslog_port = parseInt(document.getElementById("log-syslog-port").value) || 514;
-      }
-      WS.request("set_logging", data)
-        .then(function() { Toast.success(I18N.t("t_logging_applied")); })
-        .catch(function(e) { Toast.error(e); });
-    });
-
-    document.getElementById("log-syslog").addEventListener("change", function() {
-      document.getElementById("log-syslog-host").disabled = !this.checked;
-      document.getElementById("log-syslog-port").disabled = !this.checked;
+    WS.on("log", function(msg) {
+      self.appendLog(msg);
     });
   }
 };
-*/
 
 // ============================================================
 // Application Initialization
@@ -1040,7 +1085,7 @@ document.addEventListener("DOMContentLoaded", function() {
   Pages.Network.init();
   Pages.IR.init();
   Pages.Ports.init();
+  Pages.Logs.init();
   Pages.OTA.init();
-  // Pages.Logs.init();
   UI.init();
 });

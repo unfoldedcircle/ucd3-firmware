@@ -5,7 +5,7 @@
   "nav_ir": "IR",
   "nav_ports": "Anschlüsse",
   "nav_ota": "OTA",
-  "nav_logs": "Protokoll",
+  "nav_logs": "Logs",
 
   "hdr_device_name": "Gerätename",
   "hdr_led_brightness": "LED-Helligkeit",
@@ -52,7 +52,8 @@
   "lbl_terminator": "Terminator",
   "lbl_impulse": "Impuls (ms)",
   "lbl_current_version": "Aktuelle Version:",
-  "lbl_log_level": "Protokollebene",
+  "lbl_log_level": "Log Level",
+  "lbl_filter": "Filter",
 
   "ph_friendly_name": "Anzeigename",
   "ph_token": "Zugangstoken",
@@ -80,6 +81,8 @@
   "btn_apply_buffering": "Pufferung übernehmen",
   "btn_pause": "Pause",
   "btn_resume": "Fortsetzen",
+  "btn_start_streaming": "Streaming starten",
+  "btn_stop_streaming": "Streaming stoppen",
 
   "note_eth_priority": "Ethernet hat Vorrang vor WLAN.",
   "note_wifi_restart": "Das Dock wird nach Übernahme der WLAN-Einstellungen neu gestartet.",
