@@ -26,6 +26,7 @@
 class NetworkBase {
  public:
     NetworkBase();
+    virtual ~NetworkBase();
 
     /// @brief pass optional parameters to SM
     /// @param parameters
@@ -81,7 +82,7 @@ class NetworkBase {
     esp_netif_t*     wifi_netif_;
     TimerHandle_t    state_timer_;
     char*            timer_tag_;
-    queue_message*   event_parameters_;
+    queue_message    event_parameters_;
     bool             wifi_connected_;
     bool             improv_init_;
 

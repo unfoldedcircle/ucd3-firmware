@@ -89,6 +89,12 @@ static void network_task(void *pvParameters) {
                      NetworkSm::stateIdToString(networkSm.stateId));
             networkSm.setEventParameters(&msg);
             networkSm.dispatchEvent(eventId);
+
+            // Free parameters from the message as they are now copied or no longer needed
+            FREE_AND_NULL(msg.ssid);
+            FREE_AND_NULL(msg.password);
+            FREE_AND_NULL(msg.sta_disconnected_event);
+
             auto newState = networkSm.stateId;
             ESP_LOGI(TAG, "SM transition: %s -> %s", NetworkSm::stateIdToString(oldState),
                      NetworkSm::stateIdToString(newState));
