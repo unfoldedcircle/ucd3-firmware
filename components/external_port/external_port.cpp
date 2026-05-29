@@ -103,8 +103,8 @@ static bool match_signature(const port_signature_t *sig, size_t count, const int
     return true;
 }
 
-// TODO static or dynamic config option?
-#define CONFIG_PORT_UART_RING_BUFFER_SIZE 512
+#define CONFIG_PORT_UART_RX_BUFFER_SIZE 2048
+#define CONFIG_PORT_UART_TX_BUFFER_SIZE 512
 
 ExternalPort::ExternalPort(uint8_t port, ext_port_config_t config, std::unique_ptr<AdcReader> reader,
                            std::shared_ptr<AdcReader> vcc_reader)
@@ -468,7 +468,7 @@ esp_err_t ExternalPort::initUart() {
     intr_alloc_flags = ESP_INTR_FLAG_IRAM;
 #endif
     ESP_GOTO_ON_ERROR(
-        uart_driver_install(config_.uart_port, CONFIG_PORT_UART_RING_BUFFER_SIZE, CONFIG_PORT_UART_RING_BUFFER_SIZE,
+        uart_driver_install(config_.uart_port, CONFIG_PORT_UART_RX_BUFFER_SIZE, CONFIG_PORT_UART_TX_BUFFER_SIZE,
                             event_queue_size, &uart_event_queue_, intr_alloc_flags),
         err_uart_install, tag_, "install uart driver failed");
     ESP_GOTO_ON_ERROR(uart_param_config(config_.uart_port, &uart_config), err_uart_config, tag_,

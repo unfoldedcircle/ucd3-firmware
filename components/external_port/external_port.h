@@ -57,6 +57,12 @@ class ExternalPort {
     /// @brief Get the current operation mode of the external port.
     ExtPortMode getMode() { return mode_; };
 
+    /// @brief Get the UART event queue handle (for serial bridge integration).
+    QueueHandle_t getUartEventQueue() const { return uart_event_queue_; }
+
+    /// @brief Get the UART port number.
+    uart_port_t getUartPort() const { return config_.uart_port; }
+
     /// @brief Check if the current mode supports IR sending.
     /// @return true if IR can be sent, false otherwise.
     bool supportsIR();

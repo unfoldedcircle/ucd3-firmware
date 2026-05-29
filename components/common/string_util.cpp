@@ -75,3 +75,20 @@ std::string trim_copy(std::string s) {
     trim(s);
     return s;
 }
+
+size_t latin1_to_utf8(const uint8_t *in, size_t in_len, char *out, size_t out_size) {
+    size_t j = 0;
+    for (size_t i = 0; i < in_len && j < out_size - 1; i++) {
+        uint8_t c = in[i];
+        if (c < 0x80) {
+            out[j++] = c;
+        } else {
+            // 0x80-0xFF → 2-byte UTF-8
+            if (j + 1 >= out_size - 1) break;
+            out[j++] = 0xC0 | (c >> 6);
+            out[j++] = 0x80 | (c & 0x3F);
+        }
+    }
+    out[j] = '\0';
+    return j;
+}
