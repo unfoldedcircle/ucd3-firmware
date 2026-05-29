@@ -525,8 +525,10 @@ npx serve -l 9000
 Now you can test with:
 
 ```
-http://localhost:9000/?host=$IP_OF_DOCK3
+http://localhost:9000/?dock=$IP_OF_DOCK3
 ```
+
+- use `dock` parameter to specify the Dock IP address you want to connect to.
 
 ⚠️ Remember to create the unified `webroot/lang.js` file from the language files with the [tools/build_lang.py](../tools/build_lang.py)
 script! You can also run the IDF firmware build command.

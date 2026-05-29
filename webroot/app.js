@@ -155,7 +155,7 @@ var WS = {
     var urlParams = new URLSearchParams(window.location.search);
     var host = location.host;
     if (location.host === "localhost:9000" || location.host === "127.0.0.1:9000") {
-      host = urlParams.get("host") || "192.168.1.100";
+      host = urlParams.get("dock") || location.host;
     }
     return "ws://" + host + "/ws";
   })(),
