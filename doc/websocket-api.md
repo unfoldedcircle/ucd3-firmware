@@ -166,7 +166,7 @@ For `mode: RS232`, the UART settings can be configured with additional fields:
 - `parity`: `"none"` | `"even"` | `"odd"`
 - `stop_bits`: `"1"` | `"1.5"` | `"2"`  ❗️ this must be a string!
 
-### Trigger
+### Trigger
 
 Enable trigger (output high):
 ```json
@@ -201,3 +201,25 @@ Trigger impulse:
 
 - `duration`: time in milliseconds to set output trigger high
 
+### Log Message Events
+
+Enable log message forwarding as WebSocket event messages:
+```json
+{
+  "type": "dock",
+  "command": "enable_log_events",
+  "enable": true
+}
+```
+
+Example log event message:
+```json
+{
+    "type": "event",
+    "msg": "log",
+    "level": "I",
+    "tag": "websrv",
+    "ts": 89981,
+    "log": "Set connection 38 authenticated: 1"
+}
+```

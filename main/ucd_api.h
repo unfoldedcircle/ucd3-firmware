@@ -7,9 +7,11 @@
 #include <stdlib.h>
 
 #include <map>
+#include <set>
 #include <string>
 
 #include "esp_http_server.h"
+#include "esp_log_level.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
 
@@ -62,6 +64,11 @@ class DockApi {
     static void authTimeoutCallback(TimerHandle_t timer_id);
     void        checkAuthTimeouts();
 
+    // Log streaming support
+    void             handleEnableLogEvents(int sockfd, const cJSON* root, cJSON* responseDoc);
+    void             sendLogToSubscribers(const char* tag, esp_log_level_t level, const char* message, size_t len);
+    static esp_err_t logCallback(const char* tag, esp_log_level_t level, const char* message, size_t len, void* ctx);
+
     Config*    config_;
     WebServer* web_;
     port_map_t ports_;
@@ -70,4 +77,9 @@ class DockApi {
     std::map<int, uint64_t> unauthenticated_fds_;
     SemaphoreHandle_t       unauthenticated_fds_mutex_;
     TimerHandle_t           auth_timer_;
+
+    // Per-client log streaming subscriptions
+    std::set<int>     log_subscribers_;
+    SemaphoreHandle_t log_subscribers_mutex_;
+    int               log_callback_id_;
 };

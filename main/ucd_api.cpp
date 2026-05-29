@@ -19,6 +19,7 @@
 #include "WebServer.h"
 #include "config.h"
 #include "led_pattern.h"
+#include "log_router.h"
 #include "network.h"
 #include "sdkconfig.h"
 #include "service_ir.h"
@@ -207,10 +208,17 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
       ports_(ports),
       sockfdSendIR_(-1),
       unauthenticated_fds_mutex_(xSemaphoreCreateMutex()),
-      auth_timer_(nullptr) {
+      auth_timer_(nullptr),
+      log_subscribers_mutex_(xSemaphoreCreateMutex()),
+      log_callback_id_(-1) {
     assert(config_);
     assert(web_);
     assert(unauthenticated_fds_mutex_);
+    assert(log_subscribers_mutex_);
+
+    // Initialize log router and register callback
+    log_router_init();
+    log_router_register_callback(logCallback, this, &log_callback_id_);
 
     web_->onWsEvent([this](httpd_req_t *req, int sockfd, WsTypeEnum type, uint8_t *payload, size_t length,
                            bool authenticated) -> esp_err_t {
@@ -264,6 +272,12 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                     xSemaphoreGive(unauthenticated_fds_mutex_);
                 }
 
+                // Remove from log subscribers
+                if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(1000)) == pdTRUE) {
+                    log_subscribers_.erase(sockfd);
+                    xSemaphoreGive(log_subscribers_mutex_);
+                }
+
                 return ESP_OK;
             }
             case WS_TEXT:
@@ -283,6 +297,14 @@ DockApi::~DockApi() {
         xTimerStop(auth_timer_, pdMS_TO_TICKS(1000));
     }
     vSemaphoreDelete(unauthenticated_fds_mutex_);
+
+    // Unregister log callback
+    if (log_callback_id_ >= 0) {
+        log_router_unregister_callback(log_callback_id_);
+        log_callback_id_ = -1;
+    }
+
+    vSemaphoreDelete(log_subscribers_mutex_);
 }
 
 esp_err_t DockApi::init() {
@@ -652,6 +674,9 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         code = processGetPortTrigger(root, responseDoc);
     } else if (command == "set_port_trigger") {
         code = processSetPortTrigger(root);
+    } else if (command == "enable_log_events") {
+        handleEnableLogEvents(sockfd, root, responseDoc);
+        code = ESP_OK;
     } else if (command == "reboot") {
         ESP_LOGW(TAG, "Rebooting");
         std::string message;
@@ -734,6 +759,175 @@ send_response:
     cJSON_Delete(responseDoc);
     cJSON_Delete(root);
     return ret;
+}
+
+void DockApi::handleEnableLogEvents(int sockfd, const cJSON *root, cJSON *responseDoc) {
+    bool ok = false;
+    bool enable = cjson_get_bool(root, "enable", &ok);
+
+    if (!ok) {
+        cJSON_AddNumberToObject(responseDoc, msgCode, 400);
+        cJSON_AddStringToObject(responseDoc, msgError, "Invalid or missing 'enable' field");
+        return;
+    }
+
+    if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(1000)) == pdTRUE) {
+        if (enable) {
+            log_subscribers_.insert(sockfd);
+            ESP_LOGI(TAG, "Client %d subscribed to log streaming (total: %d)", sockfd, log_subscribers_.size());
+        } else {
+            log_subscribers_.erase(sockfd);
+            ESP_LOGD(TAG, "Client %d unsubscribed from log streaming (total: %d)", sockfd, log_subscribers_.size());
+        }
+        xSemaphoreGive(log_subscribers_mutex_);
+    } else {
+        ESP_LOGE(TAG, "Failed to acquire log_subscribers_mutex");
+        cJSON_AddNumberToObject(responseDoc, msgCode, 500);
+        cJSON_AddStringToObject(responseDoc, msgError, "Internal error");
+        return;
+    }
+
+    cJSON_AddStringToObject(responseDoc, msgCommand, "enable_log_events");
+    cJSON_AddBoolToObject(responseDoc, "enable", enable);
+    cJSON_AddNumberToObject(responseDoc, msgCode, 200);
+}
+
+void DockApi::sendLogToSubscribers(const char *tag, esp_log_level_t level, const char *message, size_t len) {
+    // best effort, we are in the logging context and should not block
+    if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(5)) != pdTRUE) {
+        return;
+    }
+
+    if (log_subscribers_.empty()) {
+        xSemaphoreGive(log_subscribers_mutex_);
+        return;
+    }
+
+    // Build JSON log message using cJSON
+    cJSON *event = cJSON_CreateObject();
+    if (!event) {
+        xSemaphoreGive(log_subscribers_mutex_);
+        return;
+    }
+
+    cJSON_AddStringToObject(event, "type", "event");
+    cJSON_AddStringToObject(event, "msg", "log");
+
+    const char *level_str = "I";
+    switch (level) {
+        case ESP_LOG_ERROR:
+            level_str = "E";
+            break;
+        case ESP_LOG_WARN:
+            level_str = "W";
+            break;
+        case ESP_LOG_INFO:
+            level_str = "I";
+            break;
+        case ESP_LOG_DEBUG:
+            level_str = "D";
+            break;
+        case ESP_LOG_VERBOSE:
+            level_str = "V";
+            break;
+        default:
+            break;
+    }
+    cJSON_AddStringToObject(event, "level", level_str);
+    cJSON_AddStringToObject(event, "tag", tag);
+
+    // Parse message to extract timestamp and clean text
+    // Format: "<LEVEL> (<TS>) <TAG>: <TEXT>"
+    uint32_t    timestamp = 0;
+    const char *text_start = nullptr;
+
+    // Find timestamp in brackets
+    const char *ts_start = strchr(message, '(');
+    const char *ts_end = strchr(message, ')');
+    if (ts_start && ts_end && ts_end > ts_start) {
+        timestamp = strtoul(ts_start + 1, nullptr, 10);
+        cJSON_AddNumberToObject(event, "ts", timestamp);
+
+        // Find text after "tag: "
+        text_start = strchr(ts_end, ':');
+        if (text_start) {
+            text_start++;                             // skip ':'
+            while (*text_start == ' ') text_start++;  // skip leading spaces
+        }
+    }
+
+    // If we couldn't parse the text, use the original message
+    if (!text_start) {
+        text_start = message;
+    }
+
+    // Trim leading whitespace
+    while (*text_start == ' ' || *text_start == '\t' || *text_start == '\r' || *text_start == '\n') {
+        text_start++;
+    }
+
+    // Calculate length and trim trailing whitespace
+    size_t msg_len = strlen(text_start);
+    while (msg_len > 0) {
+        char c = text_start[msg_len - 1];
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+            msg_len--;
+        } else {
+            break;
+        }
+    }
+
+    // Truncate message if too long (leave room for JSON overhead)
+    if (msg_len > 500) {
+        msg_len = 500;
+    }
+
+    // Create a null-terminated copy
+    // Note: No manual JSON escaping needed - cJSON handles this automatically
+    char *msg_copy = (char *)malloc(msg_len + 1);
+    if (!msg_copy) {
+        cJSON_Delete(event);
+        xSemaphoreGive(log_subscribers_mutex_);
+        return;
+    }
+    strncpy(msg_copy, text_start, msg_len);
+    msg_copy[msg_len] = '\0';
+
+    cJSON_AddStringToObject(event, "log", msg_copy);
+    free(msg_copy);
+
+    char *json_str = cJSON_PrintUnformatted(event);
+    cJSON_Delete(event);
+
+    if (!json_str) {
+        xSemaphoreGive(log_subscribers_mutex_);
+        return;
+    }
+
+    // Send to all subscribers
+    for (int fd : log_subscribers_) {
+        // Important: needs to be const char* to avoid freeing the buffer in sendWsTxt!
+        web_->sendWsTxt(fd, (const char *)json_str);
+    }
+
+    cJSON_free(json_str);
+    xSemaphoreGive(log_subscribers_mutex_);
+}
+
+esp_err_t DockApi::logCallback(const char *tag, esp_log_level_t level, const char *message, size_t len, void *ctx) {
+    // Attention: This callback is called from the logging system, which may have very strict timing requirements.
+    // It should not perform any heavy processing or blocking operations. The message should be forwarded to subscribers
+    // as quickly as possible, and any complex processing (like JSON formatting) should ideally be deferred to the
+    // decoupled subscriber side if possible.
+    // For the moment we keep it simple and do the JSON formatting here, but if performance becomes an issue,
+    // we should consider a more asynchronous approach where we just forward the raw log message and metadata to a
+    // queue, and have a separate task processing the queue and sending events to subscribers. Note: sending the WS
+    // messages is already asynchronous in httpd with a work queue.
+    DockApi *that = static_cast<DockApi *>(ctx);
+    if (that) {
+        that->sendLogToSubscribers(tag, level, message, len);
+    }
+    return ESP_OK;
 }
 
 uint16_t DockApi::processGetPortModes(cJSON *responseDoc) {
