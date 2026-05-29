@@ -83,7 +83,7 @@ class DockApi {
     void loadSerialBufferConfig(uint8_t port);
 
     // Log streaming support
-    void             handleEnableLogEvents(int sockfd, const cJSON* root, cJSON* responseDoc);
+    uint16_t         handleEnableLogEvents(int sockfd, const cJSON* root, cJSON* responseDoc);
     void             sendLogToSubscribers(const char* tag, esp_log_level_t level, const char* message, size_t len);
     static esp_err_t logCallback(const char* tag, esp_log_level_t level, const char* message, size_t len, void* ctx);
 

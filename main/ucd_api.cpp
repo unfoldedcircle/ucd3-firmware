@@ -732,8 +732,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
     } else if (command == "get_serial_config") {
         code = processGetSerialConfig(root, responseDoc);
     } else if (command == "enable_log_events") {
-        handleEnableLogEvents(sockfd, root, responseDoc);
-        code = ESP_OK;
+        code = handleEnableLogEvents(sockfd, root, responseDoc);
     } else if (command == "reboot") {
         ESP_LOGW(TAG, "Rebooting");
         std::string message;
@@ -1222,14 +1221,13 @@ void DockApi::loadSerialBufferConfig(uint8_t port) {
     pbuf.timeout_ms = (timeout == 0) ? 100 : timeout;
 }
 
-void DockApi::handleEnableLogEvents(int sockfd, const cJSON *root, cJSON *responseDoc) {
+uint16_t DockApi::handleEnableLogEvents(int sockfd, const cJSON *root, cJSON *responseDoc) {
     bool ok = false;
     bool enable = cjson_get_bool(root, "enable", &ok);
 
     if (!ok) {
-        cJSON_AddNumberToObject(responseDoc, msgCode, 400);
         cJSON_AddStringToObject(responseDoc, msgError, "Invalid or missing 'enable' field");
-        return;
+        return 400;
     }
 
     if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(1000)) == pdTRUE) {
@@ -1243,14 +1241,11 @@ void DockApi::handleEnableLogEvents(int sockfd, const cJSON *root, cJSON *respon
         xSemaphoreGive(log_subscribers_mutex_);
     } else {
         ESP_LOGE(TAG, "Failed to acquire log_subscribers_mutex");
-        cJSON_AddNumberToObject(responseDoc, msgCode, 500);
         cJSON_AddStringToObject(responseDoc, msgError, "Internal error");
-        return;
+        return 500;
     }
 
-    cJSON_AddStringToObject(responseDoc, msgCommand, "enable_log_events");
-    cJSON_AddBoolToObject(responseDoc, "enable", enable);
-    cJSON_AddNumberToObject(responseDoc, msgCode, 200);
+    return 200;
 }
 
 void DockApi::sendLogToSubscribers(const char *tag, esp_log_level_t level, const char *message, size_t len) {

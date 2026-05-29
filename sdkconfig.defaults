@@ -10,6 +10,9 @@ CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ=240
 
 CONFIG_ESP_TASK_WDT_PANIC=y
 
+# default 2304 causes stack overflow with REST requests. Likely caused by the stack allocated log buffer in the log router.
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=3072
+
 # default 2048 causes stack overflow and 3072 is still not enough. Likely because of timer usage in the state machines.
 CONFIG_FREERTOS_TIMER_TASK_STACK_DEPTH=4092
 

@@ -300,6 +300,7 @@ int log_callback_id_;                     // Log router callback ID
 ```json
 {
   "type": "dock",
+  "id": 100,
   "command": "enable_log_events",
   "enable": true
 }
@@ -310,6 +311,7 @@ int log_callback_id_;                     // Log router callback ID
 ```json
 {
   "type": "dock",
+  "id": 101,
   "command": "enable_log_events",
   "enable": true,
   "code": 200
@@ -323,6 +325,7 @@ int log_callback_id_;                     // Log router callback ID
 ```json
 {
   "type": "dock",
+  "id": 102,
   "command": "enable_log_events",
   "enable": false
 }
@@ -332,10 +335,10 @@ int log_callback_id_;                     // Log router callback ID
 
 ```json
 {
-  "type": "dock",
-  "command": "enable_log_events",
-  "enable": false,
-  "code": 200
+   "type": "dock",
+   "req_id": 101,
+   "msg": "enable_log_events",
+   "code": 200
 }
 ```
 
