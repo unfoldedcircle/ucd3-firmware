@@ -206,14 +206,14 @@
           <!-- Trigger controls -->
           <div id="port1-trigger" class="hidden">
             <h3 data-i18n="hdr_trigger">Trigger Control</h3>
-            <div class="btn-group">
+            <div class="form-row trigger-controls">
               <button id="btn-port1-trig-on">ON</button>
               <button id="btn-port1-trig-off">OFF</button>
-            </div>
-            <div class="form-row form-inline">
-              <label for="port1-impulse" data-i18n="lbl_impulse">Impulse (ms)</label>
-              <input type="number" id="port1-impulse" min="1" value="500">
-              <button id="btn-port1-impulse" data-i18n="btn_send">Send</button>
+              <div class="form-inline form-group">
+                <label for="port1-impulse" data-i18n="lbl_impulse">Impulse (ms)</label>
+                <input type="number" id="port1-impulse" min="1" value="500" class="input-impulse">
+                <button id="btn-port1-impulse" data-i18n="btn_send">Send</button>
+              </div>
             </div>
           </div>
 
@@ -319,14 +319,14 @@
           <!-- Trigger controls -->
           <div id="port2-trigger" class="hidden">
             <h3 data-i18n="hdr_trigger">Trigger Control</h3>
-            <div class="btn-group">
+            <div class="form-row trigger-controls">
               <button id="btn-port2-trig-on">ON</button>
               <button id="btn-port2-trig-off">OFF</button>
-            </div>
-            <div class="form-row form-inline">
-              <label for="port2-impulse" data-i18n="lbl_impulse">Impulse (ms)</label>
-              <input type="number" id="port2-impulse" min="1" value="500">
-              <button id="btn-port2-impulse" data-i18n="btn_send">Send</button>
+              <div class="form-inline form-group">
+                <label for="port2-impulse" data-i18n="lbl_impulse">Impulse (ms)</label>
+                <input type="number" id="port2-impulse" min="1" value="500" class="input-impulse">
+                <button id="btn-port2-impulse" data-i18n="btn_send">Send</button>
+              </div>
             </div>
           </div>
 
