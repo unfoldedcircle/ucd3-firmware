@@ -92,12 +92,12 @@
 
   "note_eth_priority": "Ethernet hat Vorrang vor WLAN.",
   "note_wifi_restart": "Das Dock wird nach Übernahme der WLAN-Einstellungen neu gestartet.",
-  "note_no_disconnect": "⚠️ <strong>Trennen Sie das Dock während des Updates nicht.</strong>",
-  "note_expert_warning": "🧪 <strong>Experimentelle Funktionen</strong> - Die folgenden Einstellungen sind Early-Access- oder Entwicklungsfunktionen, die im Standardprodukt noch nicht verfügbar sind. Sie sind standardmäßig deaktiviert und nur für Testzwecke gedacht. Gehen Sie mit Vorsicht vor. Wir freuen uns über Feedback, können aber keinen Support bieten.",
-  "note_status_info": "💡 Verwenden Sie für die normale Konfiguration den Web-Konfigurator auf Ihrem Remote-Gerät - öffnen Sie stattdessen die Adresse des Remotes in Ihrem Browser.",
-  "note_status_close": "Dies ist die erweiterte Management-Oberfläche des Docks - bitte schließen Sie sie nach Abschluss, um Verbindungsressourcen freizugeben.",
-  "note_ota_warning": "⚠️ <strong>Manuelle Firmware-Updates sind nur für erfahrene Benutzer.</strong> Diese Seite ermöglicht das Hochladen und Installieren von Vorab- oder Entwicklungsfirmware von der <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">offiziellen GitHub Releases-Seite</a> — fahren Sie mit Vorsicht fort, da die Installation instabiler Firmware Ihr Gerät soft-bricken und einen <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">Wiederherstellungs-Flash über USB-C Serial</a> erfordern kann.",
-  "note_ota_webconfig": "Verwenden Sie für regelmäßige Updates stattdessen den <strong>Web-Konfigurator</strong> auf Ihrem Remote-Gerät. Dieser benachrichtigt Sie, wenn ein offizielles Update verfügbar ist, und führt Sie sicher durch den Prozess.",
+  "note_no_disconnect": "⚠️ <strong>Trenne das Dock während des Updates nicht.</strong>",
+  "note_expert_warning": "🧪 <strong>Experimentelle Funktionen</strong> - Die folgenden Einstellungen sind Early-Access- oder Entwicklungsfunktionen, die im Standardprodukt noch nicht verfügbar sind. Sie sind standardmäßig deaktiviert und nur für Testzwecke gedacht. Gehe mit Vorsicht vor. Wir freuen uns über Feedback, können aber keinen Support bieten.",
+  "note_status_info": "💡 Verwende für die normale Konfiguration den Web-Konfigurator auf deinem Remote-Gerät - öffne stattdessen die Adresse der Fernbedienung in deinem Browser.",
+  "note_status_close": "Dies ist die erweiterte Management-Oberfläche des Docks - bitte schließe sie nach Abschluss, um Verbindungsressourcen freizugeben.",
+  "note_ota_warning": "⚠️ <strong>Manuelle Firmware-Updates sind nur für erfahrene Benutzer.</strong> Diese Seite ermöglicht das Hochladen und Installieren von Vorab- oder Entwicklungsfirmware von der <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">offiziellen GitHub Releases-Seite</a> — fahre mit Vorsicht fort, da die Installation instabiler Firmware dein Gerät soft-bricken und einen <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">Wiederherstellungs-Flash über USB-C Serial</a> erfordern kann.",
+  "note_ota_webconfig": "Verwende für regelmäßige Updates stattdessen den <strong>Web-Konfigurator</strong> auf deinem Remote-Gerät. Dieser benachrichtigt dich, wenn ein offizielles Update verfügbar ist, und führt dich sicher durch den Prozess.",
 
   "st_connected": "Verbunden",
   "st_disconnected": "Getrennt",
