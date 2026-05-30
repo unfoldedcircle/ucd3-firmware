@@ -31,6 +31,7 @@ def main():
 
     # Load other languages, only include differing values
     for f in sorted(LANG_DIR.glob("*.json")):
+        print(f"Processing {f}...")
         code = filename_to_code(f)
         if code == "en":
             continue
