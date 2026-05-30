@@ -260,18 +260,26 @@
             <button id="btn-port1-uart" data-i18n="btn_apply_uart">Apply UART</button>
 
             <h3 data-i18n="hdr_serial_console">Serial Console</h3>
-            <div class="form-row form-inline">
-              <label for="port1-buffering" data-i18n="lbl_buffering">Buffering</label>
-              <select id="port1-buffering">
-                <option value="chunk">Chunk</option>
-                <option value="line">Line</option>
-              </select>
-              <label for="port1-terminator" data-i18n="lbl_terminator">Terminator</label>
-              <input type="text" id="port1-terminator" value="0x0D" class="input-sm" placeholder="0x0D">
+            <div class="form-row">
+              <div class="form-inline form-group">
+                <label for="port1-buffering" data-i18n="lbl_buffering">Buffering</label>
+                <select id="port1-buffering" class="input-sm-select">
+                  <option value="chunk">Chunk</option>
+                  <option value="line">Line</option>
+                </select>
+              </div>
+              <div class="form-inline form-group">
+                <label for="port1-terminator" data-i18n="lbl_terminator">Terminator</label>
+                <input type="text" id="port1-terminator" value="0x0D" class="input-terminator" placeholder="0x0D">
+              </div>
+              <div class="form-inline form-group">
+                <label for="port1-timeout" data-i18n="lbl_line_timeout">Line timeout</label>
+                <input type="number" id="port1-timeout" min="0" max="65535" value="100" class="input-timeout">
+                <span class="unit-label" data-i18n="lbl_ms_no_timeout">ms (0 = no timeout)</span>
+              </div>
             </div>
-            <button id="btn-port1-serial-cfg" data-i18n="btn_apply_buffering">Apply Buffering</button>
-
             <div class="form-row console-controls">
+              <button id="btn-port1-serial-cfg" data-i18n="btn_apply_buffering">Apply Buffering</button>
               <button id="btn-port1-console" data-i18n="btn_enable_console">Enable Console</button>
               <button id="btn-port1-clear" data-i18n="btn_clear">Clear</button>
             </div>
@@ -365,18 +373,26 @@
             <button id="btn-port2-uart" data-i18n="btn_apply_uart">Apply UART</button>
 
             <h3 data-i18n="hdr_serial_console">Serial Console</h3>
-            <div class="form-row form-inline">
-              <label for="port2-buffering" data-i18n="lbl_buffering">Buffering</label>
-              <select id="port2-buffering">
-                <option value="chunk">Chunk</option>
-                <option value="line">Line</option>
-              </select>
-              <label for="port2-terminator" data-i18n="lbl_terminator">Terminator</label>
-              <input type="text" id="port2-terminator" value="0x0D" class="input-sm" placeholder="0x0D">
+            <div class="form-row">
+              <div class="form-inline form-group">
+                <label for="port2-buffering" data-i18n="lbl_buffering">Buffering</label>
+                <select id="port2-buffering" class="input-sm-select">
+                  <option value="chunk">Chunk</option>
+                  <option value="line">Line</option>
+                </select>
+              </div>
+              <div class="form-inline form-group">
+                <label for="port2-terminator" data-i18n="lbl_terminator">Terminator</label>
+                <input type="text" id="port2-terminator" value="0x0D" class="input-terminator" placeholder="0x0D">
+              </div>
+              <div class="form-inline form-group">
+                <label for="port2-timeout" data-i18n="lbl_line_timeout">Line timeout</label>
+                <input type="number" id="port2-timeout" min="0" max="65535" value="100" class="input-timeout">
+                <span class="unit-label" data-i18n="lbl_ms_no_timeout">ms (0 = no timeout)</span>
+              </div>
             </div>
-            <button id="btn-port2-serial-cfg" data-i18n="btn_apply_buffering">Apply Buffering</button>
-
             <div class="form-row console-controls">
+              <button id="btn-port2-serial-cfg" data-i18n="btn_apply_buffering">Apply Buffering</button>
               <button id="btn-port2-console" data-i18n="btn_enable_console">Enable Console</button>
               <button id="btn-port2-clear" data-i18n="btn_clear">Clear</button>
             </div>

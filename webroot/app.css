@@ -233,6 +233,11 @@ nav a.active {
   margin-bottom: 12px;
 }
 
+.card-info {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
 /* === Status list === */
 ul {
   list-style: none;
@@ -319,6 +324,21 @@ select:focus {
   flex-shrink: 0;
 }
 
+.input-sm-select {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.input-terminator {
+  width: 50px !important;
+  flex-shrink: 0;
+}
+
+.input-timeout {
+  width: 80px;
+  flex-shrink: 0;
+}
+
 /* === Form layouts === */
 .form-row {
   margin-bottom: 10px;
@@ -328,6 +348,13 @@ select:focus {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.form-inline.form-group {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  margin-right: 8px;
+  margin-bottom: 4px;
 }
 
 .form-inline label {
@@ -431,38 +458,6 @@ button:disabled {
   background: none;
 }
 
-.console-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.console-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.console-filter {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.console-filter label {
-  margin: 0;
-  flex-shrink: 0;
-}
-
-.console-filter select {
-  width: auto;
-  flex-shrink: 0;
-}
-
 /* === Connection Status Indicator === */
 #conn-status {
   font-size: 13px;
@@ -488,24 +483,6 @@ button:disabled {
 
 .status-dot.warn {
   background: var(--status-dot-warn);
-}
-
-.console-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-  align-items: center;
-}
-
-.console-controls label {
-  margin: 0;
-  flex-shrink: 0;
-}
-
-.console-controls select {
-  width: auto;
-  flex-shrink: 0;
 }
 
 /* === Console === */
@@ -546,6 +523,35 @@ button:disabled {
 }
 
 .console-send button {
+  flex-shrink: 0;
+}
+
+.console-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.console-controls button {
+  flex-shrink: 0;
+}
+
+.console-filter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.console-filter label {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.console-filter select {
+  width: auto;
   flex-shrink: 0;
 }
 
@@ -643,23 +649,6 @@ progress::-moz-progress-bar {
   margin-top: 8px;
 }
 
-.info-boxes {
-  margin-bottom: 12px;
-}
-
-.info-boxes .note-info {
-  margin-bottom: 4px;
-}
-
-.info-boxes .note-info:last-child {
-  margin-bottom: 0;
-}
-
-.note-info-compact {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-
 /* === Notes === */
 .note {
   font-size: 12px;
@@ -695,15 +684,12 @@ progress::-moz-progress-bar {
   color: rgb(255, 255, 255);
 }
 
-.note-warning strong {
-  font-weight: 600;
-}
-
 [data-theme="light"] .note-warning {
   background: rgb(200, 60, 60);
   border-color: rgb(230, 90, 90);
 }
 
+.note-warning strong,
 .note-info strong {
   font-weight: 600;
 }
@@ -722,6 +708,30 @@ progress::-moz-progress-bar {
 [data-theme="light"] .note-warning a,
 [data-theme="light"] .note-info a {
   color: rgb(255, 240, 200);
+}
+
+.unit-label {
+  color: var(--label-color);
+  font-size: 13px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.info-boxes {
+  margin-bottom: 12px;
+}
+
+.info-boxes .note-info {
+  margin-bottom: 4px;
+}
+
+.info-boxes .note-info:last-child {
+  margin-bottom: 0;
+}
+
+.note-info-compact {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 /* === Footer === */
@@ -803,6 +813,20 @@ textarea:focus {
   display: none;
 }
 
+/* === Dev Mode Indicator === */
+body.dev-mode::before {
+  content: 'DEV';
+  position: fixed;
+  top: 0;
+  right: 0;
+  background: red;
+  color: white;
+  padding: 4px 8px;
+  font-size: 14px;
+  z-index: 9999;
+  border-bottom-left-radius: 4px;
+}
+
 /* === Responsive === */
 @media (max-width: 600px) {
   .wrapper {
@@ -839,6 +863,11 @@ textarea:focus {
     flex-wrap: wrap;
   }
 
+  .form-inline.form-group {
+    display: inline-flex;
+    width: auto;
+  }
+
   .btn-group {
     justify-content: stretch;
   }
@@ -848,18 +877,18 @@ textarea:focus {
   }
 
   .console-controls {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    flex-wrap: wrap;
   }
 
-  .console-buttons {
-    width: 100%;
-    justify-content: flex-start;
+  .console-controls button {
+    flex: 1 1 45%;
+    min-width: 120px;
   }
 
-  .console-buttons button {
-    flex: 1;
+  .console-controls label,
+  .console-controls select {
+    width: auto;
+    flex-shrink: 0;
   }
 
   .console-filter {
@@ -867,18 +896,3 @@ textarea:focus {
     justify-content: flex-start;
   }
 }
-
-/* === Dev Mode Indicator === */
-body.dev-mode::before {
-  content: 'DEV';
-  position: fixed;
-  top: 0;
-  right: 0;
-  background: red;
-  color: white;
-  padding: 4px 8px;
-  font-size: 14px;
-  z-index: 9999;
-  border-bottom-left-radius: 4px;
-}
-

@@ -52,6 +52,8 @@
   "lbl_parity": "Pariteetti",
   "lbl_buffering": "Puskurointi",
   "lbl_terminator": "Päättäjä",
+  "lbl_line_timeout": "Rivin timeout",
+  "lbl_ms_no_timeout": "ms (0 = ei timeoutia)",
   "lbl_impulse": "Impulssi (ms)",
   "lbl_current_version": "Nykyinen versio:",
   "lbl_log_level": "Lokitaso",

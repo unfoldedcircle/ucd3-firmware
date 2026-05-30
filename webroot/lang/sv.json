@@ -52,6 +52,8 @@
   "lbl_parity": "Paritet",
   "lbl_buffering": "Buffring",
   "lbl_terminator": "Terminator",
+  "lbl_line_timeout": "Rad timeout",
+  "lbl_ms_no_timeout": "ms (0 = ingen timeout)",
   "lbl_impulse": "Impuls (ms)",
   "lbl_current_version": "Nuvarande version:",
   "lbl_log_level": "Loggnivå",

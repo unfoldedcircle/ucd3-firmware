@@ -857,7 +857,23 @@ Pages.Ports = {
       if (cfg.terminator !== undefined) {
         document.getElementById("port" + p + "-terminator").value = Pages.Ports.charToHex(cfg.terminator);
       }
+      if (cfg.timeout_ms !== undefined) {
+        document.getElementById("port" + p + "-timeout").value = cfg.timeout_ms;
+      }
     }).catch(function() {});
+  },
+
+  applyBuffering: function(port) {
+    var hex = document.getElementById("port" + port + "-terminator").value;
+    var timeout = parseInt(document.getElementById("port" + port + "-timeout").value) || 0;
+    WS.request("set_serial_config", {
+      port: port,
+      buffering: document.getElementById("port" + port + "-buffering").value,
+      terminator: Pages.Ports.hexToChar(hex),
+      timeout_ms: timeout
+    })
+        .then(function() { Toast.success(I18N.t("t_buffering_applied")); })
+        .catch(function(e) { Toast.error(e); });
   },
 
   charToHex: function(str) {
@@ -965,14 +981,7 @@ Pages.Ports = {
     });
 
     document.getElementById("btn-port" + n + "-serial-cfg").addEventListener("click", function() {
-      var hex = document.getElementById("port" + n + "-terminator").value;
-      WS.request("set_serial_config", {
-        port: n,
-        buffering: document.getElementById("port" + n + "-buffering").value,
-        terminator: Pages.Ports.hexToChar(hex)
-      })
-          .then(function() { Toast.success(I18N.t("t_buffering_applied")); })
-          .catch(function(e) { Toast.error(e); });
+      Pages.Ports.applyBuffering(n);
     });
 
     document.getElementById("btn-port" + n + "-console").addEventListener("click", function() {

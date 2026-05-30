@@ -52,6 +52,8 @@
   "lbl_parity": "Parité",
   "lbl_buffering": "Mise en tampon",
   "lbl_terminator": "Terminateur",
+  "lbl_line_timeout": "Délai ligne",
+  "lbl_ms_no_timeout": "ms (0 = aucun délai)",
   "lbl_impulse": "Impulsion (ms)",
   "lbl_current_version": "Version actuelle :",
   "lbl_log_level": "Niveau de journal",

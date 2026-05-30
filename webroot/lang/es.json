@@ -52,6 +52,8 @@
   "lbl_parity": "Paridad",
   "lbl_buffering": "Almacenamiento en búfer",
   "lbl_terminator": "Terminador",
+  "lbl_line_timeout": "Timeout de línea",
+  "lbl_ms_no_timeout": "ms (0 = sin timeout)",
   "lbl_impulse": "Impulso (ms)",
   "lbl_current_version": "Versión actual:",
   "lbl_log_level": "Nivel de registro",
