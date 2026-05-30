@@ -492,7 +492,14 @@ button:disabled {
   border-radius: 4px;
   padding: 8px;
   margin: 8px 0;
-  height: calc(8 * 1.4em + 16px);
+  height: calc(4 * 1.4em + 16px);
+  overflow-y: auto;
+}
+
+.console-resize {
+  resize: vertical;
+  min-height: calc(4 * 1.4em + 16px);
+  overflow-x: auto;
   overflow-y: auto;
 }
 
