@@ -94,6 +94,10 @@
   "note_wifi_restart": "Il dock si riavvierà dopo le modifiche WiFi.",
   "note_no_disconnect": "⚠️ <strong>Non scollegare il dock durante l'aggiornamento.</strong>",
   "note_expert_warning": "🧪 <strong>Funzionalità sperimentali</strong> - Le impostazioni seguenti sono funzionalità di accesso anticipato o di sviluppo non ancora disponibili nel prodotto standard. Sono disabilitate per impostazione predefinita e destinate solo a scopo di test. Procedere con cautela. Apprezziamo i feedback, ma non possiamo fornire supporto.",
+  "note_status_info": "💡 Per la configurazione normale, utilizzare il Web-Configurator sul dispositivo Remote - aprire invece l'indirizzo del Remote nel browser.",
+  "note_status_close": "Questa è l'interfaccia di gestione avanzata del Dock - chiuderla al termine per liberare le risorse di connessione.",
+  "note_ota_warning": "⚠️ <strong>Gli aggiornamenti manuali del firmware sono riservati solo agli utenti esperti.</strong> Questa pagina consente di caricare e applicare firmware pre-release o di sviluppo dalla <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">pagina ufficiale delle release GitHub</a> — procedere con cautela, poiché l'installazione di firmware instabile potrebbe rendere inutilizzabile il dispositivo e richiedere un <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">flash di ripristino via USB-C serial</a>.",
+  "note_ota_webconfig": "Per gli aggiornamenti regolari, utilizzare invece il <strong>Web-Configurator</strong> sul dispositivo Remote. Notificherà quando è disponibile un aggiornamento ufficiale e guiderà in modo sicuro attraverso il processo.",
 
   "st_connected": "Connesso",
   "st_disconnected": "Disconnesso",

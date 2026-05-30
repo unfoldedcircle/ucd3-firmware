@@ -36,6 +36,9 @@
 
       <!-- ============ Status ============ -->
       <section id="page-status">
+        <div class="info-boxes">
+          <p class="note note-info" data-i18n-html="note_status_info">💡 For normal configuration, use the Web-Configurator on your Remote device - open the Remote's address in your browser instead.</p>
+          <p class="note note-info note-info-compact" data-i18n-html="note_status_close">This is the Dock's advanced management UI - please close it when you're done to free up connection resources.</p>
         <ul id="status-list">
           <li><span class="title" data-i18n="lbl_name">Name</span><span class="content" id="s-name">&mdash;</span></li>
           <li><span class="title" data-i18n="lbl_hostname">Hostname</span><span class="content" id="s-hostname">&mdash;</span></li>
@@ -417,6 +420,8 @@
       <section id="page-ota" class="hidden">
         <div class="card">
           <h2 data-i18n="hdr_fw_update">Firmware Update</h2>
+          <p class="note note-warning" data-i18n-html="note_ota_warning">⚠️ <strong>Manual firmware updates are for advanced users only.</strong> This page allows you to upload and apply pre-release or development firmware from the <a href="https://github.com/unfoldedcircle/ucd3-firmware/releases" target="_blank">official GitHub releases page</a> — proceed with caution, as installing unstable firmware may soft-brick your device and require a <a href="https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md" target="_blank">recovery flash via USB-C serial</a>.</p>
+          <p class="note note-warning" data-i18n-html="note_ota_webconfig">For regular updates, use the <strong>Web-Configurator</strong> on your Remote device instead. It will notify you when an official update is available and guide you through the process safely.</p>
           <p><span data-i18n="lbl_current_version">Current version:</span> <span id="ota-version">&mdash;</span></p>
           <div class="form-row">
             <input type="file" id="ota-file" accept=".bin">

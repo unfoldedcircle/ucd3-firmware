@@ -94,6 +94,10 @@
   "note_wifi_restart": "Het dock zal herstarten na het toepassen van WiFi-wijzigingen.",
   "note_no_disconnect": "⚠️ <strong>Koppel het dock niet los tijdens de update.</strong>",
   "note_expert_warning": "🧪 <strong>Experimentele functies</strong> - De onderstaande instellingen zijn early-access of ontwikkelingsfuncties die nog niet beschikbaar zijn in het standaardproduct. Ze zijn standaard uitgeschakeld en alleen bedoeld voor testdoeleinden. Ga voorzichtig te werk. We waarderen feedback, maar kunnen geen ondersteuning bieden.",
+  "note_status_info": "💡 Gebruik voor normale configuratie de Web-Configurator op uw Remote-apparaat - open in plaats daarvan het adres van de Remote in uw browser.",
+  "note_status_close": "Dit is de geavanceerde beheerinterface van de Dock - sluit deze wanneer u klaar bent om verbindingsresources vrij te maken.",
+  "note_ota_warning": "⚠️ <strong>Handmatige firmware-updates zijn alleen voor ervaren gebruikers.</strong> Deze pagina stelt u in staat om pre-release of development firmware te uploaden en toe te passen van de <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">officiële GitHub releases-pagina</a> — ga voorzichtig te werk, omdat het installeren van onstabiele firmware uw device kan soft-bricken en een <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">herstel-flash via USB-C serial</a> kan vereisen.",
+  "note_ota_webconfig": "Gebruik voor regelmatige updates in plaats,,
 
   "st_connected": "Verbonden",
   "st_disconnected": "Niet verbonden",

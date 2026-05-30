@@ -94,6 +94,10 @@
   "note_wifi_restart": "Docken vil starte på nytt etter WiFi-endringer.",
   "note_no_disconnect": "⚠️ <strong>Ikke koble fra docken under oppdatering.</strong>",
   "note_expert_warning": "🧪 <strong>Eksperimentelle funksjoner</strong> - Innstillingene nedenfor er tidlig tilgang eller utviklingsfunksjoner som ennå ikke er tilgjengelige i standardproduktet. De er deaktivert som standard og kun ment for testformål. Fortsett med forsiktighet. Vi setter pris på tilbakemeldinger, men kan ikke tilby støtte.",
+  "note_status_info": "💡 Bruk Web-Konfiguratoren på Remote-enheten din for normal konfigurasjon - åpne Remote-adressen i nettleseren din i stedet.",
+  "note_status_close": "Dette er Dockens avanserte administrasjonsgrensesnitt - vennligst lukk det når du er ferdig for å frigjøre tilkoblingsressurser.",
+  "note_ota_warning": "⚠️ <strong>Manuelle firmware-oppdateringer er kun for erfarne brukere.</strong> Denne siden lar deg laste opp og bruke forhåndsslipp- eller utviklingsfirmware fra den <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">offisielle GitHub releases-siden</a> — fortsett med forsiktighet, da installasjon av ustabil firmware kan gjøre enheten din ubrukelig og kreve en <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">gjenopprettings-flash via USB-C serial</a>.",
+  "note_ota_webconfig": "Bruk i stedet <strong>Web-Konfiguratoren</strong> på Remote-enheten din for vanlige oppdateringer. Den vil varsle deg når en offisiell oppdatering er tilgjengelig og veilede deg trygt gjennom prosessen.",
 
   "st_connected": "Tilkoblet",
   "st_disconnected": "Frakoblet",

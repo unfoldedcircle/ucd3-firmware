@@ -94,6 +94,10 @@
   "note_wifi_restart": "Telakka käynnistyy uudelleen WiFi-muutosten jälkeen.",
   "note_no_disconnect": "⚠️ <strong>Älä irrota telakkaa päivityksen aikana.</strong>",
   "note_expert_warning": "🧪 <strong>Kokeelliset ominaisuudet</strong> - Alla olevat asetukset ovat varhaisen pääsyn tai kehitysvaiheen ominaisuuksia, jotka eivät vielä ole saatavilla vakiotuotteessa. Ne on oletusarvoisesti poistettu käytöstä ja tarkoitettu vain testikäyttöön. Jatka varoen. Arvostamme palautetta, mutta emme voi tarjota tukea.",
+  "note_status_info": "💡 Käytä normaaliin määritykseen Remote-laitteesi Web-Konfiguraattoria - avaa sen sijaan Remote-laitteen osoite selaimessasi.",
+  "note_status_close": "Tämä on Telakan edistynyt hallintakäyttöliittymä - sulje se valmistuttuasi vapauttaaksesi yhteysresursseja.",
+  "note_ota_warning": "⚠️ <strong>Manuaaliset laiteohjelmistopäivitykset ovat vain kokeneille käyttäjille.</strong> Tämä sivu antaa sinun ladata ja asentaa esijulkaisu- tai kehitysvaiheen laiteohjelmiston <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">viralliselta GitHub-julkaisusivulta</a> — jatka varoen, sillä epävakaan laiteohjelmiston asentaminen voi tehdä laitteestasi käyttökelvottoman ja vaatia <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">palautus-flashin USB-C serialin kautta</a>.",
+  "note_ota_webconfig": "Käytä säännöllisiin päivityksiin sen sijaan Remote-laitteesi <strong>Web-Konfiguraattoria</strong>. Se ilmoittaa, kun virallinen päivitys on saatavilla, ja opastaa sinut turvallisesti prosessin läpi.",
 
   "st_connected": "Yhdistetty",
   "st_disconnected": "Yhteys katkaistu",
