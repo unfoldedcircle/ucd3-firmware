@@ -143,6 +143,7 @@
   "e_token_min": "Tunnuksen on oltava vähintään 4 merkkiä",
   "e_invalid_duration": "Virheellinen kesto",
   "e_invalid_token": "Virheellinen tunnus",
+  "e_invalid_terminator": "Virheellinen päättäjäformaatti. Käytä 0x00-0xFF",
   "e_auth_failed": "Todennus epäonnistui.",
   "e_upload_auth": "Lähetyksen todennus epäonnistui",
   "e_conn_lost": "Yhteys katkesi",

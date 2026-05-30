@@ -143,6 +143,7 @@
   "e_token_min": "Token måste vara minst 4 tecken",
   "e_invalid_duration": "Ogiltig varaktighet",
   "e_invalid_token": "Ogiltig token",
+  "e_invalid_terminator": "Ogiltigt terminator-format. Använd 0x00-0xFF",
   "e_auth_failed": "Autentisering misslyckades.",
   "e_upload_auth": "Uppladdningsautentisering misslyckades",
   "e_conn_lost": "Anslutning förlorad",

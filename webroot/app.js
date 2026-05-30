@@ -865,15 +865,33 @@ Pages.Ports = {
 
   applyBuffering: function(port) {
     var hex = document.getElementById("port" + port + "-terminator").value;
+    
+    // Validate hex terminator format
+    if (!this.validateHexTerminator(hex)) {
+      Toast.show(I18N.t("e_invalid_terminator"), true);
+      return;
+    }
+    
+    var char = this.hexToChar(hex);
+    if (char === null) {
+      Toast.show(I18N.t("e_invalid_terminator"), true);
+      return;
+    }
+    
     var timeout = parseInt(document.getElementById("port" + port + "-timeout").value) || 0;
     WS.request("set_serial_config", {
       port: port,
       buffering: document.getElementById("port" + port + "-buffering").value,
-      terminator: Pages.Ports.hexToChar(hex),
+      terminator: char,
       timeout_ms: timeout
     })
         .then(function() { Toast.success(I18N.t("t_buffering_applied")); })
         .catch(function(e) { Toast.error(e); });
+  },
+
+  validateHexTerminator: function(hex) {
+    var pattern = /^0x[0-9A-Fa-f]{1,2}$/;
+    return pattern.test(hex.trim());
   },
 
   charToHex: function(str) {
@@ -882,9 +900,12 @@ Pages.Ports = {
   },
 
   hexToChar: function(hex) {
+    if (!this.validateHexTerminator(hex)) {
+      return null;
+    }
     var s = hex.trim().replace(/^0x/i, "");
     var code = parseInt(s, 16);
-    if (isNaN(code) || code < 0 || code > 0xFF) return "\n";
+    if (isNaN(code) || code < 0 || code > 0xFF) return null;
     return String.fromCharCode(code);
   },
 

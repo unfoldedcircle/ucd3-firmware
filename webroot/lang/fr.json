@@ -143,6 +143,7 @@
   "e_token_min": "Le jeton doit comporter au moins 4 caractères",
   "e_invalid_duration": "Durée invalide",
   "e_invalid_token": "Jeton invalide",
+  "e_invalid_terminator": "Format de terminateur invalide. Utilisez 0x00-0xFF",
   "e_auth_failed": "Authentification échouée.",
   "e_upload_auth": "Authentification du téléversement échouée",
   "e_conn_lost": "Connexion perdue",

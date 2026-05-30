@@ -143,6 +143,7 @@
   "e_token_min": "Token skal være mindst 4 tegn",
   "e_invalid_duration": "Ugyldig varighed",
   "e_invalid_token": "Ugyldigt token",
+  "e_invalid_terminator": "Ugyldigt terminator-format. Brug 0x00-0xFF",
   "e_auth_failed": "Godkendelse mislykkedes.",
   "e_upload_auth": "Upload-godkendelse mislykkedes",
   "e_conn_lost": "Forbindelse mistet",

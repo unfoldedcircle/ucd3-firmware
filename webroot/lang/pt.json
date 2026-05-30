@@ -143,6 +143,7 @@
   "e_token_min": "O token deve ter pelo menos 4 caracteres",
   "e_invalid_duration": "Duração inválida",
   "e_invalid_token": "Token inválido",
+  "e_invalid_terminator": "Formato de terminador inválido. Use 0x00-0xFF",
   "e_auth_failed": "Autenticação falhada.",
   "e_upload_auth": "Autenticação de carregamento falhada",
   "e_conn_lost": "Ligação perdida",

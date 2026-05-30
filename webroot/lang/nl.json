@@ -143,6 +143,7 @@
   "e_token_min": "Token moet minstens 4 tekens bevatten",
   "e_invalid_duration": "Ongeldige duur",
   "e_invalid_token": "Ongeldig token",
+  "e_invalid_terminator": "Ongeldig terminator formaat. Gebruik 0x00-0xFF",
   "e_auth_failed": "Authenticatie mislukt.",
   "e_upload_auth": "Upload-authenticatie mislukt",
   "e_conn_lost": "Verbinding verloren",

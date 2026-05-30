@@ -151,6 +151,7 @@ For `mode: RS232`, the UART settings can be configured with additional fields:
 ```json
 {
   "type": "dock",
+  "id": 200,
   "command": "set_port_mode",
   "port": 1,
   "mode": "RS232",
@@ -172,6 +173,7 @@ Enable trigger (output high):
 ```json
 {
   "type": "dock",
+  "id": 201,
   "command": "set_port_trigger",
   "port": 1,
   "trigger": true
@@ -182,6 +184,7 @@ Disable trigger (output low):
 ```json
 {
   "type": "dock",
+  "id": 202,
   "command": "set_port_trigger",
   "port": 1,
   "trigger": false
@@ -192,6 +195,7 @@ Trigger impulse:
 ```json
 {
   "type": "dock",
+  "id": 203,
   "command": "set_port_trigger",
   "port": 1,
   "trigger": true,
@@ -207,6 +211,7 @@ Enable log message forwarding as WebSocket event messages:
 ```json
 {
   "type": "dock",
+  "id": 220,
   "command": "enable_log_events",
   "enable": true
 }
@@ -230,6 +235,7 @@ Send data:
 ```json
 {
   "type": "dock",
+  "id": 221,
   "command": "send_serial",
   "port": 1,
   "data": "Hello RS232\n"
@@ -240,6 +246,7 @@ Enable serial data receive events:
 ```json
 {
   "type": "dock",
+  "id": 222,
   "command": "enable_serial_events",
   "port": 1,
   "enable": true
@@ -260,7 +267,28 @@ Enable TCP serial server:
 ```json
 {
   "type": "dock",
+  "id": 223,
   "command": "set_serial_tcp",
   "enable": true
+}
+```
+
+Get TCP serial server setting:
+```json
+{
+  "type": "dock",
+  "id": 223,
+  "command": "get_serial_tcp"
+}
+```
+
+Example response:
+```json
+{
+  "type": "dock",
+  "req_id": 223,
+  "msg": "get_serial_tcp",
+  "code": 200,
+  "serial_tcp": false
 }
 ```
