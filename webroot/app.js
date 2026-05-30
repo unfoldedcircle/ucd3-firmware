@@ -168,17 +168,26 @@ var WS = {
   reconnectTimer: null,
   eventHandlers: {},
   statusRefreshTimer: null,
+  keepConnected: false,
 
   connect: function() {
     if (this.socket && this.socket.readyState < 2) return;
     clearTimeout(this.reconnectTimer);
     this.socket = new WebSocket(this.url);
-    this.socket.onopen = function() { UI.setStatus("connecting"); };
+    this.socket.onopen = function() {
+      UI.setStatus("connecting");
+      // If not authenticated and not keeping connection, close after status fetch
+      if (!WS.keepConnected) {
+        Pages.Status.loadWithClose();
+      }
+    };
     var self = this;
     this.socket.onclose = function() {
       self.authenticated = false;
       self.rejectAllPending();
-      self.scheduleReconnect();
+      if (self.keepConnected) {
+        self.scheduleReconnect();
+      }
     };
     this.socket.onerror = function() {};
     this.socket.onmessage = function(e) { self.onMessage(JSON.parse(e.data)); };
@@ -191,13 +200,17 @@ var WS = {
         UI.setStatus("connecting");
       } else {
         UI.setStatus("err");
-        if (UI.currentPage !== "status") {
+        // Don't show login dialog if we're just fetching status
+        if (UI.currentPage !== "status" && this.keepConnected) {
           UI.showLogin();
         }
       }
       // Load status page regardless (no auth needed)
       if (UI.currentPage === "status") {
-        Pages.Status.load();
+        if (this.keepConnected) {
+          Pages.Status.load();
+        }
+        // If not keeping connected, Status.loadWithClose() was already called on open
       }
       return;
     }
@@ -211,6 +224,7 @@ var WS = {
         UI.hideLogin();
         UI.onAuthenticated();
         this.startStatusRefresh();
+        this.keepConnected = true;
       } else {
         this.token = null;
         sessionStorage.removeItem("token");
@@ -302,6 +316,13 @@ var WS = {
     if (this.statusRefreshTimer) {
       clearInterval(this.statusRefreshTimer);
       this.statusRefreshTimer = null;
+    }
+  },
+
+  disconnect: function() {
+    this.keepConnected = false;
+    if (this.socket && this.socket.readyState === 1) {
+      this.socket.close();
     }
   },
 
@@ -406,6 +427,7 @@ var UI = {
     document.getElementById("btn-logout").addEventListener("click", function() {
       WS.token = null;
       WS.authenticated = false;
+      WS.keepConnected = false;
       sessionStorage.removeItem("token");
       if (WS.socket && WS.socket.readyState === 1) {
         WS.socket.close();
@@ -416,6 +438,9 @@ var UI = {
 
     // Restore token from session
     WS.token = sessionStorage.getItem("token");
+
+    // Set connection mode based on auth state
+    WS.keepConnected = !!WS.token;
 
     // Connect WebSocket
     WS.connect();
@@ -499,6 +524,11 @@ var UI = {
     }
     document.getElementById("login-pw").value = "";
     document.getElementById("login-pw").focus();
+    // Open persistent connection when login dialog is shown
+    WS.keepConnected = true;
+    if (!WS.socket || WS.socket.readyState !== 1) {
+      WS.connect();
+    }
   },
 
   hideLogin: function() {
@@ -512,23 +542,42 @@ var UI = {
 var Pages = {};
 
 Pages.Status = {
+  render: function(data) {
+    document.getElementById("s-name").textContent = data.name || "\u2014";
+    document.getElementById("s-hostname").textContent = data.hostname || "\u2014";
+    document.getElementById("s-model").textContent = data.model || "\u2014";
+    document.getElementById("s-revision").textContent = data.revision || "\u2014";
+    document.getElementById("s-version").textContent = data.version || "\u2014";
+    document.getElementById("s-serial").textContent = data.serial || "\u2014";
+    document.getElementById("s-ethernet").textContent = data.ethernet
+        ? I18N.t("st_connected") : I18N.t("st_disconnected");
+    document.getElementById("s-wifi").textContent = data.wifi
+        ? I18N.t("st_connected") + (data.ssid ? " (" + data.ssid + ")" : "")
+        : I18N.t("st_disconnected");
+    document.getElementById("s-uptime").textContent = data.uptime || "\u2014";
+    document.getElementById("s-heap").textContent = data.free_heap || "\u2014";
+    document.getElementById("s-reset").textContent = data.reset_reason || "\u2014";
+  },
+
   load: function() {
     WS.request("get_sysinfo").then(function(data) {
-      document.getElementById("s-name").textContent = data.name || "\u2014";
-      document.getElementById("s-hostname").textContent = data.hostname || "\u2014";
-      document.getElementById("s-model").textContent = data.model || "\u2014";
-      document.getElementById("s-revision").textContent = data.revision || "\u2014";
-      document.getElementById("s-version").textContent = data.version || "\u2014";
-      document.getElementById("s-serial").textContent = data.serial || "\u2014";
-      document.getElementById("s-ethernet").textContent = data.ethernet
-          ? I18N.t("st_connected") : I18N.t("st_disconnected");
-      document.getElementById("s-wifi").textContent = data.wifi
-          ? I18N.t("st_connected") + (data.ssid ? " (" + data.ssid + ")" : "")
-          : I18N.t("st_disconnected");
-      document.getElementById("s-uptime").textContent = data.uptime || "\u2014";
-      document.getElementById("s-heap").textContent = data.free_heap || "\u2014";
-      document.getElementById("s-reset").textContent = data.reset_reason || "\u2014";
+      Pages.Status.render(data);
     }).catch(function() {});
+  },
+
+  loadWithClose: function() {
+    var self = this;
+    WS.request("get_sysinfo").then(function(data) {
+      Pages.Status.render(data);
+      // Close WebSocket after fetching status when not authenticated
+      setTimeout(function() {
+        WS.disconnect();
+      }, 500);
+    }).catch(function() {
+      setTimeout(function() {
+        WS.disconnect();
+      }, 500);
+    });
   }
 };
 
