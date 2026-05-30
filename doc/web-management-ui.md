@@ -184,7 +184,7 @@ Event (dock to client, unsolicited):
   "msg": "ir_receive",
   "ir_code": "17;0x2A4C0A84820C;48;0"
 }
-````
+```
 
 ### Reconnection Strategy
 
@@ -532,6 +532,11 @@ http://localhost:9000/?dock=$IP_OF_DOCK3
 
 ⚠️ Remember to create the unified `webroot/lang.js` file from the language files with the [tools/build_lang.py](../tools/build_lang.py)
 script! You can also run the IDF firmware build command.
+
+Run from the project's root directory:
+```shell
+python3 tools/build_lang.py
+```
 
 ## Planned Features
 

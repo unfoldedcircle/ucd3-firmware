@@ -37,8 +37,8 @@
       <!-- ============ Status ============ -->
       <section id="page-status">
         <div class="info-boxes">
-          <p class="note note-info" data-i18n-html="note_status_info">💡 For normal configuration, use the Web-Configurator on your Remote device - open the Remote's address in your browser instead.</p>
-          <p class="note note-info note-info-compact" data-i18n-html="note_status_close">This is the Dock's advanced management UI - please close it when you're done to free up connection resources.</p>
+          <p class="note note-info" data-i18n-html="note_status_info">💡 This is the Dock's advanced management UI - For normal configuration, use the Web-Configurator on your Remote device - open the Remote's address in your browser instead.</p>
+          <p class="note note-info note-info-compact" data-i18n-html="note_status_close">Please close it when you're done to free up connection resources.</p>
         <ul id="status-list">
           <li><span class="title" data-i18n="lbl_name">Name</span><span class="content" id="s-name">&mdash;</span></li>
           <li><span class="title" data-i18n="lbl_hostname">Hostname</span><span class="content" id="s-hostname">&mdash;</span></li>
@@ -166,7 +166,13 @@
         </div>
 
         <div class="card">
-          <h2 data-i18n="hdr_learn_ir">Learn IR</h2>
+          <h2>
+            <span data-i18n="hdr_learn_ir">Learn IR</span>
+            <button class="info-trigger" aria-label="IR learning info" popovertarget="ir-learn-info">i</button>
+          </h2>
+          <div id="ir-learn-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_learn">
+            The infrared receiver is at the top of the dock.<br/><a href="https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188" target="_blank">Supported infrared protocols</a>
+          </div>
           <div class="btn-group">
             <button id="btn-ir-learn" data-i18n="btn_start_learning">Start Learning</button>
             <button id="btn-ir-clear" data-i18n="btn_clear">Clear</button>
@@ -180,13 +186,20 @@
       <!-- ============ Ports ============ -->
       <section id="page-ports" class="hidden">
         <p class="note note-warning" data-i18n-html="note_ports_hotplug">⚠️ <strong>Hot-plugging is not supported</strong> and may cause brownouts depending on the port configuration. Always connect accessories before powering on the device.</p>
-        <p class="note note-info" data-i18n-html="note_ports_auto_mode">💡 For stable operation, use a static configuration. AUTO mode detects the peripheral at startup but may cause functionality to disappear if detection fails or nothing is connected.</p>
 
         <!-- Port 1 -->
         <div class="card" id="port-1-card">
-          <h2><span data-i18n="hdr_ext_port">External Port</span> 1</h2>
+          <h2>
+            <span data-i18n="hdr_ext_port">External Port</span> 1
+            <button class="info-trigger" aria-label="Port location and pinout" popovertarget="port1-info">i</button>
+          </h2>
+          <div id="port1-info" class="info-popover" popover role="dialog">
+            Port 1 is next to ethernet, port 2 next to USB-C.<br/>
+            <a href="https://support.unfoldedcircle.com/hc/en-us/articles/20028572717084" target="_blank">3.5mm jack pinout</a>
+          </div>
           <div class="form-row form-inline">
             <label for="port1-mode" data-i18n="lbl_mode">Mode</label>
+            <button class="info-trigger" aria-label="Mode selection info" popovertarget="port1-mode-info">i</button>
             <select id="port1-mode">
               <option value="AUTO">AUTO</option>
               <option value="NONE">NONE</option>
@@ -198,9 +211,16 @@
             </select>
             <button id="btn-port1-mode" data-i18n="btn_apply">Apply</button>
           </div>
+          <div id="port1-mode-info" class="info-popover" popover role="dialog" data-i18n-html="note_ports_auto_mode">
+            For stable operation, use a static configuration.<br/>AUTO mode detects the peripheral at startup but may cause functionality to disappear if detection fails or nothing is connected.
+          </div>
           <div class="form-row">
             <span class="label-inline" data-i18n="lbl_active">Active:</span>
+            <button class="info-trigger" aria-label="Active status info" popovertarget="port1-active-info">i</button>
             <span id="port1-active">&mdash;</span>
+          </div>
+          <div id="port1-active-info" class="info-popover" popover role="dialog" data-i18n-html="info_port_active">
+            Detected peripheral if in AUTO mode.
           </div>
 
           <!-- Trigger controls -->
@@ -265,19 +285,31 @@
             <div class="form-row">
               <div class="form-inline form-group">
                 <label for="port1-buffering" data-i18n="lbl_buffering">Buffering</label>
+                <button class="info-trigger" aria-label="Buffering info" popovertarget="port1-buffering-info">i</button>
                 <select id="port1-buffering" class="input-sm-select">
                   <option value="chunk">Chunk</option>
                   <option value="line">Line</option>
                 </select>
               </div>
+              <div id="port1-buffering-info" class="info-popover" popover role="dialog" data-i18n-html="info_buffering">
+                <strong>Chunk</strong>: data is forwarded in chunks after a short timeout.<br><strong>Line</strong>: data is forwarded line by line; the end of the line is indicated by the terminating character.
+              </div>
               <div class="form-inline form-group">
                 <label for="port1-terminator" data-i18n="lbl_terminator">Terminator</label>
+                <button class="info-trigger" aria-label="Terminator info" popovertarget="port1-terminator-info">i</button>
                 <input type="text" id="port1-terminator" value="0x0D" class="input-terminator" placeholder="0x0D">
+              </div>
+              <div id="port1-terminator-info" class="info-popover" popover role="dialog" data-i18n-html="info_terminator">
+                Line end terminating character in hex notation.<br/>Line feed: 0x0A, Carriage return: 0x0D
               </div>
               <div class="form-inline form-group">
                 <label for="port1-timeout" data-i18n="lbl_line_timeout">Line timeout</label>
+                <button class="info-trigger" aria-label="Line timeout info" popovertarget="port1-timeout-info">i</button>
                 <input type="number" id="port1-timeout" min="0" max="65535" value="100" class="input-timeout">
                 <span class="unit-label" data-i18n="lbl_ms_no_timeout">ms (0 = no timeout)</span>
+              </div>
+              <div id="port1-timeout-info" class="info-popover" popover role="dialog" data-i18n-html="info_line_timeout">
+                Timeout in ms for forwarding received data if no terminating character is detected.
               </div>
             </div>
             <div class="form-row console-controls">
@@ -297,9 +329,20 @@
 
         <!-- Port 2 -->
         <div class="card" id="port-2-card">
-          <h2><span data-i18n="hdr_ext_port">External Port</span> 2</h2>
+          <h2>
+            <span data-i18n="hdr_ext_port">External Port</span> 2
+            <button class="info-trigger" aria-label="Port location and pinout" popovertarget="port2-info">i</button>
+            <div id="port2-info" class="info-popover" popover role="dialog">
+              Port 1 is next to ethernet, port 2 next to USB-C.
+              <a href="https://support.unfoldedcircle.com/hc/en-us/articles/20028572717084" target="_blank">3.5mm jack pinout</a>
+            </div>
+          </h2>
           <div class="form-row form-inline">
             <label for="port2-mode" data-i18n="lbl_mode">Mode</label>
+            <button class="info-trigger" aria-label="Mode selection info" popovertarget="port2-mode-info">i</button>
+            <div id="port2-mode-info" class="info-popover" popover role="dialog" data-i18n-html="note_ports_auto_mode">
+              For stable operation, use a static configuration.<br/>AUTO mode detects the peripheral at startup but may cause functionality to disappear if detection fails or nothing is connected.
+            </div>
             <select id="port2-mode">
               <option value="AUTO">AUTO</option>
               <option value="NONE">NONE</option>
@@ -313,7 +356,11 @@
           </div>
           <div class="form-row">
             <span class="label-inline" data-i18n="lbl_active">Active:</span>
+            <button class="info-trigger" aria-label="Active status info" popovertarget="port2-active-info">i</button>
             <span id="port2-active">&mdash;</span>
+          </div>
+          <div id="port2-active-info" class="info-popover" popover role="dialog" data-i18n-html="info_port_active">
+            Detected peripheral if in AUTO mode.
           </div>
 
           <!-- Trigger controls -->
@@ -378,20 +425,32 @@
             <div class="form-row">
               <div class="form-inline form-group">
                 <label for="port2-buffering" data-i18n="lbl_buffering">Buffering</label>
+                <button class="info-trigger" aria-label="Buffering info" popovertarget="port2-buffering-info">i</button>
                 <select id="port2-buffering" class="input-sm-select">
                   <option value="chunk">Chunk</option>
                   <option value="line">Line</option>
                 </select>
               </div>
+              <div id="port2-buffering-info" class="info-popover" popover role="dialog" data-i18n-html="info_buffering">
+                <strong>Chunk</strong>: data is forwarded in chunks after a short timeout.<br><strong>Line</strong>: data is forwarded line by line; the end of the line is indicated by the terminating character.
+              </div>
               <div class="form-inline form-group">
                 <label for="port2-terminator" data-i18n="lbl_terminator">Terminator</label>
+                <button class="info-trigger" aria-label="Terminator info" popovertarget="port2-terminator-info">i</button>
                 <input type="text" id="port2-terminator" value="0x0D" class="input-terminator" placeholder="0x0D">
+              </div>
+              <div id="port2-terminator-info" class="info-popover" popover role="dialog" data-i18n-html="info_terminator">
+                Line end terminating character in hex notation.<br/>Line feed: 0x0A, Carriage return: 0x0D
               </div>
               <div class="form-inline form-group">
                 <label for="port2-timeout" data-i18n="lbl_line_timeout">Line timeout</label>
+                <button class="info-trigger" aria-label="Line timeout info" popovertarget="port2-timeout-info">i</button>
                 <input type="number" id="port2-timeout" min="0" max="65535" value="100" class="input-timeout">
                 <span class="unit-label" data-i18n="lbl_ms_no_timeout">ms (0 = no timeout)</span>
               </div>
+            </div>
+            <div id="port2-timeout-info" class="info-popover" popover role="dialog" data-i18n-html="info_line_timeout">
+              Timeout in ms for forwarding received data if no terminating character is detected.
             </div>
             <div class="form-row console-controls">
               <button id="btn-port2-serial-cfg" data-i18n="btn_apply_buffering">Apply Buffering</button>

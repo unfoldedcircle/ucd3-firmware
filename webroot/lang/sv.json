@@ -92,17 +92,23 @@
   "btn_start_streaming": "Starta strömning",
   "btn_stop_streaming": "Stoppa strömning",
 
+  "info_ir_learn": "Infraröd-mottagaren är placerad högst upp på docken.<br/><a href=\"https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188\" target=\"_blank\">Infraröda protokoll som stöds</a>",
+  "info_port_active": "Identifierad kringutrustning i AUTO-läge.",
+  "info_buffering": "<strong>Chunk</strong>: data skickas vidare i block efter en kort timeout.<br><strong>Line</strong>: data skickas vidare rad för rad; slutet av raden indikeras av avslutningstecknet.",
+  "info_terminator": "Avslutningstecken för radslut i hexadecimal notation.<br/>Line Feed: 0x0A, Carriage Return: 0x0D",
+  "info_line_timeout": "Timeout i ms för vidarebefordran av mottagen data om inget avslutningstecken upptäcks.",
+
   "note_eth_priority": "Ethernet har prioritet över WiFi.",
   "note_wifi_restart": "Docken kommer att starta om efter WiFi-ändringar.",
   "note_no_disconnect": "⚠️ <strong>Koppla inte från docken under uppdatering.</strong>",
   "note_expert_warning": "🧪 <strong>Experimentella funktioner</strong> - Inställningarna nedan är tidig tillgång eller utvecklingsfunktioner som ännu inte är tillgängliga i standardprodukten. De är inaktiverade som standard och avsedda endast för teständamål. Fortsätt med försiktighet. Vi uppskattar feedback, men kan inte erbjuda support.",
-  "note_status_info": "💡 Använd Web-Konfiguratorn på din Remote-enhet för normal konfiguration - öppna istället Remote-adressen i din webbläsare.",
-  "note_status_close": "Detta är Dockens avancerade administrationsgränssnitt - stäng det när du är klar för att frigöra anslutningsresurser.",
+  "note_status_info": "💡 Detta är Dockens avancerade administrationsgränssnitt. Använd Web-Konfiguratorn på din Remote-enhet för normal konfiguration - öppna istället Remote-adressen i din webbläsare.",
+  "note_status_close": "Stäng det när du är klar för att frigöra anslutningsresurser.",
   "note_ota_warning": "⚠️ <strong>Manuella firmware-uppdateringar är endast för avancerade användare.</strong> Denna sida låter dig ladda upp och använda förhandsversions- eller utvecklingsfirmware från den <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">officiella GitHub releases-sidan</a> — fortsätt med försiktighet, eftersom installation av instabil firmware kan göra din enhet oanvändbar och kräva en <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">återställnings-flash via USB-C serial</a>.",
   "note_ota_webconfig": "Använd istället <strong>Web-Konfiguratorn</strong> på din Remote-enhet för vanliga uppdateringar. Den kommer att meddela dig när en officiell uppdatering är tillgänglig och vägleda dig säkert genom processen.",
   "note_ports_hotplug": "⚠️ <strong>Hot-plugging stöds inte</strong> och kan orsaka spänningsfall beroende på portkonfigurationen. Anslut alltid tillbehör innan du slår på enheten.",
-  "note_ports_auto_mode": "💡 Använd en statisk konfiguration för stabil drift. AUTO-läge identifierar kringutrustning vid start, men kan få funktionalitet att försvinna om identifieringen misslyckas eller om inget är anslutet.",
-  
+  "note_ports_auto_mode": "Använd en statisk konfiguration för stabil drift. AUTO-läge identifierar kringutrustning vid start, men kan få funktionalitet att försvinna om identifieringen misslyckas eller om inget är anslutet.",
+
   "st_connected": "Ansluten",
   "st_disconnected": "Frånkopplad",
   "st_connecting": "Ansluter…",
