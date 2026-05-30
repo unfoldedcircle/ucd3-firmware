@@ -100,6 +100,8 @@
   "note_status_close": "Esta é a interface de gerenciamento avançada do Dock - por favor feche-a quando terminar para liberar recursos de conexão.",
   "note_ota_warning": "⚠️ <strong>Atualizações manuais de firmware são apenas para usuários avançados.</strong> Esta página permite carregar e aplicar firmware de pré-lançamento ou desenvolvimento da <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">página oficial de releases do GitHub</a> — prossiga com cautela, pois instalar firmware instável pode inutilizar seu dispositivo e exigir um <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">flash de recuperação via USB-C serial</a>.",
   "note_ota_webconfig": "Para atualizações regulares, use o <strong>Web-Configurator</strong> no seu dispositivo Remote em vez disso. Ele notificará quando uma atualização oficial estiver disponível e o guiará com segurança pelo processo.",
+  "note_ports_hotplug": "⚠️ <strong>Conexão a quente não é suportada</strong> e pode causar quedas de tensão dependendo da configuração da porta. Sempre conecte os acessórios antes de ligar o dispositivo.",
+  "note_ports_auto_mode": "💡 Para operação estável, use uma configuração estática. O modo AUTO detecta o periférico na inicialização, mas pode fazer com que a funcionalidade desapareça se a detecção falhar ou se nada estiver conectado.",
 
   "st_connected": "Ligado",
   "st_disconnected": "Desligado",

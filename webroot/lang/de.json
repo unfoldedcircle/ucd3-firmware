@@ -100,6 +100,8 @@
   "note_status_close": "Dies ist die erweiterte Management-Oberfläche des Docks - bitte schließe sie nach Abschluss, um Verbindungsressourcen freizugeben.",
   "note_ota_warning": "⚠️ <strong>Manuelle Firmware-Updates sind nur für erfahrene Benutzer.</strong> Diese Seite ermöglicht das Hochladen und Installieren von Vorab- oder Entwicklungsfirmware von der <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">offiziellen GitHub Releases-Seite</a> — fahre mit Vorsicht fort, da die Installation instabiler Firmware dein Gerät soft-bricken und einen <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">Wiederherstellungs-Flash über USB-C Serial</a> erfordern kann.",
   "note_ota_webconfig": "Verwende für regelmäßige Updates stattdessen den <strong>Web-Konfigurator</strong> auf deinem Remote-Gerät. Dieser benachrichtigt dich, wenn ein offizielles Update verfügbar ist, und führt dich sicher durch den Prozess.",
+  "note_ports_hotplug": "⚠️ <strong>Hot-Plugging wird nicht unterstützt</strong> und kann je nach Port-Konfiguration zu Spannungseinbrüchen führen. Schließe Zubehör immer vor dem Einschalten des Docks an.",
+  "note_ports_auto_mode": "💡 Verwende für stabilen Betrieb eine statische Konfiguration. Der AUTO-Modus erkennt die Peripherie beim Start, kann aber dazu führen, dass Funktionen verschwinden, wenn die Erkennung fehlschlägt oder nichts angeschlossen ist.",
 
   "st_connected": "Verbunden",
   "st_disconnected": "Getrennt",

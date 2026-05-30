@@ -100,6 +100,8 @@
   "note_status_close": "Tämä on Telakan edistynyt hallintakäyttöliittymä - sulje se valmistuttuasi vapauttaaksesi yhteysresursseja.",
   "note_ota_warning": "⚠️ <strong>Manuaaliset laiteohjelmistopäivitykset ovat vain kokeneille käyttäjille.</strong> Tämä sivu antaa sinun ladata ja asentaa esijulkaisu- tai kehitysvaiheen laiteohjelmiston <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">viralliselta GitHub-julkaisusivulta</a> — jatka varoen, sillä epävakaan laiteohjelmiston asentaminen voi tehdä laitteestasi käyttökelvottoman ja vaatia <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">palautus-flashin USB-C serialin kautta</a>.",
   "note_ota_webconfig": "Käytä säännöllisiin päivityksiin sen sijaan Remote-laitteesi <strong>Web-Konfiguraattoria</strong>. Se ilmoittaa, kun virallinen päivitys on saatavilla, ja opastaa sinut turvallisesti prosessin läpi.",
+  "note_ports_hotplug": "⚠️ <strong>Hot-plugging ei ole tuettu</strong> ja voi aiheuttaa jännitepiikkejä portin konfiguraatiosta riippuen. Liitä lisälaitteet aina ennen laitteen käynnistämistä.",
+  "note_ports_auto_mode": "💡 Käytä vakaata toimintaa varten staattista konfiguraatiota. AUTO-tila tunnistaa oheislaitteen käynnistyksen yhteydessä, mutta voi aiheuttaa toiminnallisuuden katoamisen, jos tunnistus epäonnistuu tai mitään ei ole kytketty.",
 
   "st_connected": "Yhdistetty",
   "st_disconnected": "Yhteys katkaistu",

@@ -100,6 +100,8 @@
   "note_status_close": "Dit is de geavanceerde beheerinterface van de Dock - sluit deze wanneer u klaar bent om verbindingsresources vrij te maken.",
   "note_ota_warning": "⚠️ <strong>Handmatige firmware-updates zijn alleen voor ervaren gebruikers.</strong> Deze pagina stelt u in staat om pre-release of development firmware te uploaden en toe te passen van de <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">officiële GitHub releases-pagina</a> — ga voorzichtig te werk, omdat het installeren van onstabiele firmware uw device kan soft-bricken en een <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">herstel-flash via USB-C serial</a> kan vereisen.",
   "note_ota_webconfig": "Gebruik voor regelmatige updates in plaats daarvan de <strong>Web-Configurator</strong> op uw Remote-apparaat. Deze zal u notificeren wanneer een officiële update beschikbaar is en u veilig door het proces leiden.",
+  "note_ports_hotplug": "⚠️ <strong>Hot-plugging wordt niet ondersteund</strong> en kan spanningsdalingen veroorzaken afhankelijk van de poortconfiguratie. Sluit accessoires altijd aan voordat u het apparaat inschakelt.",
+  "note_ports_auto_mode": "💡 Gebruik voor stabiele werking een statische configuratie. AUTO-modus detecteert de randapparatuur bij het opstarten, maar kan ervoor zorgen dat functionaliteit verdwijnt als detectie mislukt of er niets is aangesloten.",
 
   "st_connected": "Verbonden",
   "st_disconnected": "Niet verbonden",
