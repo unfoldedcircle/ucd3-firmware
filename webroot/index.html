@@ -36,9 +36,7 @@
 
       <!-- ============ Status ============ -->
       <section id="page-status">
-        <div class="info-boxes">
-          <p class="note note-info" data-i18n-html="note_status_info">💡 This is the Dock's advanced management UI - For normal configuration, use the Web-Configurator on your Remote device - open the Remote's address in your browser instead.</p>
-          <p class="note note-info note-info-compact" data-i18n-html="note_status_close">Please close it when you're done to free up connection resources.</p>
+        <p class="note note-info" data-i18n-html="note_status_info">💡 This is the Dock's advanced management UI - For normal configuration, use the Web-Configurator on your Remote device - open the Remote's address in your browser instead.</p>
         <ul id="status-list">
           <li><span class="title" data-i18n="lbl_name">Name</span><span class="content" id="s-name">&mdash;</span></li>
           <li><span class="title" data-i18n="lbl_hostname">Hostname</span><span class="content" id="s-hostname">&mdash;</span></li>
@@ -194,8 +192,10 @@
             <button class="info-trigger" aria-label="Port location and pinout" popovertarget="port1-info">i</button>
           </h2>
           <div id="port1-info" class="info-popover" popover role="dialog">
-            Port 1 is next to ethernet, port 2 next to USB-C.<br/>
-            <a href="https://support.unfoldedcircle.com/hc/en-us/articles/20028572717084" target="_blank">3.5mm jack pinout</a>
+            <ul>
+              <li>From the back, left to right: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.</li>
+              <li><a href="https://support.unfoldedcircle.com/hc/en-us/articles/20028572717084" target="_blank">3.5mm jack pinout</a></li>
+            </ul>
           </div>
           <div class="form-row form-inline">
             <label for="port1-mode" data-i18n="lbl_mode">Mode</label>
@@ -564,6 +564,7 @@
     <div class="login-box">
       <img width="40" src="/logo.svg" alt="UC logo">
       <h2 data-i18n="hdr_auth">Authentication</h2>
+      <p class="note note-info note-info-compact" data-i18n-html="note_status_close">💡 Remember to log out or close this tab when finished - The Dock supports only a limited number of simultaneous clients.</p>
       <input type="password" id="login-pw" data-i18n-ph="ph_token" placeholder="Access Token" autocomplete="current-password">
       <button id="login-btn" data-i18n="btn_login">Login</button>
       <p id="login-err" class="err hidden"></p>
