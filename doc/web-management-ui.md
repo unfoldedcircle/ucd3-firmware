@@ -40,11 +40,10 @@ IR control, serial communication, and firmware updates via a WebSocket JSON API.
 |--------------------|--------------------------------------------------------------------------------|
 | Target             | ESP32-S3, IDF SDK 5.4                                                          |
 | Flash budget       | Kilobytes, not megabytes                                                       |
-| No frameworks      | No React, Vue, Angular, jQuery, Bootstrap, etc.                                |
-| No Arduino         | Pure IDF SDK and IDF components only                                           |
+| No web frameworks  | No React, Vue, Angular, jQuery, Bootstrap, etc.                                |
 | No npm runtime     | All tooling is build-time only                                                 |
 | Socket limit       | ESP32 has limited concurrent sockets; responses use `Connection: close`        |
-| Max WS connections | 5 concurrent WebSocket connections                                             |
+| Max WS connections | 18 concurrent webserver sockets (http and WS connections) (PR #60)             |
 | Browser support    | Modern browsers on macOS, Linux, Windows, Android (desktop + mobile)           |
 | File serving       | Static files served via FrogFS (embedded filesystem) with gzip pre-compression |
 
@@ -92,44 +91,57 @@ complicate minification or require transpilation. No module bundler is used.
 ### Script Loading Order
 
 ```html
-
 <script defer src="lang.js"></script>
 <script defer src="app.js"></script>
 ```
 
-`defer` guarantees execution in document order after DOM parsing. `lang.js` defines
-`LANG_DATA` which must exist before `app.js` calls `I18N.init()`.
+- `defer` guarantees execution in document order after DOM parsing.
+- `lang.js` defines `LANG_DATA` which must exist before `app.js` calls `I18N.init()`.
 
-### Dark Theme
+### Theme System
 
-Dark background (rgb(20,20,20)) with light text. Matches the product’s design language.
-No theme switching — the device UI is always dark.
+The UI supports both dark and light themes with a toggle in the footer. Theme preference is stored in `localStorage`.
+
+- **Dark theme** (default): Matches the product's design language with dark backgrounds
+- **Light theme**: Higher contrast for bright environments
+- **CSS variables**: All colors are defined as CSS custom properties for easy theming
+- **Zero runtime cost**: Theme is applied via `data-theme` attribute on `<html>`
 
 ### Navigation: Horizontal Tabs
 
 ```
-[Status] [General] [Network] [IR] [Ports] [OTA]
+[Status] [General] [Network] [IR] [Ports] [Logs] [OTA] [Expert]
 ```
 
 - Desktop: horizontal tab bar
 - Mobile (<600px): horizontally scrollable (overflow-x: auto, hidden scrollbar)
-- Scales to 6+ tabs without layout changes
+- Scales to 8+ tabs without layout changes
 
-Chosen over hamburger menu (too hidden) and vertical sidebar (overkill for 6 pages).
+Chosen over hamburger menu (too hidden) and vertical sidebar (overkill when starting with 6 pages).
+This might be changed if more pages are added.
 
 ## Pages
 
-| Page    | Auth Required | Description                                               |
-|---------|:-------------:|-----------------------------------------------------------|
-| Status  |      No       | Read-only device info from `get_sysinfo`                  |
-| General |      Yes      | Device name, LED brightness, access token, system actions |
-| Network |      Yes      | WiFi SSID/password configuration, connection status       |
-| IR      |      Yes      | Send IR codes, IR learning with live output               |
-| Ports   |      Yes      | External port mode config, trigger control, RS232 console |
-| OTA     |      Yes      | Firmware upload with progress                             |
-| Logs    |      Yes      | Prepared but not active — real-time log streaming         |
+| Page    | Auth Required | Description                                                                     |
+|---------|:-------------:|---------------------------------------------------------------------------------|
+| Status  |      No       | Read-only device info from `get_sysinfo`, auto-refresh every 60s (if logged in) |
+| General |      Yes      | Device name, LED brightness, access token, system actions                       |
+| Network |      Yes      | WiFi SSID/password configuration, connection status                             |
+| IR      |      Yes      | Send IR codes, IR learning with live output                                     |
+| Ports   |      Yes      | External port mode config, trigger control, RS232 console                       |
+| Logs    |      Yes      | Real-time log streaming with level filtering                                    |
+| OTA     |      Yes      | Firmware upload with progress                                                   |
+| Expert  |      Yes      | Experimental features (iTach emulation, AMXB beacon, RS232 TCP)                 |
+
 
 ## WebSocket Communication
+
+### Connection Management
+
+- **Authenticated users**: WebSocket stays connected for real-time updates
+- **Unauthenticated users**: WebSocket opens for status fetch, then closes to conserve resources
+- **Login link**: Available in header when not authenticated
+- **Logout**: Clears token, closes WebSocket, navigates to Status
 
 ### Connection Flow
 
@@ -148,6 +160,16 @@ Chosen over hamburger menu (too hidden) and vertical sidebar (overkill for 6 pag
       |                                 |
       |    [authenticated, load page]   |
 ```
+
+### Global Reboot Handling
+
+When any response contains `code: 200` and `reboot: true`, a confirmation dialog appears:
+
+```
+"Dock will reboot to activate changes. Reload page?"
+```
+
+On confirmation, the page reloads via `location.reload()`.
 
 ### Message Format
 
@@ -203,6 +225,7 @@ Event (dock to client, unsolicited):
 
 - Token stored in `sessionStorage` (key: `"token"`)
 - Login dialog appears when accessing protected tabs without auth
+- **Login link** in header (next to Logout) for manual authentication
 - ESC closes login dialog, returns to current page
 - After successful auth, navigates to the tab that triggered login (`pendingPage`)
 - Logout: clears token, closes WebSocket, navigates to Status
@@ -216,6 +239,22 @@ OTA uses HTTP POST with Basic Auth:
 The WebSocket token doubles as the HTTP password.
 
 ## Internationalization (i18n)
+
+### Supported Languages
+
+| Code | Language   |
+|------|------------|
+| en   | English    |
+| de   | German     |
+| fr   | French     |
+| it   | Italian    |
+| es   | Spanish    |
+| pt   | Portuguese |
+| nl   | Dutch      |
+| da   | Danish     |
+| fi   | Finnish    |
+| no   | Norwegian  |
+| sv   | Swedish    |
 
 ### Architecture
 
@@ -234,7 +273,7 @@ The WebSocket token doubles as the HTTP password.
 ### Why a Single Merged File
 
 - gzip efficiency: identical keys repeat across languages, deflate back-references
-  make additional languages nearly free (~500 bytes per language after gzip)
+  make additional languages highly compressible
 - No extra HTTP requests: loaded synchronously via `<script defer>`
 - Atomic deployment: languages always match the firmware version
 
@@ -253,12 +292,12 @@ CRITICAL: `uglify-js` produces 0-byte output for `lang.js` (likely due to file s
 or content structure). Therefore `lang.js` must be filtered separately without `uglify-js`.
 See frogfs.yaml section below.
 
-### Build Script: scripts/build_lang.py
+### Build Script: tools/build_lang.py
 
 - Reads all `webroot/lang/*.json` files
 - English (`en.json`) is the full reference (all keys + values)
 - Other languages: only keys that differ from English are included (reduces size)
-- Output: `var LANG_DATA={...};\n` with `ensure_ascii=True` (ASCII-safe for all tools)
+- Output: `var LANG_DATA={...};\n`
 - Strings identical to English are not duplicated (e.g., "SSID", "RS232", "UART")
 
 ### Runtime Engine
@@ -273,7 +312,6 @@ I18N.setLang("de")   // Switch language, re-render DOM
 ### DOM Binding
 
 ```html
-
 <button data-i18n="btn_save">Save</button>
 <input data-i18n-ph="ph_token" placeholder="Token">
 <span data-i18n-title="tip_info" title="Info">
@@ -306,8 +344,6 @@ files:
 
 ### i18n Key Naming Convention
 
-### i18n Key Naming Convention
-
 | Prefix     | Usage                         | Example             |
 |------------|-------------------------------|---------------------|
 | `nav_`     | Navigation tab labels         | `nav_general`       |
@@ -320,52 +356,80 @@ files:
 | `t_`       | Toast success messages        | `t_name_saved`      |
 | `e_`       | Error messages                | `e_ssid_required`   |
 | `confirm_` | Confirmation dialog text      | `confirm_reboot`    |
+| `info_`    | Info popover content          | `info_ir_learn`     |
+
 
 ## Size Projection
 
 | Languages | lang.js raw | lang.js gzip |
 |-----------|-------------|--------------|
-| 7         | ~27 KB      | ~3.5 KB      |
-| 17        | ~50 KB      | ~6 KB        |
-| 27        | ~75 KB      | ~9 KB        |
+| 11        | ~80 KB      | ~20 KB       |
+| 27        | ~155 KB     | ~40 KB       |
 
 ### Total Flash Usage (all web files, gzipped)
 
-| File                  | gzip size |
-|-----------------------|-----------|
-| index.html            | ~1.2 KB   |
-| app.css               | ~1.0 KB   |
-| app.js                | ~2.5 KB   |
-| lang.js (7 languages) | ~3.5 KB   |
-| logo.svg              | ~0.5 KB   |
-| Total                 | ~8.7 KB   |
+| File                   | gzip size |
+|------------------------|-----------|
+| index.html             | ~4 KB     |
+| app.css                | ~3 KB     |
+| app.js                 | ~6 KB     |
+| lang.js (11 languages) | ~20 KB    |
+| logo.svg               | ~0.4 KB   |
+| Total                  | ~33.4 KB  |
 
 ## CSS Architecture
 
-- Single file, no preprocessor, no CSS variables
+- Single file, no preprocessor
+- **CSS variables**: All colors defined as custom properties for theming
 - Mobile-first responsive breakpoint at 600px
 - Card-based layout (`.card` class)
 - Status lists reuse `<ul><li>` pattern from original firmware status page
 - `accent-color` for range inputs and checkboxes (modern browsers only)
-- Console areas: fixed height of 8 lines (`calc(8 * 1.4em + 16px)`)
-- Dark theme only, no theme switching
+- **Console areas**:
+    - Serial console: 4 lines default, vertically resizable (`.console-resize`)
+    - Log console: 8 lines default, vertically resizable, horizontal scrolling (`.console-log`)
+- **Info popovers**: Native HTML popover API with custom styling
 
 ## JavaScript Architecture
 
 ### Module Structure (single file, namespace pattern)
 
-    app.js
-    ├── I18N          — Internationalization engine
-    ├── WS            — WebSocket communication layer
-    ├── Toast         — Notification system
-    ├── UI            — Page controller, navigation, login
-    └── Pages         — Page-specific logic
-        ├── Status
-        ├── General
-        ├── Network
-        ├── IR
-        ├── Ports
-        └── OTA
+```
+app.js
+├── Theme         — Dark/light theme management
+├── I18N          — Internationalization engine
+├── WS            — WebSocket communication layer
+├── Toast         — Notification system
+├── UI            — Page controller, navigation, login
+└── Pages         — Page-specific logic
+    ├── Status    — Auto-refresh every 60s when logged in
+    ├── General
+    ├── Network
+    ├── IR
+    ├── Ports     — Serial console with timeout config
+    ├── Logs      — Real-time streaming with level filter
+    ├── OTA
+    └── Expert    — Experimental features
+```
+
+### Info Popover API
+
+Native HTML Popover API for contextual help (no JavaScript required):
+
+```html
+<button class="info-trigger" aria-label="More info" popovertarget="my-info">i</button>
+<div id="my-info" class="info-popover" popover role="dialog">
+  Help text with <a href="..." target="_blank">links</a>
+</div>
+```
+
+**Features:**
+- Focus trapping when open
+- Dismiss on click outside
+- Close with Escape key
+- Open with Enter/Space on trigger button
+- `aria-label` on trigger for accessibility
+- `role="dialog"` on popover container
 
 ### Error Handling
 
@@ -381,6 +445,21 @@ files:
 - Output buffer limited to 4 KB (oldest data trimmed)
 - Send appends terminator character when buffering mode is "line"
 - Terminator displayed/configured as hex value (e.g., `0x0D`)
+- **Line timeout**: Configurable timeout in ms (0 = no timeout)
+- **Validation**: Hex terminator validated with regex `/^0x[0-9A-Fa-f]{1,2}$/`
+
+### Log Streaming
+
+- Start/Stop streaming via `enable_log_events` command
+- Log events received via `WS.on("log", handler)`
+- **Log format**: `LEVEL [localTs ts] [tag] message`
+    - `LEVEL`: E/W/I/D/V (ERROR/WARN/INFO/DEBUG/VERBOSE)
+    - `localTs`: Local timestamp (HH:MM:SS.mmm)
+    - `ts`: Device timestamp in ms from boot
+    - `tag`: Log tag
+- **Filter**: Dropdown to show only selected level and higher (E < W < I < D)
+- **Console**: Vertically resizable, horizontal scrolling (no line wrap)
+- Buffer limit: 32 KB (oldest data trimmed)
 
 ### IR
 
@@ -388,6 +467,18 @@ files:
 - Output checkboxes disabled based on actual port mode (`get_port_modes`)
 - Learn: toggle button, events via `ir_receive`, displayed in console area
 - `int_top` field always sent as `false` (deprecated, not removed from API)
+
+### Expert Page
+
+Experimental features (disabled by default):
+
+- **RS232 TCP server**: Enable/disable via `set_serial_tcp` (ports 4999, 5000)
+- **iTach emulation** *: Enable/disable via `set_ir_config`
+- **AMXB discovery beacon** *: Enable/disable via `set_ir_config`
+
+* requires a reboot to change setting.
+
+---
 
 ## Build Integration
 
@@ -445,7 +536,7 @@ Key points:
 - `**/lang` discards source JSON files (only `lang.js` ships)
 - `lang.js` explicitly skips `uglify-js` (produces 0-byte output for this file)
 - All text assets are gzip-compressed at build time
-- HTTP handler serves with `Content-Encoding: gzip` when client supports it
+- HTTP handler serves with `Content-Encoding: gzip` when client supports it, otherwise returns an error
 
 ## HTTP Caching Strategy
 
@@ -453,33 +544,6 @@ Key points:
 - `Cache-Control: no-cache` — browser caches but revalidates every request
 - 304 Not Modified returned when `If-None-Match` matches current version
 - After firmware update: new ETag forces fresh download
-
-## Prepared Features (Not Active)
-
-### Logs Page
-
-- HTML section commented out in index.html
-- JS controller commented out in app.js (`Pages.Logs`)
-- Nav link commented out
-- Event handler for `"log"` messages prepared
-- `set_logging` API support prepared (log level, syslog server)
-- i18n keys included (`nav_logs`, `hdr_syslog`, `lbl_log_level`, etc.)
-
-### Volume Control
-
-- Range input commented out in General section
-- i18n keys can be added when feature is enabled
-- Maps to `set_volume` API command (Dock 3 only)
-
-### WiFi Scan
-
-- Scan button commented out in Network section
-- API does not yet support WiFi scanning
-
-### Static Network Configuration
-
-- Not implemented in UI (API not yet available)
-- Add when API supports IP/Gateway/DNS/DHCP settings
 
 ## Coding Conventions
 
@@ -503,6 +567,10 @@ Key points:
 | `net-{field}`     | Network page values    | `net-eth`       |
 | `ota-{field}`     | OTA page elements      | `ota-progress`  |
 | `ir-{field}`      | IR page elements       | `ir-code`       |
+| `log-{field}`     | Logs page elements     | `log-filter`    |
+| `exp-{field}`     | Expert page elements   | `exp-itach`     |
+
+---
 
 ## Development Mode
 
@@ -528,10 +596,11 @@ Now you can test with:
 http://localhost:9000/?dock=$IP_OF_DOCK3
 ```
 
-- use `dock` parameter to specify the Dock IP address you want to connect to.
+- Use `dock` parameter to specify the Dock IP address you want to connect to.
+- A "DEV" badge appears in the top-right corner when running on localhost.
+- Port 9000 is hardcoded as a forwarding port when used together with `localhost` or `127.0.0.1`.
 
-⚠️ Remember to create the unified `webroot/lang.js` file from the language files with the [tools/build_lang.py](../tools/build_lang.py)
-script! You can also run the IDF firmware build command.
+⚠️ Remember to create the unified `webroot/lang.js` file from the language files with the [tools/build_lang.py](../tools/build_lang.py) script! You can also run the IDF firmware build command.
 
 Run from the project's root directory:
 ```shell
@@ -540,10 +609,10 @@ python3 tools/build_lang.py
 
 ## Planned Features
 
-- Expert page
-    - Set PoE voltage
-    - TBD: Enable NTP
-- Ports RS232:
-    - define Terminator for send command. Is the receive terminator used at the moment or hard coded?
-    - configure buffer timeout
- 
+- **Static Network Configuration**: IP/Gateway/DNS/DHCP settings (API not yet available)
+- **WiFi Scan**: Scan for available networks (API not yet available)
+- **Volume Control**: Speaker volume slider (Dock 3 only, API available but speaker is not yet used)
+- **Expert Page Extensions**:
+    - revision 6: PoE voltage configuration (API not yet available)
+    - NTP enable/disable
+    - TBD: RS232 buffer size configuration
