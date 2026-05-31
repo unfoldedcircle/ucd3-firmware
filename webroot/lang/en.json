@@ -100,6 +100,7 @@
   "info_buffering": "<strong>Chunk</strong>: data is forwarded in chunks after a short timeout.<br><strong>Line</strong>: data is forwarded line by line; the end of the line is indicated by the terminating character.",
   "info_terminator": "Line end terminating character in hex notation.<br/>Line feed: 0x0A, Carriage return: 0x0D",
   "info_line_timeout": "Timeout in ms for forwarding received data if no terminating character is detected.",
+  "info_ota_webconfig": "For regular updates, use the <strong>Web-Configurator</strong> on your Remote device instead.<br/>It will notify you when an official update is available and guide you through the process safely.",
 
   "note_eth_priority": "Ethernet has priority over WiFi.",
   "note_wifi_restart": "The dock will restart after applying WiFi changes.",
@@ -107,8 +108,11 @@
   "note_no_disconnect": "⚠️ <strong>Do not disconnect the dock during update.</strong>",
   "note_status_info": "💡 This is the Dock's advanced management UI. For normal configuration, use the Web-Configurator on your Remote device - open the Remote's address in your browser instead.",
   "note_status_close": "💡 Remember to log out or close this browser tab when finished – The Dock supports only a limited number of simultaneous clients.",
-  "note_ota_warning": "⚠️ <strong>Manual firmware updates are for advanced users only.</strong> This page allows you to upload and apply pre-release or development firmware from the <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">official GitHub releases page</a> — proceed with caution, as installing unstable firmware may soft-brick your device and require a <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">recovery flash via USB-C serial</a>.",
-  "note_ota_webconfig": "For regular updates, use the <strong>Web-Configurator</strong> on your Remote device instead. It will notify you when an official update is available and guide you through the process safely.",
+  "note_ota_header": "⚠️ Manual firmware updates are for advanced users only.",
+  "note_ota_text1": "This page allows you to upload and apply pre-release or development firmware from the",
+  "note_ota_github_link": "official GitHub releases page",
+  "note_ota_text2": "Proceed with caution, as installing unstable firmware may soft-brick your device and require a",
+  "note_ota_recovery_link": "recovery flash via USB-C serial",
   "note_ports_hotplug": "⚠️ <strong>Hot-plugging is not supported</strong> and may cause brownouts depending on the port configuration. Always connect accessories before powering on the device.",
   "note_ports_auto_mode": "For stable operation, use a static configuration.<p>AUTO mode detects the peripheral at startup but may cause functionality to disappear if detection fails or nothing is connected.</p><p><strong>Some operation modes may not yet be supported by the Remote firmware or web-configurator.</strong></p>",
 

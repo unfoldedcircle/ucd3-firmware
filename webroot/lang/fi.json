@@ -100,6 +100,7 @@
   "info_buffering": "<strong>Chunk</strong>: tiedot välitetään palasina lyhyen timeoutin jälkeen.<br><strong>Line</strong>: tiedot välitetään rivi kerrallaan; rivin lopun ilmoittaa päättäjämerkki.",
   "info_terminator": "Rivinpäättömerkki heksadesimaalimuodossa.<br/>Line Feed: 0x0A, Carriage Return: 0x0D",
   "info_line_timeout": "Timeout ms:nä vastaanotettujen tietojen edelleenlähetykseen, jos päättäjämerkkiä ei tunnisteta.",
+  "info_ota_webconfig": "Käytä säännöllisiin päivityksiin sen sijaan Remote-laitteesi <strong>Web-Konfiguraattoria</strong>.<br/>Se ilmoittaa, kun virallinen päivitys on saatavilla, ja opastaa sinut turvallisesti prosessin läpi.",
 
   "note_eth_priority": "Ethernetillä on etusija WiFiin nähden.",
   "note_wifi_restart": "Telakka käynnistyy uudelleen WiFi-muutosten jälkeen.",
@@ -107,8 +108,11 @@
   "note_expert_warning": "🧪 <strong>Kokeelliset ominaisuudet</strong> - Alla olevat asetukset ovat varhaisen pääsyn tai kehitysvaiheen ominaisuuksia, jotka eivät vielä ole saatavilla vakiotuotteessa. Ne on oletusarvoisesti poistettu käytöstä ja tarkoitettu vain testikäyttöön. Jatka varoen. Arvostamme palautetta, mutta emme voi tarjota tukea.",
   "note_status_info": "💡 Tämä on Telakan edistynyt hallintakäyttöliittymä. Käytä normaaliin määritykseen Remote-laitteesi Web-Konfiguraattoria - avaa sen sijaan Remote-laitteen osoite selaimessasi.",
   "note_status_close": "💡 Muista kirjautua ulos tai sulkea tämä välilehti, kun olet valmis – Telakka tukee vain rajoitettua määrää samanaikaisia asiakkaita.",
-  "note_ota_warning": "⚠️ <strong>Manuaaliset laiteohjelmistopäivitykset ovat vain kokeneille käyttäjille.</strong> Tämä sivu antaa sinun ladata ja asentaa esijulkaisu- tai kehitysvaiheen laiteohjelmiston <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">viralliselta GitHub-julkaisusivulta</a> — jatka varoen, sillä epävakaan laiteohjelmiston asentaminen voi tehdä laitteestasi käyttökelvottoman ja vaatia <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">palautus-flashin USB-C serialin kautta</a>.",
-  "note_ota_webconfig": "Käytä säännöllisiin päivityksiin sen sijaan Remote-laitteesi <strong>Web-Konfiguraattoria</strong>. Se ilmoittaa, kun virallinen päivitys on saatavilla, ja opastaa sinut turvallisesti prosessin läpi.",
+  "note_ota_header": "⚠️ Manuaaliset laiteohjelmistopäivitykset ovat vain kokeneille käyttäjille.",
+  "note_ota_text1": "Tämä sivu antaa sinun ladata ja asentaa esijulkaisu- tai kehitysvaiheen laiteohjelmiston",
+  "note_ota_github_link": "viralliselta GitHub-julkaisusivulta",
+  "note_ota_text2": "Jatka varoen, sillä epävakaan laiteohjelmiston asentaminen voi tehdä laitteestasi käyttökelvottoman ja vaatia",
+  "note_ota_recovery_link": "palautus-flashin USB-C serialin kautta",
   "note_ports_hotplug": "⚠️ <strong>Hot-plugging ei ole tuettu</strong> ja voi aiheuttaa jännitepiikkejä portin konfiguraatiosta riippuen. Liitä lisälaitteet aina ennen laitteen käynnistämistä.",
   "note_ports_auto_mode": "Käytä vakaata toimintaa varten staattista konfiguraatiota.<p>AUTO-tila tunnistaa oheislaitteen käynnistyksen yhteydessä, mutta voi aiheuttaa toiminnallisuuden katoamisen, jos tunnistus epäonnistuu tai mitään ei ole kytketty.</p><p><strong>Jotkin toimintatilat eivät välttämättä ole vielä tuettuna Remote-laitteen laiteohjelmistossa tai Web-Konfiguraattorissa.</strong></p>",
 

@@ -100,6 +100,7 @@
   "info_buffering": "<strong>Chunk</strong>: data videresendes i blokke efter en kort timeout.<br><strong>Line</strong>: data videresendes linje for linje; slutningen af linjen angives af afslutningstegnet.",
   "info_terminator": "Afslutningstegn for linjeslut i hexadecimal notation.<br/>Line Feed: 0x0A, Carriage Return: 0x0D",
   "info_line_timeout": "Timeout i ms for videresendelse af modtagne data, hvis intet afslutningstegn registreres.",
+  "info_ota_webconfig": "Brug i stedet <strong>Web-Konfiguratoren</strong> på din Remote-enhed til regelmæssige opdateringer.<br/>Den vil underrette dig, når en officiel opdatering er tilgængelig og guide dig sikkert gennem processen.",
 
   "note_eth_priority": "Ethernet har prioritet over WiFi.",
   "note_wifi_restart": "Dock'en genstarter efter WiFi-ændringer.",
@@ -107,8 +108,11 @@
   "note_expert_warning": "🧪 <strong>Eksperimentelle funktioner</strong> - Indstillingerne nedenfor er early-access eller udviklingsfunktioner, der endnu ikke er tilgængelige i standardproduktet. De er deaktiveret som standard og kun beregnet til testformål. Fortsæt med forsigtighed. Vi sætter pris på feedback, men kan ikke yde support.",
   "note_status_info": "💡 Dette er Dock'ens avancerede administrations-UI. Brug Web-Konfiguratoren på din Remote-enhed til normal konfiguration - åbn i stedet Remote'ens adresse i din browser.",
   "note_status_close": "💡 Husk at logge ud eller lukke denne browserfane, når du er færdig – Dock'en understøtter kun et begrænset antal samtidige klienter.",
-  "note_ota_warning": "⚠️ <strong>Manuelle firmware-opdateringer er kun for erfarne brugere.</strong> Denne side giver dig mulighed for at uploade og anvende pre-release eller udviklingsfirmware fra den <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">officielle GitHub releases-side</a> — fortsæt med forsigtighed, da installation af ustabil firmware kan gøre din enhed ubrugelig og kræve et <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">gendannelses-flash via USB-C serial</a>.",
-  "note_ota_webconfig": "Brug i stedet <strong>Web-Konfiguratoren</strong> på din Remote-enhed til regelmæssige opdateringer. Den vil underrette dig, når en officiel opdatering er tilgængelig og guide dig sikkert gennem processen.",
+  "note_ota_header": "⚠️ Manuelle firmware-opdateringer er kun for erfarne brugere.",
+  "note_ota_text1": "Denne side giver dig mulighed for at uploade og anvende pre-release eller udviklingsfirmware fra den",
+  "note_ota_github_link": "officielle GitHub releases-side",
+  "note_ota_text2": "Fortsæt med forsigtighed, da installation af ustabil firmware kan gøre din enhed ubrugelig og kræve et",
+  "note_ota_recovery_link": "gendannelses-flash via USB-C serial",
   "note_ports_hotplug": "⚠️ <strong>Hot-plugging understøttes ikke</strong> og kan forårsage spændingsfald afhængigt af portkonfigurationen. Tilslut altid tilbehør, før du tænder enheden.",
   "note_ports_auto_mode": "Brug en statisk konfiguration for stabil drift.<p>AUTO-tilstand registrerer perifert udstyr ved opstart, men kan få funktionalitet til at forsvinde, hvis detektering fejler, eller hvis intet er tilsluttet.</p><p><strong>Nogle driftstilstande understøttes muligvis endnu ikke af Remote-firmwaren eller Web-Konfiguratoren.</strong></p>",
 

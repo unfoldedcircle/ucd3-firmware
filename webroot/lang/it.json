@@ -100,6 +100,7 @@
   "info_buffering": "<strong>Chunk</strong>: i dati vengono inoltrati in blocchi dopo un breve timeout.<br><strong>Line</strong>: i dati vengono inoltrati riga per riga; la fine della riga è indicata dal carattere di terminazione.",
   "info_terminator": "Carattere di fine riga in notazione esadecimale.<br/>Line Feed: 0x0A, Carriage Return: 0x0D",
   "info_line_timeout": "Timeout in ms per l'inoltro dei dati ricevuti se non viene rilevato alcun carattere di terminazione.",
+  "info_ota_webconfig": "Per gli aggiornamenti regolari, utilizzare invece il <strong>Web-Configurator</strong> sul dispositivo Remote.<br/>Notificherà quando è disponibile un aggiornamento ufficiale e guiderà in modo sicuro attraverso il processo.",
 
   "note_eth_priority": "Ethernet ha priorità su WiFi.",
   "note_wifi_restart": "Il dock si riavvierà dopo le modifiche WiFi.",
@@ -107,8 +108,11 @@
   "note_expert_warning": "🧪 <strong>Funzionalità sperimentali</strong> - Le impostazioni seguenti sono funzionalità di accesso anticipato o di sviluppo non ancora disponibili nel prodotto standard. Sono disabilitate per impostazione predefinita e destinate solo a scopo di test. Procedere con cautela. Apprezziamo i feedback, ma non possiamo fornire supporto.",
   "note_status_info": "💡 Questa è l'interfaccia di gestione avanzata del Dock. Per la configurazione normale, utilizzare il Web-Configurator sul dispositivo Remote - aprire invece l'indirizzo del Remote nel browser.",
   "note_status_close": "💡 Ricordati di disconnetterti o chiudere questa scheda del browser quando hai finito – Il Dock supporta solo un numero limitato di client simultanei.",
-  "note_ota_warning": "⚠️ <strong>Gli aggiornamenti manuali del firmware sono riservati solo agli utenti esperti.</strong> Questa pagina consente di caricare e applicare firmware pre-release o di sviluppo dalla <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/releases\" target=\"_blank\">pagina ufficiale delle release GitHub</a> — procedere con cautela, poiché l'installazione di firmware instabile potrebbe rendere inutilizzabile il dispositivo e richiedere un <a href=\"https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md\" target=\"_blank\">flash di ripristino via USB-C serial</a>.",
-  "note_ota_webconfig": "Per gli aggiornamenti regolari, utilizzare invece il <strong>Web-Configurator</strong> sul dispositivo Remote. Notificherà quando è disponibile un aggiornamento ufficiale e guiderà in modo sicuro attraverso il processo.",
+  "note_ota_header": "⚠️ Gli aggiornamenti manuali del firmware sono riservati solo agli utenti esperti.",
+  "note_ota_text1": "Questa pagina consente di caricare e applicare firmware pre-release o di sviluppo dalla",
+  "note_ota_github_link": "pagina ufficiale delle release GitHub",
+  "note_ota_text2": "Procedere con cautela, poiché l'installazione di firmware instabile potrebbe rendere inutilizzabile il dispositivo e richiedere un",
+  "note_ota_recovery_link": "flash di ripristino via USB-C serial",
   "note_ports_hotplug": "⚠️ <strong>Il collegamento a caldo non è supportato</strong> e può causare cadute di tensione a seconda della configurazione della porta. Collegare sempre gli accessori prima di accendere il dispositivo.",
   "note_ports_auto_mode": "Per un funzionamento stabile, utilizzare una configurazione statica.<p>La modalità AUTO rileva la periferica all'avvio, ma può causare la scomparsa delle funzionalità se il rilevamento fallisce o se non è collegato nulla.</p><p><strong>Alcune modalità operative potrebbero non essere ancora supportate dal firmware del Remote o dal Web-Configurator.</strong></p>",
 
