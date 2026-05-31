@@ -94,6 +94,8 @@
 
   "info_ir_learn": "Infrarød-mottakeren er plassert øverst på docken.<br/><a href=\"https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188\" target=\"_blank\">Støttede infrarøde protokoller</a>",
   "info_port_active": "Registrert periferienhet i AUTO-modus.",
+  "info_port_location": "Fra baksiden, venstre til høyre: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
+  "info_port_pinout": "3.5mm jack pinout",
   "info_buffering": "<strong>Chunk</strong>: data videresendes i blokker etter en kort timeout.<br><strong>Line</strong>: data videresendes linje for linje; slutten av linjen angis av avslutningstegnet.",
   "info_terminator": "Avslutningstegn for linjeslutt i heksadesimal notasjon.<br/>Line Feed: 0x0A, Carriage Return: 0x0D",
   "info_line_timeout": "Timeout i ms for videresending av mottatte data hvis intet avslutningstegn oppdages.",

@@ -94,6 +94,8 @@
 
   "info_ir_learn": "Der Infrarot-Empfänger befindet sich oben am Dock.<br/><a href=\"https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188\" target=\"_blank\">Unterstützte Infrarot-Protokolle</a>",
   "info_port_active": "Erkanntes Peripheriegerät im AUTO-Modus.",
+  "info_port_location": "Von hinten, links nach rechts: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
+  "info_port_pinout": "3.5mm-Kliniken-Belegung",
   "info_buffering": "<strong>Chunk</strong>: Daten werden nach kurzer Verzögerung in Blöcken weitergeleitet.<br><strong>Line</strong>: Daten werden zeilenweise weitergeleitet; das Ende der Zeile wird durch das Abschlusszeichen markiert.",
   "info_terminator": "Zeilenende-Abschlusszeichen in hexadezimaler Schreibweise.<br/>Line Feed: 0x0A, Carriage Return: 0x0D",
   "info_line_timeout": "Timeout in ms für die Weiterleitung empfangener Daten, wenn kein Abschlusszeichen erkannt wird.",

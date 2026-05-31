@@ -94,6 +94,8 @@
 
   "info_ir_learn": "O receptor infravermelho está na parte superior do dock.<br/><a href=\"https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188\" target=\"_blank\">Protocolos infravermelhos suportados</a>",
   "info_port_active": "Periférico detectado no modo AUTO.",
+  "info_port_location": "De trás, da esquerda para a direita: Ethernet — <strong>Porta 1</strong> — <strong>Porta 2</strong> — USB-C.",
+  "info_port_pinout": "Pinout jack 3.5mm",
   "info_buffering": "<strong>Chunk</strong>: os dados são encaminhados em blocos após um breve timeout.<br><strong>Line</strong>: os dados são encaminhados linha por linha; o fim da linha é indicado pelo caractere terminador.",
   "info_terminator": "Caractere de fim de linha em notação hexadecimal.<br/>Line Feed: 0x0A, Carriage Return: 0x0D",
   "info_line_timeout": "Timeout em ms para encaminhar dados recebidos se nenhum caractere terminador for detectado.",

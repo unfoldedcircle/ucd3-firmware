@@ -94,6 +94,8 @@
 
   "info_ir_learn": "Infraröd-mottagaren är placerad högst upp på docken.<br/><a href=\"https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188\" target=\"_blank\">Infraröda protokoll som stöds</a>",
   "info_port_active": "Identifierad kringutrustning i AUTO-läge.",
+  "info_port_location": "Bakifrån, vänster till höger: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
+  "info_port_pinout": "3.5mm jack pinout",
   "info_buffering": "<strong>Chunk</strong>: data skickas vidare i block efter en kort timeout.<br><strong>Line</strong>: data skickas vidare rad för rad; slutet av raden indikeras av avslutningstecknet.",
   "info_terminator": "Avslutningstecken för radslut i hexadecimal notation.<br/>Line Feed: 0x0A, Carriage Return: 0x0D",
   "info_line_timeout": "Timeout i ms för vidarebefordran av mottagen data om inget avslutningstecken upptäcks.",
