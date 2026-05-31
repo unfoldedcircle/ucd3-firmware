@@ -800,6 +800,8 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         cJSON_AddNumberToObject(responseDoc, "irsend_prio", config_->getIrSendPriority());
         cJSON_AddBoolToObject(responseDoc, "itach_emulation", config_->isGcServerEnabled());
         cJSON_AddBoolToObject(responseDoc, "itach_beacon", config_->isGcServerBeaconEnabled());
+    } else if (command == "get_serial_tcp") {
+        cJSON_AddBoolToObject(responseDoc, "serial_tcp", config_->isSerialTcpEnabled());
     } else if (command == "set_serial_tcp") {
         bool ok = false;
         bool enable = cjson_get_bool(root, "enable", &ok);
