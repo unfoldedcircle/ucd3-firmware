@@ -92,7 +92,8 @@
   "btn_start_streaming": "Démarrer le flux",
   "btn_stop_streaming": "Arrêter le flux",
 
-  "info_ir_learn": "Le récepteur infrarouge se trouve en haut du dock.<br/><a href=\"https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188\" target=\"_blank\">Protocoles infrarouges pris en charge</a>",
+  "info_ir_learn_text": "Le récepteur infrarouge se trouve en haut du dock.",
+  "info_ir_protocols": "Protocoles infrarouges pris en charge",
   "info_port_active": "Périphérique détecté en mode AUTO.",
   "info_port_location": "Depuis l'arrière, de gauche à droite: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
   "info_port_pinout": "Brochage jack 3.5mm",

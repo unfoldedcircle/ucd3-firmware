@@ -92,7 +92,8 @@
   "btn_start_streaming": "Start strømming",
   "btn_stop_streaming": "Stopp strømming",
 
-  "info_ir_learn": "Infrarød-mottakeren er plassert øverst på docken.<br/><a href=\"https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188\" target=\"_blank\">Støttede infrarøde protokoller</a>",
+  "info_ir_learn_text": "Infrarød-mottakeren er plassert øverst på docken.",
+  "info_ir_protocols": "Støttede infrarøde protokoller",
   "info_port_active": "Registrert periferienhet i AUTO-modus.",
   "info_port_location": "Fra baksiden, venstre til høyre: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
   "info_port_pinout": "3.5mm jack pinout",

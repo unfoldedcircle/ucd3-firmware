@@ -92,7 +92,8 @@
   "btn_start_streaming": "Avvia streaming",
   "btn_stop_streaming": "Arresta streaming",
 
-  "info_ir_learn": "Il ricevitore a infrarossi si trova nella parte superiore del dock.<br/><a href=\"https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188\" target=\"_blank\">Protocolli a infrarossi supportati</a>",
+  "info_ir_learn_text": "Il ricevitore a infrarossi si trova nella parte superiore del dock.",
+  "info_ir_protocols": "Protocolli a infrarossi supportati",
   "info_port_active": "Periferica rilevata in modalità AUTO.",
   "info_port_location": "Dal retro, da sinistra a destra: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
   "info_port_pinout": "Pinout jack 3.5mm",

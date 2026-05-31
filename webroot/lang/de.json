@@ -92,7 +92,8 @@
   "btn_start_streaming": "Streaming starten",
   "btn_stop_streaming": "Streaming stoppen",
 
-  "info_ir_learn": "Der Infrarot-Empfänger befindet sich oben am Dock.<br/><a href=\"https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188\" target=\"_blank\">Unterstützte Infrarot-Protokolle</a>",
+  "info_ir_learn_text": "Der Infrarot-Empfänger befindet sich oben am Dock.",
+  "info_ir_protocols": "Unterstützte Infrarot-Protokolle",
   "info_port_active": "Erkanntes Peripheriegerät im AUTO-Modus.",
   "info_port_location": "Von hinten, links nach rechts: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
   "info_port_pinout": "3.5mm-Kliniken-Belegung",
