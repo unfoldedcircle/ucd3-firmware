@@ -407,7 +407,7 @@ var UI = {
     // Login handlers
     document.getElementById("login-btn").addEventListener("click", function() {
       var pw = document.getElementById("login-pw").value;
-      if (pw.length >= 4) {
+      if (pw.length >= 1) {
         WS.authenticate(pw);
       }
     });
