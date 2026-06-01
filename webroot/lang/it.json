@@ -42,6 +42,8 @@
   "lbl_password": "Password",
   "lbl_ir_code": "Codice IR",
   "lbl_format": "Formato",
+  "lbl_repeat": "Ripetizione",
+  "lbl_hold": "Mantieni (ms)",
   "lbl_output": "Uscita",
   "lbl_internal": "Interno",
   "lbl_mode": "Modalità",
@@ -92,6 +94,8 @@
   "btn_start_streaming": "Avvia streaming",
   "btn_stop_streaming": "Arresta streaming",
 
+  "info_ir_repeat": "Conteggio ripetizioni (1–20), sovrascrive qualsiasi valore di ripetizione nel codice.<p><strong>HEX:</strong> Sovrascrive il campo ripetizione; il comportamento di ripetizione specifico del protocollo è gestito automaticamente.</p><p><strong>PRONTO:</strong> Ripete la 2a sequenza di coppie di burst (4° numero nel codice PRONTO); ignorato se il codice non ha sequenza di ripetizione.</p>",
+  "info_ir_hold": "Durata minima in ms per inviare il codice IR, simulando una pressione prolungata del pulsante.<p><strong>Sovrascrive la ripetizione</strong> se impostato.</p><p>Il segnale completa sempre il suo messaggio IR finale, quindi il tempo di invio effettivo potrebbe essere leggermente più lungo.</p>",
   "info_ir_learn_text": "Il ricevitore a infrarossi si trova nella parte superiore del dock.",
   "info_ir_protocols": "Protocolli a infrarossi supportati",
   "info_port_active": "Periferica rilevata in modalità AUTO.",

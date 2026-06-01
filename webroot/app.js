@@ -768,6 +768,9 @@ Pages.IR = {
       }
 
       var format = document.getElementById("ir-format").value;
+      var repeat = parseInt(document.getElementById("ir-repeat").value) || 0;
+      var hold = parseInt(document.getElementById("ir-hold").value) || 0;
+
       var data = {
         code: code,
         format: format,
@@ -776,6 +779,14 @@ Pages.IR = {
         ext1: document.getElementById("ir-ext1").checked,
         ext2: document.getElementById("ir-ext2").checked
       };
+
+      // Add repeat or hold based on values
+      // hold overrides repeat if both are set
+      if (hold > 0) {
+        data.hold = hold;
+      } else if (repeat > 0) {
+        data.repeat = repeat;
+      }
 
       WS.request("ir_send", data)
           .then(function() { Toast.success(I18N.t("t_ir_sent")); })

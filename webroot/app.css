@@ -339,6 +339,21 @@ select:focus {
   flex-shrink: 0;
 }
 
+.input-format {
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.input-repeat {
+  width: 50px;
+  flex-shrink: 0;
+}
+
+.input-hold {
+  width: 70px;
+  flex-shrink: 0;
+}
+
 /* === Form layouts === */
 .form-row {
   margin-bottom: 10px;

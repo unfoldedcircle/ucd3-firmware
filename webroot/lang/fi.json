@@ -42,6 +42,8 @@
   "lbl_password": "Salasana",
   "lbl_ir_code": "IR-koodi",
   "lbl_format": "Muoto",
+  "lbl_repeat": "Toisto",
+  "lbl_hold": "Pito (ms)",
   "lbl_output": "Lähtö",
   "lbl_internal": "Sisäinen",
   "lbl_mode": "Tila",
@@ -92,6 +94,8 @@
   "btn_start_streaming": "Aloita suoratoisto",
   "btn_stop_streaming": "Pysäytä suoratoisto",
 
+  "info_ir_repeat": "Toistomäärä (1–20), ohittaa koodin toistoarvon.<p><strong>HEX:</strong> Ohittaa toistokentän; protokollakohtainen toistotoiminta käsitellään automaattisesti.</p><p><strong>PRONTO:</strong> Toistaa 2. burst-pari sekvenssin (4. numero PRONTO-koodissa); jätetään huomiotta, jos koodissa ei ole toistosekvenssiä.</p>",
+  "info_ir_hold": "Minimikesto ms:nä IR-koodin lähettämiseen, simuloi pitkää painallusta.<p><strong>Ohittaa toiston</strong> jos asetettu.</p><p>Signaali viimeistelee aina viimeisen IR-viestinsä, joten todellinen lähetysaika voi olla hieman pidempi.</p>",
   "info_ir_learn_text": "Infrapuna-vastaanotin on telakan yläosassa.",
   "info_ir_protocols": "Tuetut infrapuna-protokollat",
   "info_port_active": "Tunnistettu oheislaite AUTO-tilassa.",

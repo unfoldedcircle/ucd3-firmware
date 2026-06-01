@@ -42,6 +42,8 @@
   "lbl_password": "Palavra-passe",
   "lbl_ir_code": "Código IR",
   "lbl_format": "Formato",
+  "lbl_repeat": "Repetição",
+  "lbl_hold": "Manter (ms)",
   "lbl_output": "Saída",
   "lbl_internal": "Interno",
   "lbl_mode": "Modo",
@@ -92,6 +94,8 @@
   "btn_start_streaming": "Iniciar transmissão",
   "btn_stop_streaming": "Parar transmissão",
 
+  "info_ir_repeat": "Contagem de repetições (1–20), substituindo qualquer valor de repetição no código.<p><strong>HEX:</strong> Substitui o campo de repetição; o comportamento de repetição específico do protocolo é tratado automaticamente.</p><p><strong>PRONTO:</strong> Repete a 2a sequência de pares de bursts (4º número no código PRONTO); ignorado se o código não tiver sequência de repetição.</p>",
+  "info_ir_hold": "Duração mínima em ms para enviar o código IR, simulando uma pressão longa no botão.<p><strong>Substitui a repetição</strong> se definido.</p><p>O sinal sempre completa sua mensagem IR final, então o tempo de envio real pode ser ligeiramente mais longo.</p>",
   "info_ir_learn_text": "O receptor infravermelho está na parte superior do dock.",
   "info_ir_protocols": "Protocolos infravermelhos suportados",
   "info_port_active": "Periférico detectado no modo AUTO.",

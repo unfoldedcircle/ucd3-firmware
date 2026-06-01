@@ -42,7 +42,8 @@
   "lbl_password": "Passwort",
   "lbl_ir_code": "IR-Code",
   "lbl_format": "Format",
-  "lbl_output": "Ausgang",
+  "lbl_repeat": "Wiederholung",
+  "lbl_hold": "Halten (ms)",
   "lbl_internal": "Intern",
   "lbl_mode": "Modus",
   "lbl_active": "Aktiv:",
@@ -92,6 +93,8 @@
   "btn_start_streaming": "Streaming starten",
   "btn_stop_streaming": "Streaming stoppen",
 
+  "info_ir_repeat": "Wiederholungsanzahl (1–20), überschreibt jeden Wiederholungswert im Code.<p><strong>HEX:</strong> Überschreibt das Wiederholungsfeld; protokollspezifisches Wiederholungsverhalten wird automatisch behandelt.</p><p><strong>PRONTO:</strong> Wiederholt die 2. Burst-Pair-Sequenz (4. Zahl im PRONTO-Code); wird ignoriert, wenn der Code keine Wiederholungssequenz hat.</p>",
+  "info_ir_hold": "Mindestdauer in ms zum Senden des IR-Codes, simuliert einen langen Tastendruck.<p><strong>Überschreibt Wiederholung</strong> wenn gesetzt.</p><p>Das Signal schließt immer seine finale IR-Nachricht ab, daher kann die tatsächliche Sendezeit etwas länger sein.</p>",  "lbl_output": "Ausgang",
   "info_ir_learn_text": "Der Infrarot-Empfänger befindet sich oben am Dock.",
   "info_ir_protocols": "Unterstützte Infrarot-Protokolle",
   "info_port_active": "Erkanntes Peripheriegerät im AUTO-Modus.",

@@ -42,6 +42,8 @@
   "lbl_password": "Adgangskode",
   "lbl_ir_code": "IR-kode",
   "lbl_format": "Format",
+  "lbl_repeat": "Gentagelse",
+  "lbl_hold": "Hold (ms)",
   "lbl_output": "Udgang",
   "lbl_internal": "Intern",
   "lbl_mode": "Tilstand",
@@ -92,6 +94,8 @@
   "btn_start_streaming": "Start streaming",
   "btn_stop_streaming": "Stop streaming",
 
+  "info_ir_repeat": "Gentagelsestælling (1–20), tilsidesætter enhver gentagelsesværdi i koden.<p><strong>HEX:</strong> Tilsidesætter gentagelsesfeltet; protokolspecifik gentagelsesadfærd håndteres automatisk.</p><p><strong>PRONTO:</strong> Gentager den 2. burst-par sekvens (4. tal i PRONTO-koden); ignoreres hvis koden ikke har en gentagelsessekvens.</p>",
+  "info_ir_hold": "Minimum varighed i ms for at sende IR-koden, simulerer et langt knaptryk.<p><strong>Tilsidesætter gentagelse</strong> hvis indstillet.</p><p>Signalet fuldfører altid sin sidste IR-besked, så den faktiske sendetid kan være lidt længere.</p>",
   "info_ir_learn_text": "Infrarød-modtageren er placeret øverst på dock'en.",
   "info_ir_protocols": "Understøttede infrarøde protokoller",
   "info_port_active": "Registreret perifert udstyr i AUTO-tilstand.",

@@ -42,6 +42,8 @@
   "lbl_password": "Passord",
   "lbl_ir_code": "IR-kode",
   "lbl_format": "Format",
+  "lbl_repeat": "Gjentakelse",
+  "lbl_hold": "Hold (ms)",
   "lbl_output": "Utgang",
   "lbl_internal": "Intern",
   "lbl_mode": "Modus",
@@ -92,6 +94,8 @@
   "btn_start_streaming": "Start strømming",
   "btn_stop_streaming": "Stopp strømming",
 
+  "info_ir_repeat": "Gjentakelsesteller (1–20), overstyrer enhver gjentakelsesverdi i koden.<p><strong>HEX:</strong> Overstyrer gjentakelsesfeltet; protokollspesifikk gjentakelsesatferd håndteres automatisk.</p><p><strong>PRONTO:</strong> Gjentar den 2. burst-par sekvensen (4. tall i PRONTO-koden); ignoreres hvis koden ikke har gjentakelsessekvens.</p>",
+  "info_ir_hold": "Minimum varighet i ms for å sende IR-koden, simulerer et langt knappetrykk.<p><strong>Overstyrer gjentakelse</strong> hvis satt.</p><p>Signalet fullfører alltid sin siste IR-melding, så den faktiske sendetiden kan være litt lengre.</p>",
   "info_ir_learn_text": "Infrarød-mottakeren er plassert øverst på docken.",
   "info_ir_protocols": "Støttede infrarøde protokoller",
   "info_port_active": "Registrert periferienhet i AUTO-modus.",

@@ -147,14 +147,30 @@
           </div>
           <div class="form-row form-inline">
             <label for="ir-format" data-i18n="lbl_format">Format</label>
-            <select id="ir-format">
-              <option value="hex">HEX</option>
+            <select id="ir-format" class="input-format">
               <option value="pronto">PRONTO</option>
+              <option value="hex">HEX</option>
             </select>
+            <div class="form-inline form-group">
+              <label for="ir-repeat" data-i18n="lbl_repeat">Repeat</label>
+              <button class="info-trigger" aria-label="Repeat info" popovertarget="ir-repeat-info">i</button>
+              <input type="number" id="ir-repeat" min="0" max="20" value="0" class="input-repeat">
+            </div>
+            <div id="ir-repeat-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_repeat">
+              Repeat count (1–20), overriding any repeat value in the code.<p><strong>HEX:</strong> Overrides the repeat field; protocol-specific repeat behaviour is handled automatically.</p><p><strong>PRONTO:</strong> Repeats the 2nd burst pair sequence; ignored if the code has no repeat sequence.</p>
+            </div>
+            <div class="form-inline form-group">
+              <label for="ir-hold" data-i18n="lbl_hold">Hold (ms)</label>
+              <button class="info-trigger" aria-label="Hold info" popovertarget="ir-hold-info">i</button>
+              <input type="number" id="ir-hold" min="0" max="9999" value="0" class="input-hold">
+            </div>
+            <div id="ir-hold-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_hold">
+              Minimum duration in ms to send the IR code, simulating a long button press.<p><strong>Overrides repeat</strong> if set.</p><p>The signal always completes its final IR message, so the actual send time may be slightly longer.</p>
+            </div>
           </div>
           <div class="form-row">
-            <label data-i18n="lbl_output">Output</label>
             <div class="checkbox-group">
+              <label data-i18n="lbl_output">Output</label>
               <label class="cb-label"><input type="checkbox" id="ir-int-side" checked> <span data-i18n="lbl_internal">Internal</span></label>
               <label class="cb-label" id="ir-ext1-label"><input type="checkbox" id="ir-ext1"> Port 1</label>
               <label class="cb-label" id="ir-ext2-label"><input type="checkbox" id="ir-ext2"> Port 2</label>
