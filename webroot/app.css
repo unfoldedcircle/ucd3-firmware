@@ -145,6 +145,11 @@ body {
   color: var(--text-color);
   margin: 0;
   padding: 0;
+  overflow-x: auto;
+}
+
+html {
+  overflow-x: auto;
 }
 
 a {
@@ -159,6 +164,7 @@ a:hover {
 /* === Layout === */
 .wrapper {
   max-width: 700px;
+  min-width: 300px;
   margin: 0 auto;
   padding: 0 16px 24px 16px;
 }
