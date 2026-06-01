@@ -36,7 +36,7 @@
 
       <!-- ============ Status ============ -->
       <section id="page-status">
-        <p class="note note-info" data-i18n-html="note_status_info">💡 This is the Dock's advanced management UI - For normal configuration, use the Web-Configurator on your Remote device - open the Remote's address in your browser instead.</p>
+        <p class="note note-info" data-i18n-html="note_status_info">💡 This is the Dock's advanced management UI. For normal configuration, use the Web-Configurator on your Remote device – open the Remote's address in your browser instead.</p>
         <ul id="status-list">
           <li><span class="title" data-i18n="lbl_name">Name</span><span class="content" id="s-name">&mdash;</span></li>
           <li><span class="title" data-i18n="lbl_hostname">Hostname</span><span class="content" id="s-hostname">&mdash;</span></li>
@@ -55,8 +55,8 @@
       <!-- ============ General ============ -->
       <section id="page-general" class="hidden">
         <div class="card">
-          <h2 data-i18n="hdr_device_name">Device Name</h2>
           <div class="form-row form-inline">
+            <label for="cfg-name" data-i18n="hdr_device_name">Device Name</label>
             <input type="text" id="cfg-name" maxlength="40" data-i18n-ph="ph_friendly_name" placeholder="Friendly name">
             <button id="btn-save-name" data-i18n="btn_save">Save</button>
           </div>
@@ -157,7 +157,7 @@
               <input type="number" id="ir-repeat" min="0" max="20" value="0" class="input-repeat">
             </div>
             <div id="ir-repeat-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_repeat">
-              Repeat count (1–20), overriding any repeat value in the code.<p><strong>HEX:</strong> Overrides the repeat field; protocol-specific repeat behaviour is handled automatically.</p><p><strong>PRONTO:</strong> Repeats the 2nd burst pair sequence; ignored if the code has no repeat sequence.</p>
+              Repeat count (1–20), overriding any repeat value in the code.<p><strong>HEX:</strong> Overrides the repeat field; protocol-specific repeat behavior is handled automatically.</p><p><strong>PRONTO:</strong> Repeats the 2nd burst pair sequence; ignored if the code has no repeat sequence.</p>
             </div>
             <div class="form-inline form-group">
               <label for="ir-hold" data-i18n="lbl_hold">Hold (ms)</label>
@@ -169,12 +169,12 @@
             </div>
           </div>
           <div class="form-row">
-            <div class="checkbox-group">
-              <label data-i18n="lbl_output">Output</label>
+            <fieldset class="checkbox-group">
+              <legend data-i18n="lbl_output">Output</legend>
               <label class="cb-label"><input type="checkbox" id="ir-int-side" checked> <span data-i18n="lbl_internal">Internal</span></label>
               <label class="cb-label" id="ir-ext1-label"><input type="checkbox" id="ir-ext1"> Port 1</label>
               <label class="cb-label" id="ir-ext2-label"><input type="checkbox" id="ir-ext2"> Port 2</label>
-            </div>
+            </fieldset>
           </div>
           <button id="btn-ir-send" data-i18n="btn_send">Send</button>
         </div>
@@ -210,7 +210,7 @@
           </h2>
           <div id="port-info" class="info-popover" popover role="dialog">
             <p data-i18n-html="info_port_location">From the back, left to right: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.</p>
-            <p><a href="https://support.unfoldedcircle.com/hc/en-us/articles/20028572717084" target="_blank" data-i18n="info_port_pinout">3.5mm jack pinout</a></p>
+            <p><a href="https://support.unfoldedcircle.com/hc/en-us/articles/20028572717084" target="_blank" data-i18n="info_port_pinout">3.5 mm jack pinout</a></p>
           </div>
           <div class="form-row form-inline">
             <label for="port1-mode" data-i18n="lbl_mode">Mode</label>
@@ -508,6 +508,7 @@
           </p>
           <p><span data-i18n="lbl_current_version">Current version:</span> <span id="ota-version">&mdash;</span></p>
           <div class="form-row">
+            <label for="ota-file" data-i18n="lbl_firmware_file">Firmware file (.bin)</label>
             <input type="file" id="ota-file" accept=".bin">
           </div>
           <button id="btn-upload" data-i18n="btn_upload">Upload</button>
@@ -521,7 +522,7 @@
       <section id="page-expert" class="hidden">
         <div class="card">
           <h2 data-i18n="hdr_expert">Expert</h2>
-          <p class="note note-warning" data-i18n-html="note_expert_warning">🧪 <strong>Experimental Features</strong> - The settings below are early-access or development features not yet available in the standard product. They are disabled by default and intended for testing purposes only. Proceed with caution. We appreciate feedback, but can't provide support.</p>
+          <p class="note note-warning" data-i18n-html="note_expert_warning">🧪 <strong>Experimental Features</strong> – The settings below are early-access or development features not yet available in the standard product. They are disabled by default and intended for testing purposes only. Proceed with caution. We appreciate feedback but can't provide support.</p>
 
           <div class="form-row">
             <label class="cb-label">
@@ -572,6 +573,7 @@
       <img width="40" src="/logo.svg" alt="UC logo">
       <h2 data-i18n="hdr_auth">Authentication</h2>
       <p class="note note-info note-info-compact" data-i18n-html="note_status_close">💡 Remember to log out or close this tab when finished – The Dock supports only a limited number of simultaneous clients.</p>
+      <label for="login-pw" class="sr-only" data-i18n="ph_token">Access Token</label>
       <input type="password" id="login-pw" data-i18n-ph="ph_token" placeholder="Access Token" autocomplete="current-password">
       <button id="login-btn" data-i18n="btn_login">Login</button>
       <p id="login-err" class="err hidden"></p>

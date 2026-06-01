@@ -36,16 +36,17 @@ IR control, serial communication, and firmware updates via a WebSocket JSON API.
 
 ## Constraints
 
-| Constraint         | Detail                                                                         |
-|--------------------|--------------------------------------------------------------------------------|
-| Target             | ESP32-S3, IDF SDK 5.4                                                          |
-| Flash budget       | Kilobytes, not megabytes                                                       |
-| No web frameworks  | No React, Vue, Angular, jQuery, Bootstrap, etc.                                |
-| No npm runtime     | All tooling is build-time only                                                 |
-| Socket limit       | ESP32 has limited concurrent sockets; responses use `Connection: close`        |
-| Max WS connections | 18 concurrent webserver sockets (http and WS connections) (PR #60)             |
-| Browser support    | Modern browsers on macOS, Linux, Windows, Android (desktop + mobile)           |
-| File serving       | Static files served via FrogFS (embedded filesystem) with gzip pre-compression |
+| Constraint               | Detail                                                                                  |
+|--------------------------|-----------------------------------------------------------------------------------------|
+| Target                   | ESP32-S3, IDF SDK 5.4                                                                   |
+| Flash budget             | Kilobytes, not megabytes                                                                |
+| No web frameworks        | No React, Vue, Angular, jQuery, Bootstrap, etc.                                         |
+| No npm runtime           | All tooling is build-time only                                                          |
+| No external dependencies | Do not load libraries, fonts, etc. from a CDN. The dock might not have Internet access. |
+| Socket limit             | ESP32 has limited concurrent sockets; responses use `Connection: close`                 |
+| Max WS connections       | 18 concurrent webserver sockets (http and WS connections) (PR #60)                      |
+| Browser support          | Modern browsers on macOS, Linux, Windows, Android (desktop + mobile)                    |
+| File serving             | Static files served via FrogFS (embedded filesystem) with gzip pre-compression          |
 
 ## File Structure
 
@@ -613,6 +614,6 @@ python3 tools/build_lang.py
 - **WiFi Scan**: Scan for available networks (API not yet available)
 - **Volume Control**: Speaker volume slider (Dock 3 only, API available but speaker is not yet used)
 - **Expert Page Extensions**:
-    - revision 6: PoE voltage configuration (API not yet available)
+    - revision 6: Alternative PoE voltage (API not yet available)
     - NTP enable/disable
     - TBD: RS232 buffer size configuration
