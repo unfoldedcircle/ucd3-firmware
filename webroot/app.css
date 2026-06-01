@@ -245,30 +245,46 @@ ul {
   margin: 0;
 }
 
-li {
-  border-bottom: 1px solid var(--border-light);
+#status-list,
+#net-status-list {
+  margin: 0;
   padding: 0;
-  display: flex;
 }
 
-li:last-child {
+#status-list li,
+#net-status-list li {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0;
+  margin: 0;
+}
+
+#status-list li:last-child,
+#net-status-list li:last-child {
   border-bottom: 0;
 }
 
-.title {
-  min-width: 120px;
+#status-list .title,
+#net-status-list .title {
+  min-width: auto;
+  max-width: none;
   padding: 8px 10px;
   color: var(--title-color);
   font-size: 14px;
   flex-shrink: 0;
+  background: var(--card-bg);
 }
 
-.content {
+#status-list .content,
+#net-status-list .content {
   border-left: 1px solid var(--border-light);
   padding: 8px 10px;
   font-size: 14px;
   word-break: break-word;
   color: var(--content-text);
+  background: var(--card-bg);
+  min-width: 0;
 }
 
 /* === Forms === */
@@ -949,17 +965,23 @@ body.dev-mode::before {
     font-size: 13px;
   }
 
-  .title {
-    min-width: 90px;
-    font-size: 13px;
-  }
-
-  .content {
-    font-size: 13px;
-  }
-
   .card {
     padding: 12px;
+  }
+
+  #status-list li,
+  #net-status-list li {
+    grid-template-columns: 140px 1fr;
+  }
+
+  #status-list .title,
+  #net-status-list .title {
+    font-size: 13px;
+  }
+
+  #status-list .content,
+  #net-status-list .content {
+    font-size: 13px;
   }
 
   .form-inline {
