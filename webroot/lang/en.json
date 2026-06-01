@@ -154,6 +154,7 @@
   "t_expert_reboot": "Dock will reboot to activate changes",
   "confirm_reboot_now": "Dock will reboot to activate changes. Reload page?",
 
+  "e_unknown": "Unknown error occurred",
   "e_no_file": "No file selected",
   "e_not_auth": "Not authenticated",
   "e_ssid_required": "SSID is required",

@@ -7,6 +7,7 @@ var Theme = {
   _theme: "dark",
 
   init: function() {
+    // `localStorage` is intentional for non-sensitive preferences
     this._theme = localStorage.getItem("theme") || "dark";
     this.apply(this._theme);
     this.initSelector();
@@ -55,6 +56,7 @@ var I18N = {
   },
 
   detect: function() {
+    // `localStorage` is intentional for non-sensitive preferences
     var stored = localStorage.getItem("lang");
     if (stored && LANG_DATA[stored]) return stored;
 
@@ -152,12 +154,13 @@ var I18N = {
 var WS = {
   socket: null,
   url: (function() {
-    var urlParams = new URLSearchParams(window.location.search);
-    var host = location.host;
+    const urlParams = new URLSearchParams(window.location.search);
+    let host = location.host;
     if (location.host === "localhost:9000" || location.host === "127.0.0.1:9000") {
       host = urlParams.get("dock") || location.host;
     }
-    return "ws://" + host + "/ws";
+    const proto = location.protocol === "https:" ? "wss://" : "ws://";
+    return proto + host + "/ws";
   })(),
   token: null,
   authenticated: false,
@@ -190,7 +193,13 @@ var WS = {
       }
     };
     this.socket.onerror = function() {};
-    this.socket.onmessage = function(e) { self.onMessage(JSON.parse(e.data)); };
+    this.socket.onmessage = function(e) {
+      try {
+        self.onMessage(JSON.parse(e.data));
+      } catch (ex) {
+        console.error(ex)
+      }
+    };
   },
 
   onMessage: function(msg) {
@@ -292,6 +301,7 @@ var WS = {
       this.socket.send(JSON.stringify(msg));
     } catch (e) {
       // connection lost, onclose will handle reconnect
+      Toast.error(e);
     }
   },
 
@@ -321,6 +331,7 @@ var WS = {
 
   disconnect: function() {
     this.keepConnected = false;
+    clearTimeout(this.reconnectTimer);
     if (this.socket && this.socket.readyState === 1) {
       this.socket.close();
     }
@@ -371,7 +382,7 @@ var Toast = {
   error: function(msg) {
     var text = "Error";
     if (msg && msg.code) text += " " + msg.code;
-    if (msg && msg.msg) text += ": " + msg.msg;
+    if (msg && msg.msg) text += ": " + msg.msg || I18N.t("e_unknown");
     this.show(text, true);
   },
 
@@ -432,6 +443,7 @@ var UI = {
       if (WS.socket && WS.socket.readyState === 1) {
         WS.socket.close();
       }
+      UI.setStatus("err");
       self.showPage("status");
       Toast.success(I18N.t("t_logged_out"));
     });
@@ -566,7 +578,6 @@ Pages.Status = {
   },
 
   loadWithClose: function() {
-    var self = this;
     WS.request("get_sysinfo").then(function(data) {
       Pages.Status.render(data);
       // Close WebSocket after fetching status when not authenticated
@@ -947,9 +958,18 @@ Pages.Ports = {
     output.textContent += data;
     var container = output.parentElement;
     container.scrollTop = container.scrollHeight;
-    if (output.textContent.length > 4096) {
-      output.textContent = output.textContent.slice(-3072);
+    if (output.textContent.length > 32768) {
+      output.textContent = output.textContent.slice(-31744);
     }
+  },
+
+  getUartConfig: function (n) {
+    return {
+      baud_rate: parseInt(document.getElementById("port" + n + "-baud").value),
+      data_bits: parseInt(document.getElementById("port" + n + "-databits").value),
+      stop_bits: document.getElementById("port" + n + "-stopbits").value,
+      parity: document.getElementById("port" + n + "-parity").value
+    };
   },
 
   initPort: function(n) {
@@ -960,12 +980,7 @@ Pages.Ports = {
       var data = { port: n, mode: mode };
 
       if (mode === "RS232") {
-        data.uart = {
-          baud_rate: parseInt(document.getElementById("port" + n + "-baud").value),
-          data_bits: parseInt(document.getElementById("port" + n + "-databits").value),
-          stop_bits: document.getElementById("port" + n + "-stopbits").value,
-          parity: document.getElementById("port" + n + "-parity").value
-        };
+        data.uart = self.getUartConfig(n);
       }
 
       WS.request("set_port_mode", data).then(function() {
@@ -1111,6 +1126,13 @@ Pages.OTA = {
             Toast.show(I18N.t("e_upload_failed", { status: xhr.status }), true);
           }
         }
+      };
+
+      xhr.onerror = function () {
+        progress.classList.add("hidden");
+        fileInput.disabled = false;
+        document.getElementById("btn-upload").disabled = false;
+        Toast.show(I18N.t("e_upload_failed", {status: "network error"}), true);
       };
 
       xhr.open("POST", "/update", true);
