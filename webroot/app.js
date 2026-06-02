@@ -1,5 +1,7 @@
 "use strict";
 
+const Pages = {};
+
 // ============================================================
 // Theme Management
 // ============================================================
@@ -398,6 +400,7 @@ const UI = {
   currentPage: "status",
   pendingPage: null,
   authRequired: { general: true, network: true, ir: true, ports: true, ota: true, logs: true, expert: true },
+  sysInfoCache: null,
 
   init: function() {
     const self = this;
@@ -417,7 +420,7 @@ const UI = {
 
     // Login handlers
     document.getElementById("login-btn").addEventListener("click", function() {
-      let pw = document.getElementById("login-pw").value;
+      const pw = document.getElementById("login-pw").value;
       if (pw.length >= 1) {
         WS.authenticate(pw);
       }
@@ -478,7 +481,7 @@ const UI = {
     if (WS.authenticated) {
       if (page === "status") {
         WS.startStatusRefresh();
-        Pages.Status.load();
+        Pages.Status.load(false);  // Don't force refresh when auto-refresh is active
       } else {
         WS.stopStatusRefresh();
       }
@@ -487,7 +490,7 @@ const UI = {
 
   loadPage: function(page) {
     switch (page) {
-      case "status": Pages.Status.load(); break;
+      case "status": Pages.Status.load(true); break;  // Force refresh when navigating to status
       case "general": Pages.General.load(); break;
       case "network": Pages.Network.load(); break;
       case "ir": Pages.IR.load(); break;
@@ -499,22 +502,22 @@ const UI = {
   },
 
   onAuthenticated: function() {
-    let page = this.pendingPage || this.currentPage;
+    const page = this.pendingPage || this.currentPage;
     this.pendingPage = null;
     this.showPage(page);
     this.updateLogoutVisibility();
   },
 
   updateLogoutVisibility: function() {
-    let loginBtn = document.getElementById("btn-login-link");
-    let logoutBtn = document.getElementById("btn-logout");
+    const loginBtn = document.getElementById("btn-login-link");
+    const logoutBtn = document.getElementById("btn-logout");
     if (loginBtn) loginBtn.classList.toggle("hidden", WS.authenticated);
     if (logoutBtn) logoutBtn.classList.toggle("hidden", !WS.authenticated);
   },
 
   setStatus: function(state) {
-    let dot = document.querySelector("#conn-status .status-dot");
-    let text = document.getElementById("conn-text");
+    const dot = document.querySelector("#conn-status .status-dot");
+    const text = document.getElementById("conn-text");
     if (state === "connecting") {
       dot.className = "status-dot warn";
     } else {
@@ -525,9 +528,9 @@ const UI = {
   },
 
   showLogin: function(errMsg) {
-    let overlay = document.getElementById("login-overlay");
+    const overlay = document.getElementById("login-overlay");
     overlay.classList.remove("hidden");
-    let errEl = document.getElementById("login-err");
+    const errEl = document.getElementById("login-err");
     if (errMsg) {
       errEl.textContent = errMsg;
       errEl.classList.remove("hidden");
@@ -545,14 +548,23 @@ const UI = {
 
   hideLogin: function() {
     document.getElementById("login-overlay").classList.add("hidden");
+  },
+
+  // Store sysinfo globally for reuse across pages
+  cacheSysInfo: function(data) {
+    this.sysInfoCache = data;
+  },
+
+  // Get cached sysinfo (returns null if not cached)
+  getCachedSysInfo: function() {
+    return this.sysInfoCache;
   }
 };
+
 
 // ============================================================
 // Page: Status
 // ============================================================
-const Pages = {};
-
 Pages.Status = {
   render: function(data) {
     document.getElementById("s-name").textContent = data.name || "\u2014";
@@ -571,14 +583,27 @@ Pages.Status = {
     document.getElementById("s-reset").textContent = data.reset_reason || "\u2014";
   },
 
-  load: function() {
+  load: function(forceRefresh) {
+    // If not forcing refresh and we have cached data, use it
+    if (!forceRefresh) {
+      const cached = UI.getCachedSysInfo();
+      if (cached) {
+        Pages.Status.render(cached);
+        return;
+      }
+    }
+
     WS.request("get_sysinfo").then(function(data) {
+      // Cache the sysinfo for reuse across pages
+      UI.cacheSysInfo(data);
       Pages.Status.render(data);
     }).catch(function() {});
   },
 
   loadWithClose: function() {
     WS.request("get_sysinfo").then(function(data) {
+      // Cache the sysinfo for reuse across pages
+      UI.cacheSysInfo(data);
       Pages.Status.render(data);
       // Close WebSocket after fetching status when not authenticated
       setTimeout(function() {
@@ -1336,11 +1361,19 @@ Pages.Ports = {
   }
 };
 
+
 // ============================================================
 // Page: OTA
 // ============================================================
 Pages.OTA = {
   load: function() {
+    // Try to use cached sysinfo first
+    const cached = UI.getCachedSysInfo();
+    if (cached) {
+      document.getElementById("ota-version").textContent = cached.version || "\u2014";
+      return;
+    }
+
     WS.request("get_sysinfo").then(function(data) {
       document.getElementById("ota-version").textContent = data.version || "\u2014";
     }).catch(function() {});
@@ -1348,7 +1381,7 @@ Pages.OTA = {
 
   init: function() {
     document.getElementById("btn-upload").addEventListener("click", function() {
-      let fileInput = document.getElementById("ota-file");
+      const fileInput = document.getElementById("ota-file");
       if (!fileInput.files.length) {
         Toast.show(I18N.t("e_no_file"), true);
         return;
@@ -1358,10 +1391,10 @@ Pages.OTA = {
         return;
       }
 
-      let file = fileInput.files[0];
-      let xhr = new XMLHttpRequest();
-      let progress = document.getElementById("ota-progress");
-      let statusEl = document.getElementById("ota-status");
+      const file = fileInput.files[0];
+      const xhr = new XMLHttpRequest();
+      const progress = document.getElementById("ota-progress");
+      const statusEl = document.getElementById("ota-status");
 
       fileInput.disabled = true;
       document.getElementById("btn-upload").disabled = true;
@@ -1371,7 +1404,7 @@ Pages.OTA = {
 
       xhr.upload.onprogress = function(e) {
         if (e.lengthComputable) {
-          let pct = Math.round(e.loaded / e.total * 100);
+          const pct = Math.round(e.loaded / e.total * 100);
           progress.value = pct;
           statusEl.textContent = pct + "%";
         }
@@ -1522,11 +1555,26 @@ Pages.Expert = {
   config: {
     itach_emulation: false,
     itach_beacon: false,
-    serial_tcp: false
+    serial_tcp: false,
+    poe_voltage: false
   },
+  deviceRevision: null,
 
   load: function() {
     const self = this;
+
+    // Get revision from cached sysinfo (no separate request needed)
+    const cached = UI.getCachedSysInfo();
+    if (cached) {
+      self.deviceRevision = cached.revision || null;
+      self.updatePoeVisibility();
+
+      // Get PoE mode if revision 6
+      if (self.deviceRevision === "6") {
+        self.config.poe_voltage = cached.poe_mode === 1;
+        document.getElementById("exp-poe-voltage").checked = self.config.poe_voltage;
+      }
+    }
 
     // Get IR config (includes iTach settings)
     WS.request("get_ir_config").then(function(data) {
@@ -1549,11 +1597,19 @@ Pages.Expert = {
     }).catch(function() {});
   },
 
+  updatePoeVisibility: function() {
+    const poeRow = document.getElementById("exp-poe-row");
+    if (poeRow) {
+      poeRow.classList.toggle("hidden", this.deviceRevision !== "6");
+    }
+  },
+
   apply: function() {
     const self = this;
-    let itachEmulation = document.getElementById("exp-itach-emulation").checked;
-    let itachBeacon = document.getElementById("exp-amxb-beacon").checked;
-    let serialTcp = document.getElementById("exp-rs232-tcp").checked;
+    const itachEmulation = document.getElementById("exp-itach-emulation").checked;
+    const itachBeacon = document.getElementById("exp-amxb-beacon").checked;
+    const serialTcp = document.getElementById("exp-rs232-tcp").checked;
+    const poeVoltage = document.getElementById("exp-poe-voltage").checked;
 
     // Apply iTach config if changed
     if (itachEmulation !== this.config.itach_emulation || itachBeacon !== this.config.itach_beacon) {
@@ -1573,6 +1629,17 @@ Pages.Expert = {
       WS.request("set_serial_tcp", { enable: serialTcp })
           .then(function() {
             self.config.serial_tcp = serialTcp;
+          })
+          .catch(function(e) {
+            Toast.error(e);
+          });
+    }
+
+    // Apply PoE voltage config if changed (rev6 only)
+    if (this.deviceRevision === "6" && poeVoltage !== this.config.poe_voltage) {
+      WS.request("set_poe", { mode: poeVoltage ? 1 : 0 })
+          .then(function() {
+            self.config.poe_voltage = poeVoltage;
           })
           .catch(function(e) {
             Toast.error(e);

@@ -513,10 +513,18 @@ control.
 Experimental features (disabled by default):
 
 - **RS232 TCP server**: Enable/disable via `set_serial_tcp` (ports 4999, 5000)
+- **Increased PoE voltage** *: Enable/disable via `set_poe` (mode: 0 or 1, rev6 hardware only)
 - **iTach emulation** *: Enable/disable via `set_ir_config`
 - **AMXB discovery beacon** *: Enable/disable via `set_ir_config`
 
 * requires a reboot to change setting.
+
+**PoE Voltage (rev6 only):**
+- The PoE voltage setting is only visible on hardware revision 6 devices
+- Revision is checked via `get_sysinfo` response (`revision: "6"`)
+- Current mode is returned in `get_sysinfo` as `poe_mode: 0` or `poe_mode: 1`
+- Changing the mode triggers an automatic reboot
+- The `set_poe` command accepts `mode: 0` (standard) or `mode: 1` (increased voltage)
 
 ---
 

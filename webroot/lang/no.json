@@ -64,6 +64,7 @@
   "lbl_log_level": "Loggnivå",
   "lbl_filter": "Filter",
   "lbl_firmware_file": "Firmware file (.bin)",
+  "lbl_poe_voltage": "Økt PoE-spenning (kun rev6) *",
   "lbl_itach_emulation": "iTach-emulering *",
   "lbl_amxb_beacon": "AMXB discovery beacon *",
   "lbl_rs232_tcp": "RS232 TCP-server (porter 4999, 5000)",
