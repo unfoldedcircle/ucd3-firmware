@@ -1448,6 +1448,17 @@ Pages.Ports = {
 // Page: OTA
 // ============================================================
 Pages.OTA = {
+  // Build OTA upload URL (supports DEV mode with dock parameter)
+  getUploadUrl: function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let host = location.host;
+    if (location.host === "localhost:9000" || location.host === "127.0.0.1:9000") {
+      host = urlParams.get("dock") || location.host;
+    }
+    const proto = location.protocol === "https:" ? "https://" : "http://";
+    return proto + host + "/update";
+  },
+
   load: function() {
     // Try to use cached sysinfo first
     const cached = UI.getCachedSysInfo();
@@ -1520,7 +1531,8 @@ Pages.OTA = {
         Toast.show(I18N.t("e_upload_failed", {status: "network error"}), true);
       };
 
-      xhr.open("POST", "/update", true);
+      // Use full URL in DEV mode, relative path in production
+      xhr.open("POST", Pages.OTA.getUploadUrl(), true);
       xhr.setRequestHeader("Authorization", "Basic " + btoa("admin:" + WS.token));
       xhr.send(file);
     });
