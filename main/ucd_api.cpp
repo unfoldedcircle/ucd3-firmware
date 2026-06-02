@@ -1612,6 +1612,9 @@ void DockApi::dockEventHandler(void *arg, esp_event_base_t event_base, int32_t e
 
             that->fillPortMode(that->ports_[mode->port], responseDoc);
 
+            // make sure the new mode is sent in the event: fillPortMode retrieves the stored configuration
+            cJSON_ReplaceItemInObject(responseDoc, "mode", cJSON_CreateString(ExtPortMode_to_str(mode->mode)));
+
             char       *resp = cJSON_PrintUnformatted(responseDoc);
             std::string msg = resp;
             cJSON_free(resp);
