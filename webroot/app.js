@@ -462,6 +462,11 @@ const UI = {
   },
 
   showPage: function(page) {
+    // Tear down the current page before switching
+    if (this.currentPage === "ir") {
+      Pages.IR.teardown();
+    }
+
     if (this.authRequired[page] && !WS.authenticated) {
       this.pendingPage = page;
       this.showLogin();
@@ -749,6 +754,8 @@ Pages.IR = {
   repeating: false,
   repeatTimer: null,
   portModes: { 1: null, 2: null },
+  _mouseDown: false,
+  _savedHoldValue: "0",
 
   load: function() {
     const self = this;
@@ -824,26 +831,34 @@ Pages.IR = {
     const repeatInput = document.getElementById("ir-repeat");
     const repeatValue = parseInt(repeatInput.value) || 0;
 
-    // Disable checkbox only if repeat value is 0 AND checkbox is unchecked
-    checkbox.disabled = repeatValue <= 0 && !checkbox.checked;
-
-    // Auto-set repeat to 6 when checking and current value is 0
-    if (checkbox.checked && repeatValue <= 0) {
-      repeatInput.value = "6";
-      // Re-check state after setting value
-      this.updateSendButtonState();
+    if (repeatValue <= 0) {
+      // Repeat cleared: always disable and uncheck the checkbox,
+      // then sync dependent fields in case it was previously checked.
+      if (checkbox.checked) {
+        checkbox.checked = false;
+        this.toggleRepeatModeFields();
+      }
     }
+
+    this.updateSendButtonState();
   },
 
   toggleRepeatModeFields: function() {
     const repeatMode = document.getElementById("ir-repeat-mode").checked;
     const holdInput = document.getElementById("ir-hold");
     const periodicInput = document.getElementById("ir-interval");
+    const repeatInput = document.getElementById("ir-repeat");
+    const repeatValue = parseInt(repeatInput.value) || 0;
 
-    // Disable hold field if repeat mode is enabled
     holdInput.disabled = repeatMode;
     if (repeatMode) {
+      this._savedHoldValue = holdInput.value;
       holdInput.value = "0";
+      if (repeatValue <= 0) {
+        repeatInput.value = "6";
+      }
+    } else {
+      holdInput.value = this._savedHoldValue;
     }
 
     // Enable periodic field only if repeat mode is enabled
@@ -887,11 +902,17 @@ Pages.IR = {
     // Ensure state is reset before starting
     this._resetRepeatState();
 
+    // Set repeating immediately so a button-up before the first
+    // response arrives is handled correctly by handleSendButtonUp.
+    this.repeating = true;
+    this.updateSendButtonVisual();
+
     // Send initial ir_send with request tracking
     WS.request("ir_send", data)
         .then(function() {
-          self.repeating = true;
-          self.updateSendButtonVisual();
+          // Only start the interval if still repeating (user may have
+          // released the button before the first response arrived).
+          if (!self.repeating) return;
 
           // Start periodic sending - use WS.send directly to avoid timeout
           // (f:1 suppresses responses, so request would timeout after 10s)
@@ -935,6 +956,13 @@ Pages.IR = {
           // State already reset, just show error
           Toast.error(e);
         });
+  },
+
+  teardown: function() {
+    if (this.repeating) {
+      this.stopRepeat();
+    }
+    this._mouseDown = false;
   },
 
   _resetRepeatState: function() {
@@ -996,6 +1024,7 @@ Pages.IR = {
   handleSendButtonDown: function(e) {
     // Prevent default to avoid text selection on mobile
     e.preventDefault();
+    this._mouseDown = true;
 
     const repeatMode = document.getElementById("ir-repeat-mode").checked;
 
@@ -1007,10 +1036,14 @@ Pages.IR = {
 
   handleSendButtonUp: function(e) {
     e.preventDefault();
+    this._mouseDown = false;
 
     const repeatMode = document.getElementById("ir-repeat-mode").checked;
 
-    if (repeatMode && this.repeating) {
+    // Call stopRepeat unconditionally in repeat mode: it is idempotent
+    // (timer check inside) and ir_stop is safe to send when idle.
+    // This covers the race where an error clears repeating before mouseup.
+    if (repeatMode) {
       this.stopRepeat();
     }
   },
@@ -1028,10 +1061,9 @@ Pages.IR = {
       self.updateRepeatModeCheckbox();
     });
 
-    // Repeat mode checkbox toggle
+    // Repeat mode checkbox toggle - set repeat count if 0, disable hold time
     document.getElementById("ir-repeat-mode").addEventListener("change", function() {
-      self.updateRepeatModeCheckbox();  // This sets repeat=6 if needed
-      self.toggleRepeatModeFields();     // Then update field states
+      self.toggleRepeatModeFields();
     });
 
     // Send button - mouse events for desktop
@@ -1043,8 +1075,10 @@ Pages.IR = {
       self.handleSendButtonUp(e);
     });
     sendBtn.addEventListener("mouseleave", function(e) {
-      // Stop if mouse leaves button while pressed
-      self.handleSendButtonUp(e);
+      // Only stop repeat if the mouse button is actually held down
+      if (self._mouseDown) {
+        self.handleSendButtonUp(e);
+      }
     });
 
     // Send button - touch events for mobile
@@ -1061,11 +1095,12 @@ Pages.IR = {
     // Send button - click for normal mode (single send)
     sendBtn.addEventListener("click", function(e) {
       const repeatMode = document.getElementById("ir-repeat-mode").checked;
-      if (!repeatMode) {
+      if (repeatMode) {
+        // Suppress click in repeat mode — mousedown already started the hold
+        e.preventDefault();
+      } else {
         self.sendSingle();
       }
-      // Prevent double-trigger with mouse/touch events
-      e.preventDefault();
     });
 
     // Learn IR toggle
@@ -1107,20 +1142,12 @@ Pages.IR = {
       self.updateSendButtonState();
     });
 
-    // Cleanup on page navigation - stop repeat if active
-    const originalShowPage = UI.showPage;
-    UI.showPage = function(page) {
-      if (self.repeating) {
-        self.stopRepeat();
-      }
-      originalShowPage.call(UI, page);
-    };
-
-    // Cleanup on page unload
     window.addEventListener("beforeunload", function() {
-      if (self.repeating) {
-        self.stopRepeat();
-      }
+      self.teardown();
+    });
+
+    window.addEventListener("blur", function() {
+      self.teardown();
     });
   }
 };
