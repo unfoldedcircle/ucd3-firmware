@@ -176,7 +176,30 @@
               <label class="cb-label" id="ir-ext2-label"><input type="checkbox" id="ir-ext2"> Port 2</label>
             </fieldset>
           </div>
-          <button id="btn-ir-send" data-i18n="btn_send">Send</button>
+          <div class="form-row">
+            <fieldset class="checkbox-group">
+              <legend data-i18n="lbl_ir_repeat_mode">IR repeat</legend>
+              <label class="cb-label">
+                <input type="checkbox" id="ir-repeat-mode">
+                <span data-i18n="lbl_ir_active">Active</span>
+                <button class="info-trigger" aria-label="IR repeat info" popovertarget="ir-repeat-mode-info">i</button>
+              </label>
+              <div class="form-inline form-group ir-periodic-group">
+                <label for="ir-periodic" class="ir-periodic-label" data-i18n="lbl_periodic">Interval (ms)</label>
+                <button class="info-trigger" aria-label="Periodic send info" popovertarget="ir-periodic-info">i</button>
+                <input type="number" id="ir-periodic" min="100" max="1000" value="300" class="input-periodic" disabled>
+              </div>
+              <div id="ir-repeat-mode-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_repeat_mode">
+                Activate IR repeat mode. Press and hold the Start Repeat button to continuously send the IR code.<p>Requires <strong>Repeat</strong> value > 0 with a matching repeat interval to renew the IR signal.</p>
+              </div>
+              <div id="ir-periodic-info" class="info-popover" popover role="dialog" data-i18n="info_ir_interval">
+                Interval in ms to repeatedly send the IR code while the Send button is held.
+              </div>
+            </fieldset>
+          </div>
+          <div class="form-row">
+            <button id="btn-ir-send" data-i18n="btn_send" disabled>Send</button>
+          </div>
         </div>
 
         <div class="card">

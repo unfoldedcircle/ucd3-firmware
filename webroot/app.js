@@ -721,10 +721,12 @@ Pages.Network = {
 // ============================================================
 Pages.IR = {
   learning: false,
+  repeating: false,
+  repeatTimer: null,
   portModes: { 1: null, 2: null },
 
   load: function() {
-    var self = this;
+    const self = this;
     // Get port modes to determine checkbox availability
     WS.request("get_port_modes").then(function(data) {
       if (data.ports) {
@@ -739,6 +741,7 @@ Pages.IR = {
     WS.request("get_sysinfo").then(function(data) {
       self.learning = data.ir_learning || false;
       self.updateLearnButton();
+      self.updateSendButtonState();
     }).catch(function() {});
   },
 
@@ -747,10 +750,10 @@ Pages.IR = {
   },
 
   updateOutputCheckboxes: function() {
-    var ext1 = document.getElementById("ir-ext1");
-    var ext2 = document.getElementById("ir-ext2");
-    var port1IsIr = this.isIrOutput(this.portModes[1]);
-    var port2IsIr = this.isIrOutput(this.portModes[2]);
+    const ext1 = document.getElementById("ir-ext1");
+    const ext2 = document.getElementById("ir-ext2");
+    const port1IsIr = this.isIrOutput(this.portModes[1]);
+    const port2IsIr = this.isIrOutput(this.portModes[2]);
 
     ext1.disabled = !port1IsIr;
     ext2.disabled = !port2IsIr;
@@ -762,54 +765,300 @@ Pages.IR = {
   },
 
   updateLearnButton: function() {
-    var btn = document.getElementById("btn-ir-learn");
+    const btn = document.getElementById("btn-ir-learn");
     btn.textContent = this.learning ? I18N.t("btn_stop_learning") : I18N.t("btn_start_learning");
     btn.classList.toggle("btn-warn", this.learning);
   },
 
+  updateSendButtonState: function() {
+    const btn = document.getElementById("btn-ir-send");
+    const repeatMode = document.getElementById("ir-repeat-mode").checked;
+    const code = document.getElementById("ir-code").value.trim();
+
+    // Disable button if learning is active
+    if (this.learning) {
+      btn.disabled = true;
+      return;
+    }
+
+    // Disable button if no code entered
+    if (!code) {
+      btn.disabled = true;
+      return;
+    }
+
+    // Button is enabled if:
+    // - Normal mode (repeat mode unchecked), or
+    // - Repeat mode checked AND repeat value > 0
+    const repeatValue = parseInt(document.getElementById("ir-repeat").value) || 0;
+    if (repeatMode && repeatValue <= 0) {
+      btn.disabled = true;
+    } else {
+      btn.disabled = false;
+    }
+  },
+
+  updateRepeatModeCheckbox: function() {
+    const checkbox = document.getElementById("ir-repeat-mode");
+    const repeatInput = document.getElementById("ir-repeat");
+    const repeatValue = parseInt(repeatInput.value) || 0;
+
+    // Disable checkbox only if repeat value is 0 AND checkbox is unchecked
+    if (repeatValue <= 0 && !checkbox.checked) {
+      checkbox.disabled = true;
+    } else {
+      checkbox.disabled = false;
+    }
+
+    // Auto-set repeat to 6 when checking and current value is 0
+    if (checkbox.checked && repeatValue <= 0) {
+      repeatInput.value = "6";
+      // Re-check state after setting value
+      this.updateSendButtonState();
+    }
+  },
+
+  toggleRepeatModeFields: function() {
+    const repeatMode = document.getElementById("ir-repeat-mode").checked;
+    const holdInput = document.getElementById("ir-hold");
+    const periodicInput = document.getElementById("ir-periodic");
+
+    // Disable hold field if repeat mode is enabled
+    holdInput.disabled = repeatMode;
+    if (repeatMode) {
+      holdInput.value = "0";
+    }
+
+    // Enable periodic field only if repeat mode is enabled
+    periodicInput.disabled = !repeatMode;
+
+    this.updateSendButtonState();
+    this.updateSendButtonVisual();
+  },
+
+  startRepeat: function() {
+    const self = this;
+    const code = document.getElementById("ir-code").value.trim();
+    if (!code) {
+      Toast.show(I18N.t("e_ir_required"), true);
+      this._resetRepeatState();
+      return;
+    }
+
+    const format = document.getElementById("ir-format").value;
+    const repeat = parseInt(document.getElementById("ir-repeat").value) || 6;
+    const periodic = parseInt(document.getElementById("ir-periodic").value) || 300;
+
+    // Clamp periodic to valid range
+    let clampedPeriodic = periodic;
+    if (periodic < 100) clampedPeriodic = 100;
+    if (periodic > 1000) clampedPeriodic = 1000;
+
+    const data = {
+      type: "dock",
+      command: "ir_send",
+      code: code,
+      format: format,
+      repeat: repeat,
+      f: 1,  // Disable ack responses for repeat extensions
+      int_side: document.getElementById("ir-int-side").checked,
+      int_top: false,
+      ext1: document.getElementById("ir-ext1").checked,
+      ext2: document.getElementById("ir-ext2").checked
+    };
+
+    // Ensure state is reset before starting
+    this._resetRepeatState();
+
+    // Send initial ir_send with request tracking
+    WS.request("ir_send", data)
+        .then(function() {
+          self.repeating = true;
+          self.updateSendButtonVisual();
+
+          // Start periodic sending - use WS.send directly to avoid timeout
+          // (f:1 suppresses responses, so request would timeout after 10s)
+          self.repeatTimer = setInterval(function() {
+            // Re-send to extend repeat using direct send (no response tracking)
+            try {
+              WS.send(data);
+            } catch (e) {
+              // Connection error, stop repeat
+              self._resetRepeatState();
+              Toast.error(e);
+            }
+          }, clampedPeriodic);
+        })
+        .catch(function(e) {
+          self._resetRepeatState();
+          Toast.error(e);
+        });
+  },
+
+  stopRepeat: function() {
+    const self = this;
+
+    // Stop periodic timer first
+    if (this.repeatTimer) {
+      clearInterval(this.repeatTimer);
+      this.repeatTimer = null;
+    }
+
+    // Reset repeating state immediately to prevent new messages
+    this.repeating = false;
+    this.updateSendButtonVisual();
+
+    // Send ir_stop to dock
+    WS.request("ir_stop")
+        .then(function() {
+          // State already reset, just ensure visual is correct
+          self.updateSendButtonVisual();
+        })
+        .catch(function(e) {
+          // State already reset, just show error
+          Toast.error(e);
+        });
+  },
+
+  _resetRepeatState: function() {
+    // Internal helper to reset all repeat-related state
+    if (this.repeatTimer) {
+      clearInterval(this.repeatTimer);
+      this.repeatTimer = null;
+    }
+    this.repeating = false;
+    this.updateSendButtonVisual();
+  },
+
+  updateSendButtonVisual: function() {
+    const btn = document.getElementById("btn-ir-send");
+    const repeatMode = document.getElementById("ir-repeat-mode").checked;
+
+    if (this.repeating) {
+      btn.textContent = I18N.t("btn_sending");
+      btn.classList.add("btn-send-active", "btn-warn");
+    } else {
+      btn.textContent = repeatMode ? I18N.t("btn_start_repeat") : I18N.t("btn_send");
+      btn.classList.remove("btn-send-active", "btn-warn");
+    }
+  },
+
+  sendSingle: function() {
+    const code = document.getElementById("ir-code").value.trim();
+    if (!code) {
+      Toast.show(I18N.t("e_ir_required"), true);
+      return;
+    }
+
+    const format = document.getElementById("ir-format").value;
+    const repeat = parseInt(document.getElementById("ir-repeat").value) || 0;
+    const hold = parseInt(document.getElementById("ir-hold").value) || 0;
+
+    const data = {
+      code: code,
+      format: format,
+      int_side: document.getElementById("ir-int-side").checked,
+      int_top: false,
+      ext1: document.getElementById("ir-ext1").checked,
+      ext2: document.getElementById("ir-ext2").checked
+    };
+
+    // Add repeat or hold based on values
+    // hold overrides repeat if both are set
+    if (hold > 0) {
+      data.hold = hold;
+    } else if (repeat > 0) {
+      data.repeat = repeat;
+    }
+
+    const self = this;
+    WS.request("ir_send", data)
+        .then(function() { Toast.success(I18N.t("t_ir_sent")); })
+        .catch(function(e) { Toast.error(e); });
+  },
+
+  handleSendButtonDown: function(e) {
+    // Prevent default to avoid text selection on mobile
+    e.preventDefault();
+
+    const repeatMode = document.getElementById("ir-repeat-mode").checked;
+
+    if (repeatMode && !this.repeating) {
+      this.startRepeat();
+    }
+    // In normal mode, single click sends once (handled by click event)
+  },
+
+  handleSendButtonUp: function(e) {
+    e.preventDefault();
+
+    const repeatMode = document.getElementById("ir-repeat-mode").checked;
+
+    if (repeatMode && this.repeating) {
+      this.stopRepeat();
+    }
+  },
+
   init: function() {
-    var self = this;
+    const self = this;
 
-    // Send IR
-    document.getElementById("btn-ir-send").addEventListener("click", function() {
-      var code = document.getElementById("ir-code").value.trim();
-      if (!code) {
-        Toast.show(I18N.t("e_ir_required"), true);
-        return;
+    // IR code field change - enable/disable send button
+    document.getElementById("ir-code").addEventListener("input", function() {
+      self.updateSendButtonState();
+    });
+
+    // Repeat value change - enables/disables repeat mode checkbox
+    document.getElementById("ir-repeat").addEventListener("input", function() {
+      self.updateRepeatModeCheckbox();
+    });
+
+    // Repeat mode checkbox toggle
+    document.getElementById("ir-repeat-mode").addEventListener("change", function() {
+      self.updateRepeatModeCheckbox();  // This sets repeat=6 if needed
+      self.toggleRepeatModeFields();     // Then update field states
+    });
+
+    // Send button - mouse events for desktop
+    const sendBtn = document.getElementById("btn-ir-send");
+    sendBtn.addEventListener("mousedown", function(e) {
+      self.handleSendButtonDown(e);
+    });
+    sendBtn.addEventListener("mouseup", function(e) {
+      self.handleSendButtonUp(e);
+    });
+    sendBtn.addEventListener("mouseleave", function(e) {
+      // Stop if mouse leaves button while pressed
+      self.handleSendButtonUp(e);
+    });
+
+    // Send button - touch events for mobile
+    sendBtn.addEventListener("touchstart", function(e) {
+      self.handleSendButtonDown(e);
+    });
+    sendBtn.addEventListener("touchend", function(e) {
+      self.handleSendButtonUp(e);
+    });
+    sendBtn.addEventListener("touchcancel", function(e) {
+      self.handleSendButtonUp(e);
+    });
+
+    // Send button - click for normal mode (single send)
+    sendBtn.addEventListener("click", function(e) {
+      const repeatMode = document.getElementById("ir-repeat-mode").checked;
+      if (!repeatMode) {
+        self.sendSingle();
       }
-
-      var format = document.getElementById("ir-format").value;
-      var repeat = parseInt(document.getElementById("ir-repeat").value) || 0;
-      var hold = parseInt(document.getElementById("ir-hold").value) || 0;
-
-      var data = {
-        code: code,
-        format: format,
-        int_side: document.getElementById("ir-int-side").checked,
-        int_top: false,
-        ext1: document.getElementById("ir-ext1").checked,
-        ext2: document.getElementById("ir-ext2").checked
-      };
-
-      // Add repeat or hold based on values
-      // hold overrides repeat if both are set
-      if (hold > 0) {
-        data.hold = hold;
-      } else if (repeat > 0) {
-        data.repeat = repeat;
-      }
-
-      WS.request("ir_send", data)
-          .then(function() { Toast.success(I18N.t("t_ir_sent")); })
-          .catch(function(e) { Toast.error(e); });
+      // Prevent double-trigger with mouse/touch events
+      e.preventDefault();
     });
 
     // Learn IR toggle
     document.getElementById("btn-ir-learn").addEventListener("click", function() {
-      var command = self.learning ? "ir_receive_off" : "ir_receive_on";
+      const command = self.learning ? "ir_receive_off" : "ir_receive_on";
       WS.request(command).then(function() {
         self.learning = !self.learning;
         self.updateLearnButton();
+        self.updateSendButtonState();
         Toast.success(self.learning ? I18N.t("t_ir_learn_on") : I18N.t("t_ir_learn_off"));
       }).catch(function(e) { Toast.error(e); });
     });
@@ -821,12 +1070,41 @@ Pages.IR = {
 
     // Listen for ir_receive events
     WS.on("ir_receive", function(msg) {
-      var output = document.getElementById("ir-learn-output");
+      const output = document.getElementById("ir-learn-output");
       if (!output) return;
       if (output.textContent) output.textContent += "\n";
       output.textContent += msg.ir_code;
-      var container = output.parentElement;
+      const container = output.parentElement;
       container.scrollTop = container.scrollHeight;
+    });
+
+    // Listen for ir_receive_on/off events (Dock 3)
+    WS.on("ir_receive_on", function(msg) {
+      self.learning = true;
+      self.updateLearnButton();
+      self.updateSendButtonState();
+    });
+
+    WS.on("ir_receive_off", function(msg) {
+      self.learning = false;
+      self.updateLearnButton();
+      self.updateSendButtonState();
+    });
+
+    // Cleanup on page navigation - stop repeat if active
+    const originalShowPage = UI.showPage;
+    UI.showPage = function(page) {
+      if (self.repeating) {
+        self.stopRepeat();
+      }
+      originalShowPage.call(UI, page);
+    };
+
+    // Cleanup on page unload
+    window.addEventListener("beforeunload", function() {
+      if (self.repeating) {
+        self.stopRepeat();
+      }
     });
   }
 };

@@ -367,12 +367,39 @@ select:focus {
 }
 
 .input-repeat {
-  width: 50px;
+  width: 70px;
   flex-shrink: 0;
 }
 
 .input-hold {
   width: 70px;
+  flex-shrink: 0;
+}
+
+.input-periodic {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.input-periodic:disabled {
+  opacity: 0.4;
+}
+
+.btn-send-active {
+  background: var(--btn-warn-hover-bg);
+  border-color: var(--btn-warn-border);
+}
+
+.ir-periodic-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ir-periodic-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--label-color);
   flex-shrink: 0;
 }
 
@@ -908,8 +935,21 @@ textarea:focus {
 /* === Checkbox group === */
 .checkbox-group {
   display: flex;
-  gap: 16px;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 12px;
+  margin: 0;
+}
+
+.checkbox-group legend {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--h3-color);
+  padding: 0 4px;
+  margin: 0;
 }
 
 .cb-label {
@@ -917,7 +957,7 @@ textarea:focus {
   align-items: center;
   gap: 4px;
   color: var(--checkbox-text);
-  font-size: 14px;
+  font-size: 13px;
   margin: 0;
   cursor: pointer;
 }
