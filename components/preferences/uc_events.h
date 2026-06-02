@@ -133,7 +133,7 @@ typedef struct {
     ext_port_mode_t mode;
     ext_port_mode_t active_mode;
     esp_err_t       state;
-    // UART configuraiton in format "$BAUDRATE:$DATA_BITS$PARITY$STOP_BITS"
+    // UART configuration in format "$BAUDRATE:$DATA_BITS$PARITY$STOP_BITS"
     char uart_cfg[16];
 } uc_event_ext_port_mode_t;
 
