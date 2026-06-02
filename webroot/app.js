@@ -1125,11 +1125,23 @@ Pages.IR = {
   }
 };
 
+
 // ============================================================
 // Page: Ports
 // ============================================================
 Pages.Ports = {
   serialEnabled: { 1: false, 2: false },
+
+  // Map mode IDs to friendly names (matching dropdown options)
+  modeNames: {
+    "AUTO": "AUTO",
+    "NONE": "NONE",
+    "IR_BLASTER": "IR Blaster",
+    "IR_EMITTER_MONO_PLUG": "IR Emitter (Mono)",
+    "IR_EMITTER_STEREO_PLUG": "IR Emitter (Stereo)",
+    "TRIGGER_5V": "Trigger 5V",
+    "RS232": "RS232"
+  },
 
   load: function() {
     const self = this;
@@ -1145,8 +1157,18 @@ Pages.Ports = {
     const modeSelect = document.getElementById("port" + n + "-mode");
     if (modeSelect) modeSelect.value = portData.mode;
 
+    // Show/hide Active row based on mode
+    const activeRow = document.getElementById("port" + n + "-active-row");
+    if (activeRow) {
+      activeRow.classList.toggle("hidden", portData.mode !== "AUTO");
+    }
+
+    // Show active mode with friendly name
     const activeEl = document.getElementById("port" + n + "-active");
-    if (activeEl) activeEl.textContent = portData.active_mode || "\u2014";
+    if (activeEl) {
+      const activeMode = portData.active_mode || portData.mode;
+      activeEl.textContent = this.getModeFriendlyName(activeMode);
+    }
 
     const activeMode = portData.active_mode || portData.mode;
     const isTrigger = activeMode === "TRIGGER_5V";
@@ -1162,6 +1184,10 @@ Pages.Ports = {
     }
   },
 
+  getModeFriendlyName: function(modeId) {
+    return this.modeNames[modeId] || modeId;
+  },
+
   renderPortAfterModeChange: function(port, newMode) {
     const self = this;
     // Update the UI immediately based on the new mode
@@ -1169,8 +1195,17 @@ Pages.Ports = {
     const modeSelect = document.getElementById("port" + n + "-mode");
     if (modeSelect) modeSelect.value = newMode;
 
+    // Show/hide Active row based on mode
+    const activeRow = document.getElementById("port" + n + "-active-row");
+    if (activeRow) {
+      activeRow.classList.toggle("hidden", newMode !== "AUTO");
+    }
+
+    // Show active mode with friendly name
     const activeEl = document.getElementById("port" + n + "-active");
-    if (activeEl) activeEl.textContent = newMode;
+    if (activeEl) {
+      activeEl.textContent = this.getModeFriendlyName(newMode);
+    }
 
     const isTrigger = newMode === "TRIGGER_5V";
     const isRS232 = newMode === "RS232";
