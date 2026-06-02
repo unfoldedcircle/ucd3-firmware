@@ -3,7 +3,7 @@
 // ============================================================
 // Theme Management
 // ============================================================
-var Theme = {
+const Theme = {
   _theme: "dark",
 
   init: function() {
@@ -20,12 +20,12 @@ var Theme = {
   },
 
   initSelector: function() {
-    var select = document.getElementById("theme-select");
+    const select = document.getElementById("theme-select");
     if (!select) return;
 
     select.value = this._theme;
 
-    var self = this;
+    const self = this;
     select.addEventListener("change", function() {
       self.apply(this.value);
     });
@@ -35,7 +35,7 @@ var Theme = {
 // ============================================================
 // Internationalization
 // ============================================================
-var I18N = {
+const I18N = {
   _lang: "en",
   _strings: {},
   _available: [],
@@ -57,20 +57,20 @@ var I18N = {
 
   detect: function() {
     // `localStorage` is intentional for non-sensitive preferences
-    var stored = localStorage.getItem("lang");
+    const stored = localStorage.getItem("lang");
     if (stored && LANG_DATA[stored]) return stored;
 
-    var nav = (navigator.language || "en").split("-")[0].toLowerCase();
+    const nav = (navigator.language || "en").split("-")[0].toLowerCase();
     if (LANG_DATA[nav]) return nav;
 
     return "en";
   },
 
   resolve: function(lang) {
-    var base = LANG_DATA.en || {};
-    var overlay = LANG_DATA[lang] || {};
-    var result = {};
-    for (var k in base) {
+    const base = LANG_DATA.en || {};
+    const overlay = LANG_DATA[lang] || {};
+    const result = {};
+    for (let k in base) {
       if (base.hasOwnProperty(k)) {
         result[k] = overlay[k] || base[k];
       }
@@ -84,7 +84,7 @@ var I18N = {
     localStorage.setItem("lang", lang);
     this._strings = this.resolve(lang);
     this.applyDom();
-    var select = document.getElementById("lang-select");
+    const select = document.getElementById("lang-select");
     if (select) select.value = lang;
     // Re-render dynamic content on current page
     UI.loadPage(UI.currentPage);
@@ -93,37 +93,37 @@ var I18N = {
   },
 
   applyDom: function() {
-    var strings = this._strings;
+    const strings = this._strings;
 
     document.querySelectorAll("[data-i18n]").forEach(function(el) {
-      var key = el.getAttribute("data-i18n");
+      const key = el.getAttribute("data-i18n");
       if (strings[key]) el.textContent = strings[key];
     });
 
     document.querySelectorAll("[data-i18n-html]").forEach(function(el) {
-      var key = el.getAttribute("data-i18n-html");
+      const key = el.getAttribute("data-i18n-html");
       if (strings[key]) el.innerHTML = strings[key];
     });
 
     document.querySelectorAll("[data-i18n-ph]").forEach(function(el) {
-      var key = el.getAttribute("data-i18n-ph");
+      const key = el.getAttribute("data-i18n-ph");
       if (strings[key]) el.placeholder = strings[key];
     });
 
     document.querySelectorAll("[data-i18n-title]").forEach(function(el) {
-      var key = el.getAttribute("data-i18n-title");
+      const key = el.getAttribute("data-i18n-title");
       if (strings[key]) el.title = strings[key];
     });
   },
 
   initSelector: function() {
-    var select = document.getElementById("lang-select");
+    const select = document.getElementById("lang-select");
     if (!select) return;
 
     select.innerHTML = "";
-    var self = this;
+    const self = this;
     this._available.sort().forEach(function(code) {
-      var opt = document.createElement("option");
+      const opt = document.createElement("option");
       opt.value = code;
       opt.textContent = code.toUpperCase();
       select.appendChild(opt);
@@ -136,9 +136,9 @@ var I18N = {
   },
 
   t: function(key, replacements) {
-    var str = this._strings[key] || key;
+    let str = this._strings[key] || key;
     if (replacements) {
-      for (var k in replacements) {
+      for (const k in replacements) {
         if (replacements.hasOwnProperty(k)) {
           str = str.replace("{" + k + "}", replacements[k]);
         }
@@ -151,7 +151,7 @@ var I18N = {
 // ============================================================
 // WebSocket Communication Layer
 // ============================================================
-var WS = {
+const WS = {
   socket: null,
   url: (function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -184,7 +184,7 @@ var WS = {
         Pages.Status.loadWithClose();
       }
     };
-    var self = this;
+    const self = this;
     this.socket.onclose = function() {
       self.authenticated = false;
       self.rejectAllPending();
@@ -253,7 +253,7 @@ var WS = {
 
     // Response correlation via req_id
     if (msg.req_id !== undefined && this.pending[msg.req_id]) {
-      var p = this.pending[msg.req_id];
+      let p = this.pending[msg.req_id];
       clearTimeout(p.timer);
       delete this.pending[msg.req_id];
       if (msg.code >= 200 && msg.code < 300) {
@@ -266,22 +266,22 @@ var WS = {
 
     // Push events
     if (msg.type === "event") {
-      var h = this.eventHandlers[msg.msg];
+      let h = this.eventHandlers[msg.msg];
       if (h) h(msg);
     }
   },
 
   request: function(command, data) {
-    var id = ++this.msgId;
-    var msg = { type: "dock", id: id, command: command };
+    let id = ++this.msgId;
+    let msg = { type: "dock", id: id, command: command };
     if (data) {
-      for (var k in data) {
+      for (let k in data) {
         if (data.hasOwnProperty(k)) msg[k] = data[k];
       }
     }
-    var self = this;
+    const self = this;
     return new Promise(function(resolve, reject) {
-      var timer = setTimeout(function() {
+      let timer = setTimeout(function() {
         delete self.pending[id];
         reject({ code: 408, msg: "timeout" });
       }, 10000);
@@ -307,13 +307,13 @@ var WS = {
 
   scheduleReconnect: function() {
     UI.setStatus("err");
-    var self = this;
+    const self = this;
     this.reconnectTimer = setTimeout(function() { self.connect(); }, this.reconnectMs);
     this.reconnectMs = Math.min(Math.round(this.reconnectMs * 1.5), this.maxReconnectMs);
   },
 
   startStatusRefresh: function() {
-    var self = this;
+    const self = this;
     this.stopStatusRefresh();
     this.statusRefreshTimer = setInterval(function() {
       if (self.authenticated && UI.currentPage === "status") {
@@ -338,7 +338,7 @@ var WS = {
   },
 
   rejectAllPending: function() {
-    for (var id in this.pending) {
+    for (let id in this.pending) {
       if (this.pending.hasOwnProperty(id)) {
         clearTimeout(this.pending[id].timer);
         this.pending[id].reject({ code: 503, msg: "disconnected" });
@@ -365,11 +365,11 @@ var WS = {
 // ============================================================
 // Toast Notification
 // ============================================================
-var Toast = {
+const Toast = {
   timer: null,
 
   show: function(message, isError) {
-    var el = document.getElementById("toast");
+    let el = document.getElementById("toast");
     el.textContent = message;
     el.className = "toast " + (isError ? "toast-err" : "toast-ok");
     el.classList.remove("hidden");
@@ -380,7 +380,7 @@ var Toast = {
   },
 
   error: function(msg) {
-    var text = "Error";
+    let text = "Error";
     if (msg && msg.code) text += " " + msg.code;
     if (msg && msg.msg) text += ": " + msg.msg || I18N.t("e_unknown");
     this.show(text, true);
@@ -394,13 +394,13 @@ var Toast = {
 // ============================================================
 // UI Controller
 // ============================================================
-var UI = {
+const UI = {
   currentPage: "status",
   pendingPage: null,
   authRequired: { general: true, network: true, ir: true, ports: true, ota: true, logs: true, expert: true },
 
   init: function() {
-    var self = this;
+    const self = this;
 
     // Nav click handlers
     document.querySelectorAll("#main-nav a").forEach(function(a) {
@@ -417,7 +417,7 @@ var UI = {
 
     // Login handlers
     document.getElementById("login-btn").addEventListener("click", function() {
-      var pw = document.getElementById("login-pw").value;
+      let pw = document.getElementById("login-pw").value;
       if (pw.length >= 1) {
         WS.authenticate(pw);
       }
@@ -499,22 +499,22 @@ var UI = {
   },
 
   onAuthenticated: function() {
-    var page = this.pendingPage || this.currentPage;
+    let page = this.pendingPage || this.currentPage;
     this.pendingPage = null;
     this.showPage(page);
     this.updateLogoutVisibility();
   },
 
   updateLogoutVisibility: function() {
-    var loginBtn = document.getElementById("btn-login-link");
-    var logoutBtn = document.getElementById("btn-logout");
+    let loginBtn = document.getElementById("btn-login-link");
+    let logoutBtn = document.getElementById("btn-logout");
     if (loginBtn) loginBtn.classList.toggle("hidden", WS.authenticated);
     if (logoutBtn) logoutBtn.classList.toggle("hidden", !WS.authenticated);
   },
 
   setStatus: function(state) {
-    var dot = document.querySelector("#conn-status .status-dot");
-    var text = document.getElementById("conn-text");
+    let dot = document.querySelector("#conn-status .status-dot");
+    let text = document.getElementById("conn-text");
     if (state === "connecting") {
       dot.className = "status-dot warn";
     } else {
@@ -525,9 +525,9 @@ var UI = {
   },
 
   showLogin: function(errMsg) {
-    var overlay = document.getElementById("login-overlay");
+    let overlay = document.getElementById("login-overlay");
     overlay.classList.remove("hidden");
-    var errEl = document.getElementById("login-err");
+    let errEl = document.getElementById("login-err");
     if (errMsg) {
       errEl.textContent = errMsg;
       errEl.classList.remove("hidden");
@@ -551,7 +551,7 @@ var UI = {
 // ============================================================
 // Page: Status
 // ============================================================
-var Pages = {};
+const Pages = {};
 
 Pages.Status = {
   render: function(data) {
@@ -599,8 +599,8 @@ Pages.General = {
   load: function() {
     WS.request("get_sysinfo").then(function(data) {
       document.getElementById("cfg-name").value = data.name || "";
-      var ledPct = Math.round((data.led_brightness || 0) / 255 * 100);
-      var ethPct = Math.round((data.eth_led_brightness || 0) / 255 * 100);
+      let ledPct = Math.round((data.led_brightness || 0) / 255 * 100);
+      let ethPct = Math.round((data.eth_led_brightness || 0) / 255 * 100);
       document.getElementById("cfg-led").value = ledPct;
       document.getElementById("cfg-led-val").textContent = ledPct + "%";
       document.getElementById("cfg-eth-led").value = ethPct;
@@ -617,7 +617,7 @@ Pages.General = {
     });
 
     document.getElementById("btn-save-name").addEventListener("click", function() {
-      var name = document.getElementById("cfg-name").value.trim();
+      let name = document.getElementById("cfg-name").value.trim();
       if (!name) return;
       WS.request("set_config", { friendly_name: name })
           .then(function() { Toast.success(I18N.t("t_name_saved")); })
@@ -625,8 +625,8 @@ Pages.General = {
     });
 
     document.getElementById("btn-save-brightness").addEventListener("click", function() {
-      var ledPct = parseInt(document.getElementById("cfg-led").value);
-      var ethPct = parseInt(document.getElementById("cfg-eth-led").value);
+      let ledPct = parseInt(document.getElementById("cfg-led").value);
+      let ethPct = parseInt(document.getElementById("cfg-eth-led").value);
       WS.request("set_brightness", {
         status_led: Math.round(ledPct / 100 * 255),
         eth_led: Math.round(ethPct / 100 * 255)
@@ -636,7 +636,7 @@ Pages.General = {
     });
 
     document.getElementById("btn-save-token").addEventListener("click", function() {
-      var t = document.getElementById("cfg-token").value;
+      let t = document.getElementById("cfg-token").value;
       if (t.length < 4) {
         Toast.show(I18N.t("e_token_min"), true);
         return;
@@ -690,8 +690,8 @@ Pages.Network = {
   init: function() {
     // WiFi save
     document.getElementById("btn-save-wifi").addEventListener("click", function() {
-      var ssid = document.getElementById("cfg-ssid").value.trim();
-      var pw = document.getElementById("cfg-wifi-pw").value;
+      let ssid = document.getElementById("cfg-ssid").value.trim();
+      let pw = document.getElementById("cfg-wifi-pw").value;
       if (!ssid) {
         Toast.show(I18N.t("e_ssid_required"), true);
         return;
@@ -708,8 +708,8 @@ Pages.Network = {
 
     // Password reveal toggle
     document.getElementById("btn-reveal-wifi").addEventListener("click", function() {
-      var input = document.getElementById("cfg-wifi-pw");
-      var show = input.type === "password";
+      let input = document.getElementById("cfg-wifi-pw");
+      let show = input.type === "password";
       input.type = show ? "text" : "password";
       this.textContent = show ? I18N.t("btn_hide") : I18N.t("btn_show");
     });
@@ -791,11 +791,7 @@ Pages.IR = {
     // - Normal mode (repeat mode unchecked), or
     // - Repeat mode checked AND repeat value > 0
     const repeatValue = parseInt(document.getElementById("ir-repeat").value) || 0;
-    if (repeatMode && repeatValue <= 0) {
-      btn.disabled = true;
-    } else {
-      btn.disabled = false;
-    }
+    btn.disabled = !!(repeatMode && repeatValue <= 0);
   },
 
   updateRepeatModeCheckbox: function() {
@@ -804,11 +800,7 @@ Pages.IR = {
     const repeatValue = parseInt(repeatInput.value) || 0;
 
     // Disable checkbox only if repeat value is 0 AND checkbox is unchecked
-    if (repeatValue <= 0 && !checkbox.checked) {
-      checkbox.disabled = true;
-    } else {
-      checkbox.disabled = false;
-    }
+    checkbox.disabled = repeatValue <= 0 && !checkbox.checked;
 
     // Auto-set repeat to 6 when checking and current value is 0
     if (checkbox.checked && repeatValue <= 0) {
@@ -1116,7 +1108,7 @@ Pages.Ports = {
   serialEnabled: { 1: false, 2: false },
 
   load: function() {
-    var self = this;
+    const self = this;
     WS.request("get_port_modes").then(function(data) {
       if (data.ports) {
         data.ports.forEach(function(p) { self.renderPort(p); });
@@ -1125,19 +1117,19 @@ Pages.Ports = {
   },
 
   renderPort: function(portData) {
-    var n = portData.port;
-    var modeSelect = document.getElementById("port" + n + "-mode");
+    let n = portData.port;
+    let modeSelect = document.getElementById("port" + n + "-mode");
     if (modeSelect) modeSelect.value = portData.mode;
 
-    var activeEl = document.getElementById("port" + n + "-active");
+    let activeEl = document.getElementById("port" + n + "-active");
     if (activeEl) activeEl.textContent = portData.active_mode || "\u2014";
 
-    var activeMode = portData.active_mode || portData.mode;
-    var isTrigger = activeMode === "TRIGGER_5V";
-    var isRS232 = activeMode === "RS232";
+    let activeMode = portData.active_mode || portData.mode;
+    let isTrigger = activeMode === "TRIGGER_5V";
+    let isRS232 = activeMode === "RS232";
 
-    var triggerEl = document.getElementById("port" + n + "-trigger");
-    var rs232El = document.getElementById("port" + n + "-rs232");
+    let triggerEl = document.getElementById("port" + n + "-trigger");
+    let rs232El = document.getElementById("port" + n + "-rs232");
     if (triggerEl) triggerEl.classList.toggle("hidden", !isTrigger);
     if (rs232El) rs232El.classList.toggle("hidden", !isRS232);
 
@@ -1148,7 +1140,7 @@ Pages.Ports = {
 
   loadSerialConfig: function(port) {
     WS.request("get_serial_config", { port: port }).then(function(cfg) {
-      var p = port;
+      let p = port;
       if (cfg.baud_rate !== undefined) document.getElementById("port" + p + "-baud").value = cfg.baud_rate;
       if (cfg.data_bits !== undefined) document.getElementById("port" + p + "-databits").value = cfg.data_bits;
       if (cfg.stop_bits !== undefined) document.getElementById("port" + p + "-stopbits").value = cfg.stop_bits;
@@ -1164,7 +1156,7 @@ Pages.Ports = {
   },
 
   applyBuffering: function(port) {
-    var hex = document.getElementById("port" + port + "-terminator").value;
+    let hex = document.getElementById("port" + port + "-terminator").value;
     
     // Validate hex terminator format
     if (!this.validateHexTerminator(hex)) {
@@ -1172,13 +1164,13 @@ Pages.Ports = {
       return;
     }
     
-    var char = this.hexToChar(hex);
+    let char = this.hexToChar(hex);
     if (char === null) {
       Toast.show(I18N.t("e_invalid_terminator"), true);
       return;
     }
     
-    var timeout = parseInt(document.getElementById("port" + port + "-timeout").value) || 0;
+    let timeout = parseInt(document.getElementById("port" + port + "-timeout").value) || 0;
     WS.request("set_serial_config", {
       port: port,
       buffering: document.getElementById("port" + port + "-buffering").value,
@@ -1190,7 +1182,7 @@ Pages.Ports = {
   },
 
   validateHexTerminator: function(hex) {
-    var pattern = /^0x[0-9A-Fa-f]{1,2}$/;
+    let pattern = /^0x[0-9A-Fa-f]{1,2}$/;
     return pattern.test(hex.trim());
   },
 
@@ -1203,24 +1195,24 @@ Pages.Ports = {
     if (!this.validateHexTerminator(hex)) {
       return null;
     }
-    var s = hex.trim().replace(/^0x/i, "");
-    var code = parseInt(s, 16);
+    let s = hex.trim().replace(/^0x/i, "");
+    let code = parseInt(s, 16);
     if (isNaN(code) || code < 0 || code > 0xFF) return null;
     return String.fromCharCode(code);
   },
 
   getTerminatorChar: function(port) {
-    var hex = document.getElementById("port" + port + "-terminator").value;
+    let hex = document.getElementById("port" + port + "-terminator").value;
     return this.hexToChar(hex);
   },
 
   sendSerial: function(port) {
-    var input = document.getElementById("port" + port + "-input");
-    var data = input.value;
+    let input = document.getElementById("port" + port + "-input");
+    let data = input.value;
     if (!data) return;
 
     // Append terminator if buffering mode is "line"
-    var buffering = document.getElementById("port" + port + "-buffering").value;
+    let buffering = document.getElementById("port" + port + "-buffering").value;
     if (buffering === "line") {
       data += this.getTerminatorChar(port);
     }
@@ -1231,10 +1223,10 @@ Pages.Ports = {
   },
 
   appendConsole: function(port, data) {
-    var output = document.getElementById("port" + port + "-output");
+    let output = document.getElementById("port" + port + "-output");
     if (!output) return;
     output.textContent += data;
-    var container = output.parentElement;
+    let container = output.parentElement;
     container.scrollTop = container.scrollHeight;
     if (output.textContent.length > 32768) {
       output.textContent = output.textContent.slice(-31744);
@@ -1251,11 +1243,11 @@ Pages.Ports = {
   },
 
   initPort: function(n) {
-    var self = this;
+    const self = this;
 
     document.getElementById("btn-port" + n + "-mode").addEventListener("click", function() {
-      var mode = document.getElementById("port" + n + "-mode").value;
-      var data = { port: n, mode: mode };
+      let mode = document.getElementById("port" + n + "-mode").value;
+      let data = { port: n, mode: mode };
 
       if (mode === "RS232") {
         data.uart = self.getUartConfig(n);
@@ -1280,7 +1272,7 @@ Pages.Ports = {
     });
 
     document.getElementById("btn-port" + n + "-impulse").addEventListener("click", function() {
-      var ms = parseInt(document.getElementById("port" + n + "-impulse").value);
+      let ms = parseInt(document.getElementById("port" + n + "-impulse").value);
       if (!ms || ms < 1) {
         Toast.show(I18N.t("e_invalid_duration"), true);
         return;
@@ -1310,7 +1302,7 @@ Pages.Ports = {
     });
 
     document.getElementById("btn-port" + n + "-console").addEventListener("click", function() {
-      var enable = !self.serialEnabled[n];
+      let enable = !self.serialEnabled[n];
       WS.request("enable_serial_events", { port: n, enable: enable }).then(function() {
         self.serialEnabled[n] = enable;
         document.getElementById("btn-port" + n + "-console").textContent =
@@ -1335,7 +1327,7 @@ Pages.Ports = {
     this.initPort(1);
     this.initPort(2);
 
-    var self = this;
+    const self = this;
     WS.on("serial_data", function(msg) {
       if (msg.port && msg.data) {
         self.appendConsole(msg.port, msg.data);
@@ -1356,7 +1348,7 @@ Pages.OTA = {
 
   init: function() {
     document.getElementById("btn-upload").addEventListener("click", function() {
-      var fileInput = document.getElementById("ota-file");
+      let fileInput = document.getElementById("ota-file");
       if (!fileInput.files.length) {
         Toast.show(I18N.t("e_no_file"), true);
         return;
@@ -1366,10 +1358,10 @@ Pages.OTA = {
         return;
       }
 
-      var file = fileInput.files[0];
-      var xhr = new XMLHttpRequest();
-      var progress = document.getElementById("ota-progress");
-      var statusEl = document.getElementById("ota-status");
+      let file = fileInput.files[0];
+      let xhr = new XMLHttpRequest();
+      let progress = document.getElementById("ota-progress");
+      let statusEl = document.getElementById("ota-status");
 
       fileInput.disabled = true;
       document.getElementById("btn-upload").disabled = true;
@@ -1379,7 +1371,7 @@ Pages.OTA = {
 
       xhr.upload.onprogress = function(e) {
         if (e.lengthComputable) {
-          var pct = Math.round(e.loaded / e.total * 100);
+          let pct = Math.round(e.loaded / e.total * 100);
           progress.value = pct;
           statusEl.textContent = pct + "%";
         }
@@ -1429,29 +1421,29 @@ Pages.Logs = {
   levelPriority: { "E": 0, "W": 1, "I": 2, "D": 3, "V": 4 },
 
   load: function() {
-    var btn = document.getElementById("btn-log-stream");
+    let btn = document.getElementById("btn-log-stream");
     if (btn) {
       btn.textContent = this.streaming ? I18N.t("btn_stop_streaming") : I18N.t("btn_start_streaming");
       btn.classList.toggle("btn-warn", this.streaming);
     }
-    var filter = document.getElementById("log-filter");
+    let filter = document.getElementById("log-filter");
     if (filter) {
       filter.value = this.filterLevel;
     }
   },
 
   formatTimestamp: function() {
-    var now = new Date();
-    var h = String(now.getHours()).padStart(2, "0");
-    var m = String(now.getMinutes()).padStart(2, "0");
-    var s = String(now.getSeconds()).padStart(2, "0");
-    var ms = String(now.getMilliseconds()).padStart(3, "0");
+    let now = new Date();
+    let h = String(now.getHours()).padStart(2, "0");
+    let m = String(now.getMinutes()).padStart(2, "0");
+    let s = String(now.getSeconds()).padStart(2, "0");
+    let ms = String(now.getMilliseconds()).padStart(3, "0");
     return h + ":" + m + ":" + s + "." + ms;
   },
 
   shouldShowLog: function(level) {
-    var filterPriority = this.levelPriority[this.filterLevel] || 2;
-    var logPriority = this.levelPriority[level] || 2;
+    let filterPriority = this.levelPriority[this.filterLevel] || 2;
+    let logPriority = this.levelPriority[level] || 2;
     return logPriority <= filterPriority;
   },
 
@@ -1460,16 +1452,16 @@ Pages.Logs = {
       return;
     }
 
-    var output = document.getElementById("log-output");
+    let output = document.getElementById("log-output");
     if (!output) return;
 
-    var localTs = this.formatTimestamp();
-    var level = msg.level;
-    var line = level + " [" + localTs + " " + msg.ts + "] [" + msg.tag + "] " + msg.log + "\n";
+    let localTs = this.formatTimestamp();
+    let level = msg.level;
+    let line = level + " [" + localTs + " " + msg.ts + "] [" + msg.tag + "] " + msg.log + "\n";
 
     output.textContent += line;
 
-    var container = output.parentElement;
+    let container = output.parentElement;
     container.scrollTop = container.scrollHeight;
 
     if (output.textContent.length > 32768) {
@@ -1478,13 +1470,13 @@ Pages.Logs = {
   },
 
   toggleStreaming: function() {
-    var self = this;
-    var enable = !this.streaming;
+    const self = this;
+    let enable = !this.streaming;
 
     WS.request("enable_log_events", { enable: enable })
         .then(function() {
           self.streaming = enable;
-          var btn = document.getElementById("btn-log-stream");
+          let btn = document.getElementById("btn-log-stream");
           if (btn) {
             btn.textContent = enable ? I18N.t("btn_stop_streaming") : I18N.t("btn_start_streaming");
             btn.classList.toggle("btn-warn", enable);
@@ -1496,14 +1488,14 @@ Pages.Logs = {
   },
 
   clearLog: function() {
-    var output = document.getElementById("log-output");
+    let output = document.getElementById("log-output");
     if (output) {
       output.textContent = "";
     }
   },
 
   init: function() {
-    var self = this;
+    const self = this;
 
     document.getElementById("btn-log-stream").addEventListener("click", function() {
       self.toggleStreaming();
@@ -1534,7 +1526,7 @@ Pages.Expert = {
   },
 
   load: function() {
-    var self = this;
+    const self = this;
 
     // Get IR config (includes iTach settings)
     WS.request("get_ir_config").then(function(data) {
@@ -1558,10 +1550,10 @@ Pages.Expert = {
   },
 
   apply: function() {
-    var self = this;
-    var itachEmulation = document.getElementById("exp-itach-emulation").checked;
-    var itachBeacon = document.getElementById("exp-amxb-beacon").checked;
-    var serialTcp = document.getElementById("exp-rs232-tcp").checked;
+    const self = this;
+    let itachEmulation = document.getElementById("exp-itach-emulation").checked;
+    let itachBeacon = document.getElementById("exp-amxb-beacon").checked;
+    let serialTcp = document.getElementById("exp-rs232-tcp").checked;
 
     // Apply iTach config if changed
     if (itachEmulation !== this.config.itach_emulation || itachBeacon !== this.config.itach_beacon) {
@@ -1594,7 +1586,7 @@ Pages.Expert = {
   },
 
   init: function() {
-    var self = this;
+    const self = this;
 
     document.getElementById("btn-expert-apply").addEventListener("click", function() {
       self.apply();
