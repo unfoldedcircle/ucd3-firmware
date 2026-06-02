@@ -184,15 +184,15 @@
                 <span data-i18n="lbl_ir_active">Active</span>
                 <button class="info-trigger" aria-label="IR repeat info" popovertarget="ir-repeat-mode-info">i</button>
               </label>
-              <div class="form-inline form-group ir-periodic-group">
-                <label for="ir-periodic" class="ir-periodic-label" data-i18n="lbl_periodic">Interval (ms)</label>
-                <button class="info-trigger" aria-label="Periodic send info" popovertarget="ir-periodic-info">i</button>
-                <input type="number" id="ir-periodic" min="100" max="1000" value="300" class="input-periodic" disabled>
+              <div class="form-inline form-group ir-interval-group">
+                <label for="ir-interval" class="ir-interval-label" data-i18n="lbl_interval">Interval (ms)</label>
+                <button class="info-trigger" aria-label="Periodic send info" popovertarget="ir-interval-info">i</button>
+                <input type="number" id="ir-interval" min="100" max="1000" value="300" class="input-interval" disabled>
               </div>
               <div id="ir-repeat-mode-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_repeat_mode">
                 Activate IR repeat mode. Press and hold the Start Repeat button to continuously send the IR code.<p>Requires <strong>Repeat</strong> value > 0 with a matching repeat interval to renew the IR signal.</p>
               </div>
-              <div id="ir-periodic-info" class="info-popover" popover role="dialog" data-i18n="info_ir_interval">
+              <div id="ir-interval-info" class="info-popover" popover role="dialog" data-i18n="info_ir_interval">
                 Interval in ms to repeatedly send the IR code while the Send button is held.
               </div>
             </fieldset>

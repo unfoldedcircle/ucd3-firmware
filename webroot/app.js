@@ -838,7 +838,7 @@ Pages.IR = {
   toggleRepeatModeFields: function() {
     const repeatMode = document.getElementById("ir-repeat-mode").checked;
     const holdInput = document.getElementById("ir-hold");
-    const periodicInput = document.getElementById("ir-periodic");
+    const periodicInput = document.getElementById("ir-interval");
 
     // Disable hold field if repeat mode is enabled
     holdInput.disabled = repeatMode;
@@ -864,7 +864,7 @@ Pages.IR = {
 
     const format = document.getElementById("ir-format").value;
     const repeat = parseInt(document.getElementById("ir-repeat").value) || 6;
-    const periodic = parseInt(document.getElementById("ir-periodic").value) || 300;
+    const periodic = parseInt(document.getElementById("ir-interval").value) || 300;
 
     // Clamp periodic to valid range
     let clampedPeriodic = periodic;

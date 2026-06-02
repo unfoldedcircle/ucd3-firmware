@@ -376,12 +376,12 @@ select:focus {
   flex-shrink: 0;
 }
 
-.input-periodic {
+.input-interval {
   width: 70px;
   flex-shrink: 0;
 }
 
-.input-periodic:disabled {
+.input-interval:disabled {
   opacity: 0.4;
 }
 
@@ -390,13 +390,13 @@ select:focus {
   border-color: var(--btn-warn-border);
 }
 
-.ir-periodic-group {
+.ir-interval-group {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.ir-periodic-label {
+.ir-interval-label {
   margin: 0;
   font-size: 13px;
   color: var(--label-color);
