@@ -380,7 +380,8 @@ void InfraredService::send_ir_f(void *param) {
     // reference required to persist values during callbacks (also initialization is further down!)
     auto repeatCallback = [&repeatLimit, &repeat, &repeatCount, &startSendTimer, &holdTimeLimit, eventgroup]() -> bool {
         if (DEVELOPMENT_LOG) {
-            ESP_LOGD(irLogSend, "in callback!");
+            ESP_LOGD(irLogSend, "in callback! hold: %lums, repeat: %d, repeatLimit: %d", holdTimeLimit, repeat,
+                     repeatLimit);
         }
 
         // check if there's a command from the API
@@ -438,6 +439,10 @@ void InfraredService::send_ir_f(void *param) {
                  pIrMsg->msgId, (uint8_t)pIrMsg->format, pIrMsg->repeat, pIrMsg->pin_mask.w1ts_enable,
                  pIrMsg->pin_mask.w1ts, pIrMsg->pin_mask.w1tc);
 
+        if (pIrMsg->hold > 0 && pIrMsg->repeat == 0) {
+            // repeat needs to be enabled for hold time to work, set default repeat count to 1 if not set by client
+            pIrMsg->repeat = 1;
+        }
         // Activate continuous IR repeat
         if (pIrMsg->repeat > 0) {
             // set lambda reference variables
