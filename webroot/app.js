@@ -988,7 +988,6 @@ Pages.IR = {
       data.repeat = repeat;
     }
 
-    const self = this;
     WS.request("ir_send", data)
         .then(function() { Toast.success(I18N.t("t_ir_sent")); })
         .catch(function(e) { Toast.error(e); });
@@ -1142,19 +1141,42 @@ Pages.Ports = {
   },
 
   renderPort: function(portData) {
-    let n = portData.port;
-    let modeSelect = document.getElementById("port" + n + "-mode");
+    const n = portData.port;
+    const modeSelect = document.getElementById("port" + n + "-mode");
     if (modeSelect) modeSelect.value = portData.mode;
 
-    let activeEl = document.getElementById("port" + n + "-active");
+    const activeEl = document.getElementById("port" + n + "-active");
     if (activeEl) activeEl.textContent = portData.active_mode || "\u2014";
 
-    let activeMode = portData.active_mode || portData.mode;
-    let isTrigger = activeMode === "TRIGGER_5V";
-    let isRS232 = activeMode === "RS232";
+    const activeMode = portData.active_mode || portData.mode;
+    const isTrigger = activeMode === "TRIGGER_5V";
+    const isRS232 = activeMode === "RS232";
 
-    let triggerEl = document.getElementById("port" + n + "-trigger");
-    let rs232El = document.getElementById("port" + n + "-rs232");
+    const triggerEl = document.getElementById("port" + n + "-trigger");
+    const rs232El = document.getElementById("port" + n + "-rs232");
+    if (triggerEl) triggerEl.classList.toggle("hidden", !isTrigger);
+    if (rs232El) rs232El.classList.toggle("hidden", !isRS232);
+
+    if (isRS232) {
+      this.loadSerialConfig(n);
+    }
+  },
+
+  renderPortAfterModeChange: function(port, newMode) {
+    const self = this;
+    // Update the UI immediately based on the new mode
+    const n = port;
+    const modeSelect = document.getElementById("port" + n + "-mode");
+    if (modeSelect) modeSelect.value = newMode;
+
+    const activeEl = document.getElementById("port" + n + "-active");
+    if (activeEl) activeEl.textContent = newMode;
+
+    const isTrigger = newMode === "TRIGGER_5V";
+    const isRS232 = newMode === "RS232";
+
+    const triggerEl = document.getElementById("port" + n + "-trigger");
+    const rs232El = document.getElementById("port" + n + "-rs232");
     if (triggerEl) triggerEl.classList.toggle("hidden", !isTrigger);
     if (rs232El) rs232El.classList.toggle("hidden", !isRS232);
 
@@ -1164,8 +1186,9 @@ Pages.Ports = {
   },
 
   loadSerialConfig: function(port) {
+    const self = this;
     WS.request("get_serial_config", { port: port }).then(function(cfg) {
-      let p = port;
+      const p = port;
       if (cfg.baud_rate !== undefined) document.getElementById("port" + p + "-baud").value = cfg.baud_rate;
       if (cfg.data_bits !== undefined) document.getElementById("port" + p + "-databits").value = cfg.data_bits;
       if (cfg.stop_bits !== undefined) document.getElementById("port" + p + "-stopbits").value = cfg.stop_bits;
@@ -1181,21 +1204,21 @@ Pages.Ports = {
   },
 
   applyBuffering: function(port) {
-    let hex = document.getElementById("port" + port + "-terminator").value;
-    
+    const hex = document.getElementById("port" + port + "-terminator").value;
+
     // Validate hex terminator format
     if (!this.validateHexTerminator(hex)) {
       Toast.show(I18N.t("e_invalid_terminator"), true);
       return;
     }
-    
-    let char = this.hexToChar(hex);
+
+    const char = this.hexToChar(hex);
     if (char === null) {
       Toast.show(I18N.t("e_invalid_terminator"), true);
       return;
     }
-    
-    let timeout = parseInt(document.getElementById("port" + port + "-timeout").value) || 0;
+
+    const timeout = parseInt(document.getElementById("port" + port + "-timeout").value) || 0;
     WS.request("set_serial_config", {
       port: port,
       buffering: document.getElementById("port" + port + "-buffering").value,
@@ -1207,7 +1230,7 @@ Pages.Ports = {
   },
 
   validateHexTerminator: function(hex) {
-    let pattern = /^0x[0-9A-Fa-f]{1,2}$/;
+    const pattern = /^0x[0-9A-Fa-f]{1,2}$/;
     return pattern.test(hex.trim());
   },
 
@@ -1220,24 +1243,24 @@ Pages.Ports = {
     if (!this.validateHexTerminator(hex)) {
       return null;
     }
-    let s = hex.trim().replace(/^0x/i, "");
-    let code = parseInt(s, 16);
+    const s = hex.trim().replace(/^0x/i, "");
+    const code = parseInt(s, 16);
     if (isNaN(code) || code < 0 || code > 0xFF) return null;
     return String.fromCharCode(code);
   },
 
   getTerminatorChar: function(port) {
-    let hex = document.getElementById("port" + port + "-terminator").value;
+    const hex = document.getElementById("port" + port + "-terminator").value;
     return this.hexToChar(hex);
   },
 
   sendSerial: function(port) {
-    let input = document.getElementById("port" + port + "-input");
+    const input = document.getElementById("port" + port + "-input");
     let data = input.value;
     if (!data) return;
 
     // Append terminator if buffering mode is "line"
-    let buffering = document.getElementById("port" + port + "-buffering").value;
+    const buffering = document.getElementById("port" + port + "-buffering").value;
     if (buffering === "line") {
       data += this.getTerminatorChar(port);
     }
@@ -1248,10 +1271,10 @@ Pages.Ports = {
   },
 
   appendConsole: function(port, data) {
-    let output = document.getElementById("port" + port + "-output");
+    const output = document.getElementById("port" + port + "-output");
     if (!output) return;
     output.textContent += data;
-    let container = output.parentElement;
+    const container = output.parentElement;
     container.scrollTop = container.scrollHeight;
     if (output.textContent.length > 32768) {
       output.textContent = output.textContent.slice(-31744);
@@ -1271,8 +1294,8 @@ Pages.Ports = {
     const self = this;
 
     document.getElementById("btn-port" + n + "-mode").addEventListener("click", function() {
-      let mode = document.getElementById("port" + n + "-mode").value;
-      let data = { port: n, mode: mode };
+      const mode = document.getElementById("port" + n + "-mode").value;
+      const data = { port: n, mode: mode };
 
       if (mode === "RS232") {
         data.uart = self.getUartConfig(n);
@@ -1280,7 +1303,8 @@ Pages.Ports = {
 
       WS.request("set_port_mode", data).then(function() {
         Toast.success(I18N.t("t_port_mode", { port: n, mode: mode }));
-        self.load();
+        // Re-render the port card immediately to show mode-specific panels
+        self.renderPortAfterModeChange(n, mode);
       }).catch(function(e) { Toast.error(e); });
     });
 
@@ -1297,7 +1321,7 @@ Pages.Ports = {
     });
 
     document.getElementById("btn-port" + n + "-impulse").addEventListener("click", function() {
-      let ms = parseInt(document.getElementById("port" + n + "-impulse").value);
+      const ms = parseInt(document.getElementById("port" + n + "-impulse").value);
       if (!ms || ms < 1) {
         Toast.show(I18N.t("e_invalid_duration"), true);
         return;
@@ -1318,7 +1342,10 @@ Pages.Ports = {
           parity: document.getElementById("port" + n + "-parity").value
         }
       })
-          .then(function() { Toast.success(I18N.t("t_uart_applied")); })
+          .then(function() {
+            Toast.success(I18N.t("t_uart_applied"));
+            // No re-render needed - UART settings don't change visible UI
+          })
           .catch(function(e) { Toast.error(e); });
     });
 
@@ -1327,7 +1354,7 @@ Pages.Ports = {
     });
 
     document.getElementById("btn-port" + n + "-console").addEventListener("click", function() {
-      let enable = !self.serialEnabled[n];
+      const enable = !self.serialEnabled[n];
       WS.request("enable_serial_events", { port: n, enable: enable }).then(function() {
         self.serialEnabled[n] = enable;
         document.getElementById("btn-port" + n + "-console").textContent =
