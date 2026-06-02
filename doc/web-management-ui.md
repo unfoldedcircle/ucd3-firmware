@@ -128,7 +128,7 @@ This might be changed if more pages are added.
 | Status  |      No       | Read-only device info from `get_sysinfo`, auto-refresh every 60s (if logged in) |
 | General |      Yes      | Device name, LED brightness, access token, system actions                       |
 | Network |      Yes      | WiFi SSID/password configuration, connection status                             |
-| IR      |      Yes      | Send IR codes, IR learning with live output                                     |
+| IR      |      Yes      | Send IR codes, IR learning with live output, IR repeat mode with hold-to-repeat |
 | Ports   |      Yes      | External port mode config, trigger control, RS232 console                       |
 | Logs    |      Yes      | Real-time log streaming with level filtering                                    |
 | OTA     |      Yes      | Firmware upload with progress                                                   |
@@ -464,10 +464,49 @@ Native HTML Popover API for contextual help (no JavaScript required):
 
 ### IR
 
-- Send: textarea for code, format dropdown (hex/pronto), output checkboxes
-- Output checkboxes disabled based on actual port mode (`get_port_modes`)
-- Learn: toggle button, events via `ir_receive`, displayed in console area
+- **Send IR Code**: Textarea for code input, format dropdown (hex/pronto), output checkboxes
+- **Output Selection**: Internal (side), Port 1, Port 2 – checkboxes disabled based on actual port mode (`get_port_modes`)
+- **Repeat & Hold**: Configurable repeat count (0–20) and hold duration (ms)
+- **IR Repeat Mode**:
+  - Fieldset with "Active" checkbox and periodic interval input (100–1000 ms, default 300 ms)
+  - **Hold-to-repeat interaction**: Press and hold the Send button to continuously send IR codes
+  - Releases button sends `ir_stop` to dock
+  - Uses `f: 1` feature flag to suppress ack responses during periodic sending
+  - Auto-sets repeat count to 6 when enabling repeat mode with value 0
+  - Disabled during IR learning mode
+- **Learn Mode**: Toggle button, events via `ir_receive`, displayed in console area
+- **Navigation Cleanup**: Active repeat transmission stops when navigating away from IR page
 - `int_top` field always sent as `false` (deprecated, not removed from API)
+
+### IR Repeat Mode
+
+The IR repeat mode enables continuous IR signal transmission simulating a long button press on a physical remote
+control.
+
+**UI Components:**
+
+- **Fieldset**: Matches the Output section styling with legend "IR repeat"
+- **Active Checkbox**: Enables/disables repeat mode
+- **Periodic Input**: Interval in milliseconds (100–1000 ms, default 300 ms)
+
+**Interaction Flow:**
+
+1. User enters Repeat value > 0 (or auto-set to 6 when enabling mode)
+2. User checks "Active" checkbox → enables Periodic input, disables Hold input
+3. User presses and holds Send button:
+   → Initial `ir_send` with `repeat` field and `f: 1` (suppress acks)
+   → Button shows "Sending" with warning style
+   → Periodic `ir_send` messages sent every X ms via `WS.send()` (no timeout tracking)
+4. User releases Send button:
+   → `ir_stop` command sent to dock
+   → Button returns to "Start Repeat"
+
+**Technical Implementation:**
+- Initial `ir_send` uses `WS.request()` to confirm repeat started
+- Periodic extensions use `WS.send()` directly (avoids 10s timeout since `f: 1` suppresses responses)
+- State reset on error: timer cleared, `repeating` flag set to false, button visual updated
+- Navigation cleanup: `UI.showPage()` overridden to stop repeat when leaving IR page
+- Learning mode blocks repeat: Send button disabled when `ir_learning: true`
 
 ### Expert Page
 
