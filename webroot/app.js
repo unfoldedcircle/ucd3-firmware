@@ -1166,8 +1166,9 @@ Pages.Ports = {
     // Show active mode with friendly name
     const activeEl = document.getElementById("port" + n + "-active");
     if (activeEl) {
-      const activeMode = portData.active_mode || portData.mode;
-      activeEl.textContent = this.getModeFriendlyName(activeMode);
+      // Use active_mode if provided, otherwise use mode
+      const displayMode = portData.active_mode || portData.mode;
+      activeEl.textContent = this.getModeFriendlyName(displayMode);
     }
 
     const activeMode = portData.active_mode || portData.mode;
@@ -1184,12 +1185,29 @@ Pages.Ports = {
     }
   },
 
+  renderPortActiveMode: function(port, mode, activeMode) {
+    const n = port;
+
+    if (mode !== undefined) {
+      const activeRow = document.getElementById("port" + n + "-active-row");
+      if (activeRow) {
+        activeRow.classList.toggle("hidden", mode !== "AUTO");
+      }
+    }
+
+    // Show active mode with friendly name (use active_mode if available, otherwise mode)
+    const activeEl = document.getElementById("port" + n + "-active");
+    if (activeEl) {
+      const displayMode = activeMode || mode;
+      activeEl.textContent = this.getModeFriendlyName(displayMode);
+    }
+  },
+
   getModeFriendlyName: function(modeId) {
     return this.modeNames[modeId] || modeId;
   },
 
   renderPortAfterModeChange: function(port, newMode) {
-    const self = this;
     // Update the UI immediately based on the new mode
     const n = port;
     const modeSelect = document.getElementById("port" + n + "-mode");
@@ -1201,12 +1219,8 @@ Pages.Ports = {
       activeRow.classList.toggle("hidden", newMode !== "AUTO");
     }
 
-    // Show active mode with friendly name
-    const activeEl = document.getElementById("port" + n + "-active");
-    if (activeEl) {
-      activeEl.textContent = this.getModeFriendlyName(newMode);
-    }
-
+    // DO NOT update active text here - it will be set by port_mode event, or get_port_modes
+    // Only update panel visibility based on mode
     const isTrigger = newMode === "TRIGGER_5V";
     const isRS232 = newMode === "RS232";
 
@@ -1221,7 +1235,6 @@ Pages.Ports = {
   },
 
   loadSerialConfig: function(port) {
-    const self = this;
     WS.request("get_serial_config", { port: port }).then(function(cfg) {
       const p = port;
       if (cfg.baud_rate !== undefined) document.getElementById("port" + p + "-baud").value = cfg.baud_rate;
@@ -1411,10 +1424,18 @@ Pages.Ports = {
   },
 
   init: function() {
+    const self = this;
+
     this.initPort(1);
     this.initPort(2);
 
-    const self = this;
+    // Listen for port_mode events (dock detects peripheral in AUTO mode)
+    WS.on("port_mode", function(msg) {
+      if (msg.port && msg.mode !== undefined) {
+        self.renderPortActiveMode(msg.port, msg.mode, msg.active_mode);
+      }
+    });
+
     WS.on("serial_data", function(msg) {
       if (msg.port && msg.data) {
         self.appendConsole(msg.port, msg.data);
@@ -1422,7 +1443,6 @@ Pages.Ports = {
     });
   }
 };
-
 
 // ============================================================
 // Page: OTA
