@@ -224,6 +224,23 @@ Example log event message:
 }
 ```
 
+## System Settings
+
+Set PoE voltage mode 0 or 1 (only for rev6):
+
+```json
+{
+  "type": "dock",
+  "id": 123,
+  "command": "set_poe",
+  "mode": 0
+}
+```
+
+- The PoE mode is not applied immediately, but only on boot.
+- Changing the mode will automatically reboot the device.
+- The PoE mode is returned in the `get_sysinfo` response: `"poe_mode": 1`
+
 ## RS232 Communication
 
 Send data:

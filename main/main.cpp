@@ -221,6 +221,26 @@ void init_gpios(void) {
     // disable 5V & GND
     gpio_set_level(SWITCH_EXT_2, board_is_switch_ext_inverted() ? 1 : 0);
     gpio_set_level(SWITCH_GND_2, 0);
+
+    // Rev 6 PoE voltage
+    gpio_num_t poe_switch_pin = board_get_poe_switch_pin();
+    if (poe_switch_pin != GPIO_NUM_NC) {
+        gpio_init(poe_switch_pin, GPIO_MODE_OUTPUT);
+        gpio_set_level(poe_switch_pin, 0);
+    }
+}
+
+/// @brief Set the PoE voltage mode. Only applicable for hardware revisions supporting PoE voltage switching (e.g.
+/// rev6).
+/// @param mode mode 0 is normal operation, mode 1 enables the higher PoE voltage on compatible hardware revisions
+static void init_poe_voltage_mode(uint8_t mode) {
+    gpio_num_t poe_switch_pin = board_get_poe_switch_pin();
+    if (poe_switch_pin != GPIO_NUM_NC) {
+        gpio_set_level(poe_switch_pin, mode == 0 ? 0 : 1);
+        ESP_LOGI(TAG, "Set PoE voltage mode to %d", mode);
+    } else {
+        ESP_LOGD(TAG, "PoE voltage mode cannot be set: not supported");
+    }
 }
 
 /// @brief Create and configure output ports.
@@ -340,6 +360,12 @@ extern "C" void app_main(void) {
         esp_event_handler_register(UC_DOCK_EVENTS, UC_ACTION_RESET, factoryResetHandler, NULL));
 
     Config &cfg = Config::instance();
+
+    // set PoE voltage mode based on stored configuration
+    if (cfg.hasPoeFeature()) {
+        uint8_t poe_mode = cfg.getPoeVoltageMode();
+        init_poe_voltage_mode(poe_mode);
+    }
 
     static Display *display = Display::instance(&cfg);
     if (display->init() == ESP_OK) {

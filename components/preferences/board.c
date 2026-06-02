@@ -86,6 +86,14 @@ gpio_num_t board_get_ir_send_pin_int_top(void) {
     return s_ir_send_pin_int_top;
 }
 
+gpio_num_t board_get_poe_switch_pin(void) {
+    if (s_revision == 6) {
+        return GPIO_NUM_7;
+    } else {
+        return GPIO_NUM_NC;
+    }
+}
+
 gpio_num_t board_get_charging_current_pin(void) {
     return s_charging_current_pin;
 }

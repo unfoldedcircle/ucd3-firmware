@@ -115,6 +115,10 @@ void fill_sysinfo_to_json(cJSON *root) {
     char buf[1 + 8 * sizeof(uint32_t)];
     utoa(heap_caps_get_free_size(MALLOC_CAP_INTERNAL), buf, 10);
     cJSON_AddStringToObject(root, "free_heap", buf);
+
+    if (board_get_poe_switch_pin() != GPIO_NUM_NC) {
+        cJSON_AddNumberToObject(root, "poe_mode", cfg.getPoeVoltageMode());
+    }
 }
 
 char *get_sysinfo_json(void) {
@@ -532,7 +536,6 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             if (config_->setWifi(ssid, pwd)) {
                 ESP_LOGD(TAG, "Saving SSID: %s", ssid);
 
-                std::string message;
                 cJSON_AddBoolToObject(responseDoc, "reboot", true);
                 ok = true;
 
@@ -735,12 +738,10 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         code = handleEnableLogEvents(sockfd, root, responseDoc);
     } else if (command == "reboot") {
         ESP_LOGW(TAG, "Rebooting");
-        std::string message;
         cJSON_AddBoolToObject(responseDoc, "reboot", true);
         schedule_restart(web, 2000);
     } else if (command == "reset") {
         ESP_LOGW(TAG, "Reset");
-        std::string message;
         cJSON_AddBoolToObject(responseDoc, "reboot", true);
         schedule_restart(web, 2000, true);
     } else if (command == "set_ir_config") {
@@ -824,6 +825,24 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             code = 200;
         } else {
             code = 500;
+        }
+    } else if (command == "set_poe") {
+        if (!config_->hasPoeFeature() || board_get_poe_switch_pin() == GPIO_NUM_NC) {
+            code = 400;
+        } else {
+            bool ok = false;
+            int  mode = cjson_get_int(root, "mode", &ok);
+            if (ok && mode >= 0 && mode <= 1) {
+                int old_mode = config_->getPoeVoltageMode();
+                config_->setPoeVoltageMode(mode);
+                if (old_mode != mode) {
+                    ESP_LOGW(TAG, "Rebooting");
+                    cJSON_AddBoolToObject(responseDoc, "reboot", true);
+                    schedule_restart(web, 2000);
+                }
+            } else {
+                code = 400;
+            }
         }
     } else {
         code = 400;
