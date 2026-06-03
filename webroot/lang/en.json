@@ -160,7 +160,6 @@
   "t_logged_out": "Logged out",
   "t_logging_applied": "Logging configuration applied",
   "t_expert_saved": "Settings saved",
-  "t_expert_reboot": "Dock will reboot to activate changes",
   "confirm_reboot_now": "Dock will reboot to activate changes. Reload page?",
 
   "e_unknown": "Unknown error occurred",

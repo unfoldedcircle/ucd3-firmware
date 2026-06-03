@@ -160,7 +160,6 @@
   "t_logged_out": "Kirjauduttu ulos",
   "t_logging_applied": "Lokiasetukset käytetty",
   "t_expert_saved": "Asetukset tallennettu",
-  "t_expert_reboot": "Telakka käynnistyy uudelleen aktivoidakseen muutokset",
   "confirm_reboot_now": "Telakka käynnistyy uudelleen aktivoidakseen muutokset. Ladataanko sivu uudelleen?",
 
   "e_no_file": "Ei tiedostoa valittuna",

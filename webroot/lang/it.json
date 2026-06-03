@@ -160,7 +160,6 @@
   "t_logged_out": "Disconnesso",
   "t_logging_applied": "Configurazione logging applicata",
   "t_expert_saved": "Impostazioni salvate",
-  "t_expert_reboot": "Il dock si riavvierà per attivare le modifiche",
   "confirm_reboot_now": "Il dock si riavvierà per attivare le modifiche. Ricaricare la pagina?",
 
   "e_no_file": "Nessun file selezionato",

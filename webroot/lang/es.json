@@ -160,7 +160,6 @@
   "t_logged_out": "Sesión cerrada",
   "t_logging_applied": "Configuración de registro aplicada",
   "t_expert_saved": "Configuración guardada",
-  "t_expert_reboot": "El dock se reiniciará para activar los cambios",
   "confirm_reboot_now": "El dock se reiniciará para activar los cambios. ¿Recargar página?",
 
   "e_no_file": "Ningún archivo seleccionado",

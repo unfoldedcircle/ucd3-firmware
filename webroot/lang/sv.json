@@ -160,7 +160,6 @@
   "t_logged_out": "Utloggad",
   "t_logging_applied": "Loggningskonfiguration verkställd",
   "t_expert_saved": "Inställningar sparade",
-  "t_expert_reboot": "Docken kommer att starta om för att aktivera ändringar",
   "confirm_reboot_now": "Docken kommer att starta om för att aktivera ändringar. Ladda om sidan?",
 
   "e_no_file": "Ingen fil vald",

@@ -160,7 +160,6 @@
   "t_logged_out": "Déconnecté",
   "t_logging_applied": "Configuration de journalisation appliquée",
   "t_expert_saved": "Paramètres enregistrés",
-  "t_expert_reboot": "Le dock va redémarrer pour activer les changements",
   "confirm_reboot_now": "Le dock va redémarrer pour activer les changements. Recharger la page?",
 
   "e_no_file": "Aucun fichier sélectionné",

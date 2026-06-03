@@ -159,7 +159,6 @@
   "t_logged_out": "Abgemeldet",
   "t_logging_applied": "Protokollkonfiguration übernommen",
   "t_expert_saved": "Einstellungen gespeichert",
-  "t_expert_reboot": "Dock startet neu, um Änderungen zu aktivieren",
   "confirm_reboot_now": "Dock wird neu gestartet, um Änderungen zu aktivieren. Seite neu laden?",
 
   "e_no_file": "Keine Datei ausgewählt",
