@@ -28,8 +28,9 @@
   --btn-active-bg: rgb(40, 40, 40);
   --btn-warn-border: rgb(180, 130, 0);
   --btn-warn-hover-bg: rgb(60, 50, 20);
+  --btn-danger-bg: rgb(180, 50, 50);
   --btn-danger-border: rgb(180, 50, 50);
-  --btn-danger-hover-bg: rgb(60, 20, 20);
+  --btn-danger-hover-bg: rgb(200, 70, 70);
   --btn-link-color: rgb(120, 120, 120);
   --btn-link-hover-color: rgb(180, 180, 180);
   --console-bg: rgb(10, 10, 10);
@@ -94,8 +95,9 @@
   --btn-active-bg: rgb(190, 190, 190);
   --btn-warn-border: rgb(180, 130, 0);
   --btn-warn-hover-bg: rgb(240, 220, 180);
+  --btn-danger-bg: rgb(220, 80, 80);
   --btn-danger-border: rgb(180, 50, 50);
-  --btn-danger-hover-bg: rgb(240, 200, 200);
+  --btn-danger-hover-bg: rgb(240, 100, 100);
   --btn-link-color: rgb(100, 100, 100);
   --btn-link-hover-color: rgb(40, 40, 40);
   --console-bg: rgb(240, 240, 240);
@@ -494,6 +496,7 @@ button:disabled {
 }
 
 .btn-danger {
+  background: var(--btn-danger-bg);
   border-color: var(--btn-danger-border);
 }
 
