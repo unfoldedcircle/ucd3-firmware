@@ -141,6 +141,9 @@ void NetworkBase::initEthernet() {
     ESP_GOTO_ON_ERROR(esp_netif_attach(eth_netif_, eth_netif_glues), err, TAG,
                       "Failed to attach eth driver to tcp/ip stack");
 
+    ESP_LOGI(TAG, "Applying IPv4 config for ETH");
+    ESP_GOTO_ON_ERROR(apply_eth_ipv4_config(eth_netif_), err, TAG, "Failed to apply ETH IPv4 config");
+
     // Register user defined event handers
     ESP_GOTO_ON_ERROR(esp_event_handler_register(ETH_EVENT, ESP_EVENT_ANY_ID, &eth_event_handler, NULL), err, TAG,
                       "Failed to register eth event handler");
@@ -215,6 +218,7 @@ void NetworkBase::setTimer(uint32_t timeout_ms, const char *tag) {
         state_timer_ = xTimerCreate("network", pdMS_TO_TICKS(timeout_ms), pdFALSE, timer_tag_, network_timer_cb);
     } else {
         ESP_LOGI(TAG, "Changing '%s' timer-period to %lums.", timer_tag_, timeout_ms);
+        vTimerSetTimerID(state_timer_, timer_tag_);
         xTimerChangePeriod(state_timer_, pdMS_TO_TICKS(timeout_ms), portMAX_DELAY);
     }
     xTimerStart(state_timer_, portMAX_DELAY);
@@ -447,7 +451,16 @@ void NetworkBase::statusUpdate(update_reason_code_t update_reason_code) {
 
 void NetworkBase::startWifiDhcpClient() {
     ESP_LOGI(TAG, "startWifiDhcpClient");
-    network_start_stop_dhcp_client(wifi_netif_, true);
+
+    if (!wifi_netif_) {
+        ESP_LOGW(TAG, "No WiFi netif, cannot configure IPv4");
+        return;
+    }
+
+    esp_err_t ret = apply_wifi_ipv4_config(wifi_netif_);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to apply WiFi IPv4 config: %s", esp_err_to_name(ret));
+    }
 }
 
 void host_task(void *param) {

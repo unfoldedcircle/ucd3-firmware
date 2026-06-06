@@ -46,6 +46,9 @@ esp_err_t init_sntp(void);
 
 void network_set_hostname(esp_netif_t *interface);
 
+esp_err_t apply_eth_ipv4_config(esp_netif_t *netif);
+esp_err_t apply_wifi_ipv4_config(esp_netif_t *netif);
+
 #ifdef __cplusplus
 }
 #endif

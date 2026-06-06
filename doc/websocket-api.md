@@ -264,3 +264,90 @@ Enable TCP serial server:
   "enable": true
 }
 ```
+
+## Static Network Configuration
+
+### Set DNS servers
+
+```json
+{
+    "type": "dock",
+    "id": 123,
+    "command": "set_dns",
+    "dns1": "1.1.1.1",
+    "dns2": "8.8.8.8"
+}
+```
+
+- DNS is a global configuration, not per interface.
+- Too clear a DNS server: use an empty string.
+- Manually configured DNS servers take priority over DHCP assigned servers.
+- The dock will automatically reboot after changing the configuration. 
+
+### Set a static IPv4 configuration
+
+```json
+{
+    "type": "dock",
+    "id": 123,
+    "command": "set_network",
+    "interface": "eth",
+    "mode": "static",
+    "ip": "192.168.16.88",
+    "mask": "255.255.255.0",
+    "gw": "192.168.16.1"
+}
+```
+
+- Configuration is per `interface`: `eth` or `wifi`
+- `mode`: `static` or `dhcp`
+
+### Get network configuration
+
+Request:
+```json
+{
+    "type": "dock",
+    "id": 123,
+    "command": "get_network"
+}
+```
+
+Response:
+```json
+{
+    "req_id": 123,
+    "type": "dock",
+    "msg": "get_network",
+    "eth": {
+        "mode": "static",
+        "ip": "192.168.16.88",
+        "mask": "255.255.255.0",
+        "gw": "192.168.16.1"
+    },
+    "wifi": {
+        "mode": "dhcp"
+    },
+    "sntp_enabled": false,
+    "sntp1": "pool.ntp.org",
+    "active": {
+        "interface": "eth",
+        "ip": "192.168.16.88",
+        "mask": "255.255.255.0",
+        "gw": "192.168.16.1",
+        "ipv6": {
+            "addresses": [
+                {
+                    "address": "FE80::9270:69FF:FE8D:3063",
+                    "type": "link_local"
+                },
+                {
+                    "address": "FDE4:BE4C:EBA9:D140:9270:69FF:FE8D:3063",
+                    "type": "unique_local"
+                }
+            ]
+        }
+    },
+    "code": 200
+}
+```

@@ -16,6 +16,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
+#include "lwip/inet.h"
 
 #include "NetworkSm.h"
 #include "config.h"
@@ -41,6 +42,23 @@ static NetworkSm networkSm;
 
 static void network_task(void *pvParameters);
 static void queue_sm_event(NetworkSm::EventId event);
+static void apply_custom_dns_if_any(esp_netif_t *netif);
+
+#if CONFIG_LWIP_IPV6
+static void create_ipv6_linklocal(esp_netif_t *netif, const char *if_name) {
+    if (!netif) {
+        ESP_LOGW(TAG, "Cannot create IPv6 link-local address for %s: netif is NULL", if_name);
+        return;
+    }
+
+    esp_err_t err = esp_netif_create_ip6_linklocal(netif);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "Creating IPv6 link-local address for %s", if_name);
+    } else if (err != ESP_ERR_INVALID_STATE) {
+        ESP_LOGW(TAG, "Failed to create IPv6 link-local address for %s: %s", if_name, esp_err_to_name(err));
+    }
+}
+#endif
 
 esp_err_t network_start() {
     if (network_queue) {
@@ -288,6 +306,11 @@ void eth_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,
             esp_eth_ioctl(eth_handle, ETH_CMD_G_MAC_ADDR, mac_addr);
             ESP_LOGI(TAG, "Ethernet Link Up, HW Addr %02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1],
                      mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+
+#if CONFIG_LWIP_IPV6
+            create_ipv6_linklocal(esp_netif_get_handle_from_ifkey("ETH_DEF"), "ETH");
+#endif
+
             wifi_disconnect();
             set_eth_led_brightness(Config::instance().getEthLedBrightness());
             if (eth_event_group) {
@@ -334,7 +357,11 @@ void network_ip_event_handler(void *arg, esp_event_base_t event_base, int32_t ev
 
             event_id == IP_EVENT_ETH_GOT_IP ? trigger_eth_got_ip_event() : trigger_wifi_got_ip_event();
 
-            if (eth_event_group) {
+            if (event->esp_netif) {
+                apply_custom_dns_if_any(event->esp_netif);
+            }
+
+            if (eth_event_group && event_id == IP_EVENT_ETH_GOT_IP) {
                 xEventGroupSetBits(eth_event_group, ETH_GOT_IP_BIT);
             }
 
@@ -353,9 +380,21 @@ void network_ip_event_handler(void *arg, esp_event_base_t event_base, int32_t ev
         case IP_EVENT_AP_STAIPASSIGNED:
             ESP_LOGI(TAG, "IP_EVENT_AP_STAIPASSIGNED");
             break;
-        case IP_EVENT_GOT_IP6:
-            ESP_LOGI(TAG, "IP_EVENT_GOT_IP6");
+        case IP_EVENT_GOT_IP6: {
+            ip_event_got_ip6_t *event = (ip_event_got_ip6_t *)event_data;
+            const char         *if_key = "unknown";
+
+            if (event && event->esp_netif) {
+                const char *key = esp_netif_get_ifkey(event->esp_netif);
+                if (key) {
+                    if_key = key;
+                }
+            }
+
+            ESP_LOGI(TAG, "Got IPv6 address on interface %s: %s", if_key,
+                     ip6addr_ntoa((ip6_addr_t *)&event->ip6_info.ip));
             break;
+        }
         default:
             break;
     }
@@ -455,16 +494,67 @@ esp_err_t network_get_ip_info_for_netif(esp_netif_t *netif, esp_netif_ip_info_t 
 
 static esp_err_t set_dns_server(esp_netif_t *netif, uint32_t addr, esp_netif_dns_type_t type) {
     if (addr && (addr != IPADDR_NONE)) {
-        esp_netif_dns_info_t dns;
+        esp_netif_dns_info_t dns = {};
         dns.ip.u_addr.ip4.addr = addr;
         dns.ip.type = IPADDR_TYPE_V4;
+        ESP_LOGI(TAG, "Setting DNS server: %s", ip4addr_ntoa((ip4_addr_t *)&dns.ip.u_addr.ip4));
         return esp_netif_set_dns_info(netif, type, &dns);
     }
 
     return ESP_OK;
 }
 
-esp_err_t set_static_ip(esp_netif_t *netif, esp_netif_ip_info_t ip, uint32_t dns1, uint32_t dns2) {
+static uint32_t parse_dns_server(const std::string &server, const char *name) {
+    if (server.empty()) {
+        return 0;
+    }
+
+    uint32_t addr = ipaddr_addr(server.c_str());
+    if (addr == IPADDR_NONE) {
+        ESP_LOGW(TAG, "Invalid %s address: %s", name, server.c_str());
+        return 0;
+    }
+
+    return addr;
+}
+
+static void get_configured_dns_servers(uint32_t *dns1, uint32_t *dns2) {
+    Config &cfg = Config::instance();
+
+    if (dns1) {
+        *dns1 = parse_dns_server(cfg.getDnsServer1(), "DNS1");
+    }
+    if (dns2) {
+        *dns2 = parse_dns_server(cfg.getDnsServer2(), "DNS2");
+    }
+}
+
+static void apply_custom_dns_if_any(esp_netif_t *netif) {
+    if (!netif) {
+        ESP_LOGW(TAG, "apply_custom_dns_if_any: netif is NULL");
+        return;
+    }
+
+    uint32_t dns1 = 0;
+    uint32_t dns2 = 0;
+    get_configured_dns_servers(&dns1, &dns2);
+
+    if (dns1) {
+        esp_err_t err = set_dns_server(netif, dns1, ESP_NETIF_DNS_MAIN);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to set main DNS server: %s", esp_err_to_name(err));
+        }
+    }
+
+    if (dns2) {
+        esp_err_t err = set_dns_server(netif, dns2, ESP_NETIF_DNS_BACKUP);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to set backup DNS server: %s", esp_err_to_name(err));
+        }
+    }
+}
+
+esp_err_t set_static_ip(esp_netif_t *netif, esp_netif_ip_info_t ip) {
     esp_err_t ret = ESP_OK;
 
     ret = esp_netif_dhcpc_stop(netif);
@@ -475,8 +565,51 @@ esp_err_t set_static_ip(esp_netif_t *netif, esp_netif_ip_info_t ip, uint32_t dns
 
     ESP_RETURN_ON_ERROR(esp_netif_set_ip_info(netif, &ip), TAG, "Failed to set ip info");
 
-    ESP_RETURN_ON_ERROR(set_dns_server(netif, dns1, ESP_NETIF_DNS_MAIN), TAG, "Failed to set DNS server");
-    ESP_RETURN_ON_ERROR(set_dns_server(netif, dns2, ESP_NETIF_DNS_BACKUP), TAG, "Failed to set backup DNS server");
+    apply_custom_dns_if_any(netif);
 
     return ESP_OK;
+}
+
+esp_err_t apply_eth_ipv4_config(esp_netif_t *netif) {
+    if (!netif) {
+        ESP_LOGE(TAG, "apply_eth_ipv4_config: null netif");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    network_cfg_t    nc = Config::instance().getNetwork();
+    iface_net_cfg_t *eth = &nc.eth;
+
+    if (eth->dhcp) {
+        ESP_LOGI(TAG, "ETH using DHCP");
+        network_start_stop_dhcp_client(netif, true);
+
+        // Initial attempt; DHCP may overwrite this, so re-apply after GOT_IP too.
+        apply_custom_dns_if_any(netif);
+        return ESP_OK;
+    }
+
+    ESP_LOGI(TAG, "ETH using static IPv4");
+    return set_static_ip(netif, eth->ip);
+}
+
+esp_err_t apply_wifi_ipv4_config(esp_netif_t *netif) {
+    if (!netif) {
+        ESP_LOGE(TAG, "apply_wifi_ipv4_config: null netif");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    network_cfg_t    nc = Config::instance().getNetwork();
+    iface_net_cfg_t *wifi = &nc.wifi;
+
+    if (wifi->dhcp) {
+        ESP_LOGI(TAG, "WiFi using DHCP");
+        network_start_stop_dhcp_client(netif, true);
+
+        // Initial attempt; DHCP may overwrite this, so re-apply after GOT_IP too.
+        apply_custom_dns_if_any(netif);
+        return ESP_OK;
+    }
+
+    ESP_LOGI(TAG, "WiFi using static IPv4");
+    return set_static_ip(netif, wifi->ip);
 }
