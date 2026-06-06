@@ -380,6 +380,7 @@ void network_ip_event_handler(void *arg, esp_event_base_t event_base, int32_t ev
         case IP_EVENT_AP_STAIPASSIGNED:
             ESP_LOGI(TAG, "IP_EVENT_AP_STAIPASSIGNED");
             break;
+#if CONFIG_LWIP_IPV6
         case IP_EVENT_GOT_IP6: {
             ip_event_got_ip6_t *event = (ip_event_got_ip6_t *)event_data;
             const char         *if_key = "unknown";
@@ -395,6 +396,7 @@ void network_ip_event_handler(void *arg, esp_event_base_t event_base, int32_t ev
                      ip6addr_ntoa((ip6_addr_t *)&event->ip6_info.ip));
             break;
         }
+#endif
         default:
             break;
     }

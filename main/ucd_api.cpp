@@ -296,11 +296,20 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                            bool authenticated) -> esp_err_t {
         switch (type) {
             case WS_CONNECTED: {
+#if CONFIG_LWIP_IPV6
                 struct sockaddr_in6 addr_in;
-                char                buf[20] = {0};
+#else
+                struct sockaddr_in addr_in;
+#endif
+                char buf[20] = {0};
                 if (WebServer::getRemoteIp(sockfd, &addr_in) == ESP_OK) {
                     ESP_LOGI(TAG, "[%s:%d] new WS client connection: %d",
+#if CONFIG_LWIP_IPV6
                              inet_ntoa_r(addr_in.sin6_addr.un.u32_addr[3], buf, sizeof(buf)), addr_in.sin6_port,
+#else
+                             inet_ntoa_r(((struct sockaddr_in *)&addr_in)->sin_addr, buf, sizeof(buf) - 1),
+                             ntohs(addr_in.sin_port),
+#endif
                              sockfd);
                 }
 

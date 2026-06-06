@@ -703,7 +703,11 @@ void WebServer::broadcastWsTxt(std::string &msg) {
     }
 }
 
+#if CONFIG_LWIP_IPV6
 esp_err_t WebServer::getRemoteIp(int fd, struct sockaddr_in6 *addr_in) {
+#else
+esp_err_t WebServer::getRemoteIp(int fd, struct sockaddr_in *addr_in) {
+#endif
     socklen_t addrlen = sizeof(*addr_in);
     if (lwip_getpeername(fd, (struct sockaddr *)addr_in, &addrlen) != -1) {
         return ESP_OK;

@@ -35,7 +35,7 @@ Example request from the Core-API to send an IR code on external port 2:
   "int_side": false,
   "int_top": false,
   "ext1": false,
-  "ext2": true,
+  "ext2": true
 }
 ```
 
@@ -99,7 +99,7 @@ Example request from the Core-API to send a Sony TV volume up command for 2 seco
   "int_side": false,
   "int_top": false,
   "ext1": false,
-  "ext2": true,
+  "ext2": true
 }
 ```
 
@@ -154,9 +154,9 @@ For `mode: RS232`, the UART settings can be configured with additional fields:
   "command": "set_port_mode",
   "port": 1,
   "mode": "RS232",
-  "baud_rate": 19200
-  "data_bits": 7
-  "parity": "even"
+  "baud_rate": 19200,
+  "data_bits": 7,
+  "parity": "even",
   "stop_bits": "1.5"
 }
 ```
