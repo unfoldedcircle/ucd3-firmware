@@ -280,9 +280,10 @@ Enable TCP serial server:
 ```
 
 - DNS is a global configuration, not per interface.
-- `dns1` and `dns2` must be IPv4 addresses.
-- Omit a field to keep the current value unchanged.
-- Set a field to an empty string to clear that DNS server.
+- `dns1` and `dns2` must be IP address literals.
+- IPv6 DNS servers are accepted only if the firmware is built with IPv6 support.
+- Omit a `dns#` field to keep the current value unchanged.
+- Set a `dns#` field to an empty string to clear that DNS server.
 - Manually configured DNS servers take priority over DHCP assigned servers.
 - New DNS settings are applied immediately.
 - Removing a DNS setting requires a reboot to clear the currently active DNS server.

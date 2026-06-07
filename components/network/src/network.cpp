@@ -17,6 +17,8 @@
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
 #include "lwip/inet.h"
+#include "lwip/ip4_addr.h"
+#include "lwip/ip6_addr.h"
 
 #include "NetworkSm.h"
 #include "config.h"
@@ -494,16 +496,73 @@ esp_err_t network_get_ip_info_for_netif(esp_netif_t *netif, esp_netif_ip_info_t 
     return err;
 }
 
-static esp_err_t set_dns_server(esp_netif_t *netif, ip4_addr_t ip4, esp_netif_dns_type_t type) {
-    if (ip4.addr && (ip4.addr != IPADDR_NONE)) {
-        esp_netif_dns_info_t dns = {};
-        dns.ip.u_addr.ip4.addr = ip4.addr;
-        dns.ip.type = IPADDR_TYPE_V4;
-        ESP_LOGI(TAG, "Setting DNS server: %s", ip4addr_ntoa((ip4_addr_t *)&dns.ip.u_addr.ip4));
-        return esp_netif_set_dns_info(netif, type, &dns);
+static bool parse_dns_addr(const std::string &value, esp_ip_addr_t *addr) {
+    if (value.empty() || !addr) {
+        return false;
     }
 
-    return ESP_OK;
+    memset(addr, 0, sizeof(*addr));
+
+    ip4_addr_t ip4 = {};
+    if (ip4addr_aton(value.c_str(), &ip4) != 0 && ip4.addr != IPADDR_ANY && ip4.addr != IPADDR_NONE) {
+        addr->type = IPADDR_TYPE_V4;
+        addr->u_addr.ip4.addr = ip4.addr;
+        return true;
+    }
+
+#if CONFIG_LWIP_IPV6
+    ip6_addr_t ip6 = {};
+    if (ip6addr_aton(value.c_str(), &ip6) != 0 && !ip6_addr_isany_val(ip6)) {
+        addr->type = IPADDR_TYPE_V6;
+        memcpy(&addr->u_addr.ip6, &ip6, sizeof(addr->u_addr.ip6));
+        return true;
+    }
+#endif
+
+    return false;
+}
+
+static const char *dns_addr_to_string(const esp_ip_addr_t *addr, char *buf, size_t buf_len) {
+    if (!addr || !buf || buf_len == 0) {
+        return nullptr;
+    }
+
+    switch (addr->type) {
+        case IPADDR_TYPE_V4:
+            if (addr->u_addr.ip4.addr == IPADDR_ANY || addr->u_addr.ip4.addr == IPADDR_NONE) {
+                return nullptr;
+            }
+            return ip4addr_ntoa_r((const ip4_addr_t *)&addr->u_addr.ip4, buf, buf_len);
+
+#if CONFIG_LWIP_IPV6
+        case IPADDR_TYPE_V6:
+            if (ip6_addr_isany((const ip6_addr_t *)&addr->u_addr.ip6)) {
+                return nullptr;
+            }
+            return ip6addr_ntoa_r((const ip6_addr_t *)&addr->u_addr.ip6, buf, buf_len);
+#endif
+
+        default:
+            return nullptr;
+    }
+}
+
+static esp_err_t set_dns_server(esp_netif_t *netif, const std::string &server, esp_netif_dns_type_t type) {
+    if (server.empty()) {
+        return ESP_OK;
+    }
+
+    esp_netif_dns_info_t dns = {};
+    if (!parse_dns_addr(server, &dns.ip)) {
+        ESP_LOGW(TAG, "Ignoring invalid DNS server address: %s", server.c_str());
+        return ESP_OK;
+    }
+
+    char        addr_str[48] = {};
+    const char *formatted = dns_addr_to_string(&dns.ip, addr_str, sizeof(addr_str));
+    ESP_LOGI(TAG, "Setting DNS server: %s", formatted ? formatted : server.c_str());
+
+    return esp_netif_set_dns_info(netif, type, &dns);
 }
 
 void apply_custom_dns() {
@@ -532,17 +591,17 @@ static void apply_custom_dns_if_any(esp_netif_t *netif) {
 
     Config &cfg = Config::instance();
 
-    ip4_addr_t dns1 = cfg.getDnsServer1();
-    ip4_addr_t dns2 = cfg.getDnsServer2();
+    std::string dns1 = cfg.getDnsServer1();
+    std::string dns2 = cfg.getDnsServer2();
 
-    if (dns1.addr != IPADDR_NONE) {
+    if (!dns1.empty()) {
         esp_err_t err = set_dns_server(netif, dns1, ESP_NETIF_DNS_MAIN);
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "Failed to set main DNS server: %s", esp_err_to_name(err));
         }
     }
 
-    if (dns2.addr != IPADDR_NONE) {
+    if (!dns2.empty()) {
         esp_err_t err = set_dns_server(netif, dns2, ESP_NETIF_DNS_BACKUP);
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "Failed to set backup DNS server: %s", esp_err_to_name(err));

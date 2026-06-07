@@ -244,6 +244,77 @@ static const char *ipv4_addr_to_string(const ip4_addr_t *addr, char *buf, size_t
     return ip4addr_ntoa_r(addr, buf, buf_len);
 }
 
+static bool parse_dns_addr(const char *value, esp_ip_addr_t *addr) {
+    if (!value || !addr || strlen(value) == 0) {
+        return false;
+    }
+
+    memset(addr, 0, sizeof(*addr));
+
+    ip4_addr_t ip4 = {};
+    if (ip4addr_aton(value, &ip4) != 0 && ip4.addr != IPADDR_ANY && ip4.addr != IPADDR_NONE) {
+        addr->type = IPADDR_TYPE_V4;
+        addr->u_addr.ip4.addr = ip4.addr;
+        return true;
+    }
+
+#if CONFIG_LWIP_IPV6
+    ip6_addr_t ip6 = {};
+    if (ip6addr_aton(value, &ip6) != 0 && !ip6_addr_isany_val(ip6)) {
+        addr->type = IPADDR_TYPE_V6;
+        memcpy(&addr->u_addr.ip6, &ip6, sizeof(addr->u_addr.ip6));
+        return true;
+    }
+#endif
+
+    return false;
+}
+
+static const char *ip_addr_to_string(const esp_ip_addr_t *addr, char *buf, size_t buf_len) {
+    if (!addr || !buf || buf_len == 0) {
+        return nullptr;
+    }
+
+    switch (addr->type) {
+        case IPADDR_TYPE_V4:
+            if (addr->u_addr.ip4.addr == IPADDR_ANY || addr->u_addr.ip4.addr == IPADDR_NONE) {
+                return nullptr;
+            }
+            return ip4addr_ntoa_r((const ip4_addr_t *)&addr->u_addr.ip4, buf, buf_len);
+
+#if CONFIG_LWIP_IPV6
+        case IPADDR_TYPE_V6:
+            if (ip6_addr_isany((const ip6_addr_t *)&addr->u_addr.ip6)) {
+                return nullptr;
+            }
+            return ip6addr_ntoa_r((const ip6_addr_t *)&addr->u_addr.ip6, buf, buf_len);
+#endif
+
+        default:
+            return nullptr;
+    }
+}
+
+static bool normalize_dns_addr_string(const char *value, std::string *normalized) {
+    if (!normalized) {
+        return false;
+    }
+
+    esp_ip_addr_t addr = {};
+    if (!parse_dns_addr(value, &addr)) {
+        return false;
+    }
+
+    char        buf[48] = {};
+    const char *str = ip_addr_to_string(&addr, buf, sizeof(buf));
+    if (!str) {
+        return false;
+    }
+
+    *normalized = str;
+    return true;
+}
+
 #if CONFIG_LWIP_IPV6
 static const char *ipv6_addr_type_to_string(esp_ip6_addr_type_t type) {
     switch (type) {
@@ -307,7 +378,7 @@ static void add_ipv6_addresses_to_json(cJSON *root, esp_netif_t *netif) {
         cJSON_Delete(ipv6);
     }
 }
-#endif
+#endif  // CONFIG_LWIP_IPV6
 
 DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
     : config_(config),
@@ -842,7 +913,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         cJSON_AddBoolToObject(responseDoc, "reboot", true);
         schedule_restart(web, 2000);
     } else if (command == "get_network") {
-        char          ip_str[16];
+        char          ip_str[48];
         network_cfg_t netcfg = config_->getNetwork();
 
         // Helper lambda to serialize one interface
@@ -875,16 +946,14 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         add_iface(responseDoc, "wifi", netcfg.wifi);
 
         // DNS settings are global and not per-interface
-        ip4_addr_t  dns = config_->getDnsServer1();
-        const char *address = ipv4_addr_to_string(&dns, ip_str, sizeof(ip_str));
-        if (address) {
-            cJSON_AddStringToObject(responseDoc, "dns1", address);
+        std::string dns_server = config_->getDnsServer1();
+        if (!dns_server.empty()) {
+            cJSON_AddStringToObject(responseDoc, "dns1", dns_server.c_str());
         }
 
-        dns = config_->getDnsServer2();
-        address = ipv4_addr_to_string(&dns, ip_str, sizeof(ip_str));
-        if (address) {
-            cJSON_AddStringToObject(responseDoc, "dns2", address);
+        dns_server = config_->getDnsServer2();
+        if (!dns_server.empty()) {
+            cJSON_AddStringToObject(responseDoc, "dns2", dns_server.c_str());
         }
 
         cJSON_AddBoolToObject(responseDoc, "sntp_enabled", config_->isNtpEnabled());
@@ -923,45 +992,52 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                                         ip4addr_ntoa_r((ip4_addr_t *)&ip4.gw, ip_str, sizeof(ip_str)));
 
                 esp_netif_dns_info_t dns;
-                if (esp_netif_get_dns_info(active_netif, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK &&
-                    dns.ip.type == IPADDR_TYPE_V4 && dns.ip.u_addr.ip4.addr != 0) {
-                    cJSON_AddStringToObject(active_net, "dns1",
-                                            ip4addr_ntoa_r((ip4_addr_t *)&dns.ip.u_addr.ip4, ip_str, sizeof(ip_str)));
+                if (esp_netif_get_dns_info(active_netif, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK) {
+                    const char *dns_str = ip_addr_to_string(&dns.ip, ip_str, sizeof(ip_str));
+                    if (dns_str) {
+                        cJSON_AddStringToObject(active_net, "dns1", dns_str);
+                    }
                 }
 
-                if (esp_netif_get_dns_info(active_netif, ESP_NETIF_DNS_BACKUP, &dns) == ESP_OK &&
-                    dns.ip.type == IPADDR_TYPE_V4 && dns.ip.u_addr.ip4.addr != 0) {
-                    cJSON_AddStringToObject(active_net, "dns2",
-                                            ip4addr_ntoa_r((ip4_addr_t *)&dns.ip.u_addr.ip4, ip_str, sizeof(ip_str)));
+                if (esp_netif_get_dns_info(active_netif, ESP_NETIF_DNS_BACKUP, &dns) == ESP_OK) {
+                    const char *dns_str = ip_addr_to_string(&dns.ip, ip_str, sizeof(ip_str));
+                    if (dns_str) {
+                        cJSON_AddStringToObject(active_net, "dns2", dns_str);
+                    }
                 }
 
-                if (esp_netif_get_dns_info(active_netif, ESP_NETIF_DNS_FALLBACK, &dns) == ESP_OK &&
-                    dns.ip.type == IPADDR_TYPE_V4 && dns.ip.u_addr.ip4.addr != 0) {
-                    cJSON_AddStringToObject(active_net, "dns3",
-                                            ip4addr_ntoa_r((ip4_addr_t *)&dns.ip.u_addr.ip4, ip_str, sizeof(ip_str)));
+                if (esp_netif_get_dns_info(active_netif, ESP_NETIF_DNS_FALLBACK, &dns) == ESP_OK) {
+                    const char *dns_str = ip_addr_to_string(&dns.ip, ip_str, sizeof(ip_str));
+                    if (dns_str) {
+                        cJSON_AddStringToObject(active_net, "dns3", dns_str);
+                    }
                 }
             }
 
 #if CONFIG_LWIP_IPV6
             add_ipv6_addresses_to_json(active_net, active_netif);
-#endif  // CONFIG_LWIP_IPV6
+#endif
         }
 
         code = 200;
     } else if (command == "set_dns") {
-        bool       ok = true;
-        bool       removed_dns = false;
-        ip4_addr_t dns1 = config_->getDnsServer1();
-        ip4_addr_t dns2 = config_->getDnsServer2();
+        bool        ok = true;
+        bool        removed_dns = false;
+        std::string dns1 = config_->getDnsServer1();
+        std::string dns2 = config_->getDnsServer2();
 
         if (cJSON_HasObjectItem(root, "dns1")) {
             const char *server = cjson_get_string(root, "dns1", "");
             if (strlen(server) == 0) {
-                removed_dns = dns1.addr != 0;
-                dns1.addr = 0;
-            } else if (!parse_ipv4_addr(server, &dns1) || dns1.addr == IPADDR_ANY || dns1.addr == IPADDR_NONE) {
+                removed_dns = !dns1.empty();
+                dns1.clear();
+            } else if (!normalize_dns_addr_string(server, &dns1)) {
                 code = 400;
+#if CONFIG_LWIP_IPV6
                 cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns1 address");
+#else
+                cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns1 address or IPv6 DNS not supported");
+#endif
                 goto send_response;
             }
         }
@@ -969,11 +1045,15 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         if (cJSON_HasObjectItem(root, "dns2")) {
             const char *server = cjson_get_string(root, "dns2", "");
             if (strlen(server) == 0) {
-                removed_dns = removed_dns || dns2.addr != 0;
-                dns2.addr = 0;
-            } else if (!parse_ipv4_addr(server, &dns2) || dns2.addr == IPADDR_ANY || dns2.addr == IPADDR_NONE) {
+                removed_dns = removed_dns || !dns2.empty();
+                dns2.clear();
+            } else if (!normalize_dns_addr_string(server, &dns2)) {
                 code = 400;
+#if CONFIG_LWIP_IPV6
                 cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns2 address");
+#else
+                cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns2 address or IPv6 DNS not supported");
+#endif
                 goto send_response;
             }
         }
@@ -983,6 +1063,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             apply_custom_dns();
             if (removed_dns) {
                 cJSON_AddBoolToObject(responseDoc, "reboot", true);
+                schedule_restart(web, 2000);
             }
         }
         code = ok ? 200 : 400;
