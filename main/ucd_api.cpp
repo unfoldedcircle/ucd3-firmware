@@ -903,8 +903,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             std::string server2 = cjson_get_string(root, "dns2", "");
             ok = config_->setDnsServer(server1, server2);
             if (ok) {
-                cJSON_AddBoolToObject(responseDoc, "reboot", true);
-                schedule_restart(web, 2000);
+                apply_custom_dns();
             }
         }
         code = ok ? 200 : 400;

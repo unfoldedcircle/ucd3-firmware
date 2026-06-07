@@ -108,6 +108,9 @@ esp_err_t set_eth_led_brightness(int value);
 /// @return ESP_OK if successful
 esp_err_t set_static_ip(esp_netif_t* netif, esp_netif_ip_info_t ip, uint32_t dns1, uint32_t dns2);
 
+/// @brief Apply configured DNS servers to currently active network interface.
+void apply_custom_dns();
+
 #ifdef __cplusplus
 }
 #endif

@@ -531,6 +531,22 @@ static void get_configured_dns_servers(uint32_t *dns1, uint32_t *dns2) {
     }
 }
 
+void apply_custom_dns() {
+    esp_netif_t *netif = nullptr;
+
+    if (is_eth_connected()) {
+        netif = esp_netif_get_handle_from_ifkey("ETH_DEF");
+    } else if (is_wifi_up()) {
+        netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+    }
+
+    if (netif) {
+        apply_custom_dns_if_any(netif);
+    } else {
+        ESP_LOGW(TAG, "No active network interface found to apply custom DNS settings");
+    }
+}
+
 static void apply_custom_dns_if_any(esp_netif_t *netif) {
     if (!netif) {
         ESP_LOGW(TAG, "apply_custom_dns_if_any: netif is NULL");
