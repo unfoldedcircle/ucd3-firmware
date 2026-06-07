@@ -280,9 +280,10 @@ Enable TCP serial server:
 ```
 
 - DNS is a global configuration, not per interface.
-- Too clear a DNS server: use an empty string.
+- dns1 and dns2 must be IPv4 addresses.
+- Too clear a DNS server: omit the `dns#` field. An empty value is not valid.
 - Manually configured DNS servers take priority over DHCP assigned servers.
-- The dock will automatically reboot after changing the configuration. 
+- New DNS settings are applied immediately. Removing a DNS setting requires a reboot.
 
 ### Set a static IPv4 configuration
 
@@ -328,6 +329,7 @@ Response:
     "wifi": {
         "mode": "dhcp"
     },
+    "dns1": "8.8.8.8",
     "sntp_enabled": false,
     "sntp1": "pool.ntp.org",
     "active": {
@@ -335,6 +337,7 @@ Response:
         "ip": "192.168.16.88",
         "mask": "255.255.255.0",
         "gw": "192.168.16.1",
+        "dns1": "8.8.8.8",
         "ipv6": {
             "addresses": [
                 {

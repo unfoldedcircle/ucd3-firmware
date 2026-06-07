@@ -494,41 +494,16 @@ esp_err_t network_get_ip_info_for_netif(esp_netif_t *netif, esp_netif_ip_info_t 
     return err;
 }
 
-static esp_err_t set_dns_server(esp_netif_t *netif, uint32_t addr, esp_netif_dns_type_t type) {
-    if (addr && (addr != IPADDR_NONE)) {
+static esp_err_t set_dns_server(esp_netif_t *netif, ip4_addr_t ip4, esp_netif_dns_type_t type) {
+    if (ip4.addr && (ip4.addr != IPADDR_NONE)) {
         esp_netif_dns_info_t dns = {};
-        dns.ip.u_addr.ip4.addr = addr;
+        dns.ip.u_addr.ip4.addr = ip4.addr;
         dns.ip.type = IPADDR_TYPE_V4;
         ESP_LOGI(TAG, "Setting DNS server: %s", ip4addr_ntoa((ip4_addr_t *)&dns.ip.u_addr.ip4));
         return esp_netif_set_dns_info(netif, type, &dns);
     }
 
     return ESP_OK;
-}
-
-static uint32_t parse_dns_server(const std::string &server, const char *name) {
-    if (server.empty()) {
-        return 0;
-    }
-
-    uint32_t addr = ipaddr_addr(server.c_str());
-    if (addr == IPADDR_NONE) {
-        ESP_LOGW(TAG, "Invalid %s address: %s", name, server.c_str());
-        return 0;
-    }
-
-    return addr;
-}
-
-static void get_configured_dns_servers(uint32_t *dns1, uint32_t *dns2) {
-    Config &cfg = Config::instance();
-
-    if (dns1) {
-        *dns1 = parse_dns_server(cfg.getDnsServer1(), "DNS1");
-    }
-    if (dns2) {
-        *dns2 = parse_dns_server(cfg.getDnsServer2(), "DNS2");
-    }
 }
 
 void apply_custom_dns() {
@@ -553,18 +528,19 @@ static void apply_custom_dns_if_any(esp_netif_t *netif) {
         return;
     }
 
-    uint32_t dns1 = 0;
-    uint32_t dns2 = 0;
-    get_configured_dns_servers(&dns1, &dns2);
+    Config &cfg = Config::instance();
 
-    if (dns1) {
+    ip4_addr_t dns1 = cfg.getDnsServer1();
+    ip4_addr_t dns2 = cfg.getDnsServer2();
+
+    if (dns1.addr != IPADDR_NONE) {
         esp_err_t err = set_dns_server(netif, dns1, ESP_NETIF_DNS_MAIN);
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "Failed to set main DNS server: %s", esp_err_to_name(err));
         }
     }
 
-    if (dns2) {
+    if (dns2.addr != IPADDR_NONE) {
         esp_err_t err = set_dns_server(netif, dns2, ESP_NETIF_DNS_BACKUP);
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "Failed to set backup DNS server: %s", esp_err_to_name(err));

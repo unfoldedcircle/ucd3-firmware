@@ -11,6 +11,7 @@
 #include <string>
 
 #include "driver/uart.h"
+#include "lwip/ip4_addr.h"
 
 #include "ext_port_mode.h"
 #include "net_config.h"
@@ -135,14 +136,14 @@ class Config {
     network_cfg_t getNetwork();
 
     /// @brief Set static DNS server addresses
-    /// @param server1 main DNS. Max length is 32 characters.
-    /// @param server2 backup DNS. Max length is 32 characters.
+    /// @param dns1 main DNS IPv4 address.
+    /// @param dns2 backup DNS IPv4 address.
     /// @return true if server addresses could be stored
-    bool setDnsServer(const std::string& server1, const std::string& server2);
-    /// @brief Get main DNS server address.
-    std::string getDnsServer1();
-    /// @brief Get backupt DNS server address.
-    std::string getDnsServer2();
+    bool setDnsServer(ip4_addr_t dns1, ip4_addr_t dns2);
+    /// @brief Get main DNS server IPv4 address.
+    ip4_addr_t getDnsServer1();
+    /// @brief Get backup DNS server IPv4 address.
+    ip4_addr_t getDnsServer2();
 
     // -- Sound settings
 

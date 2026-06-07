@@ -281,27 +281,27 @@ network_cfg_t Config::getNetwork() {
     return cfg;
 }
 
-bool Config::setDnsServer(const std::string& server1, const std::string& server2) {
-    if (server1.length() > 32 || server2.length() > 32) {
-        ESP_LOGW(m_ctx, "Ignoring dns server: name too long");
-        return false;
-    }
+bool Config::setDnsServer(ip4_addr_t dns1, ip4_addr_t dns2) {
     if (!m_preferences.begin(m_prefGeneral, false)) {
         return false;
     }
-    m_preferences.putString("dns_server1", server1);
-    m_preferences.putString("dns_server2", server2);
+    m_preferences.putUInt("dns1", dns1.addr);
+    m_preferences.putUInt("dns2", dns2.addr);
 
     m_preferences.end();
     return true;
 }
 
-std::string Config::getDnsServer1() {
-    return getStringSetting(m_prefGeneral, "dns_server1", "");
+ip4_addr_t Config::getDnsServer1() {
+    ip4_addr_t addr;
+    addr.addr = getUIntSetting(m_prefGeneral, "dns1", 0);
+    return addr;
 }
 
-std::string Config::getDnsServer2() {
-    return getStringSetting(m_prefGeneral, "dns_server2", "");
+ip4_addr_t Config::getDnsServer2() {
+    ip4_addr_t addr;
+    addr.addr = getUIntSetting(m_prefGeneral, "dns2", 0);
+    return addr;
 }
 
 uint8_t Config::getVolume() {
