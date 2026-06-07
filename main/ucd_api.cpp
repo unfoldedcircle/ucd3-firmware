@@ -207,6 +207,43 @@ bool cjson_get_bool(const cJSON *root, const char *field, bool *ok = NULL) {
     return false;
 }
 
+static bool parse_ipv4_addr(const char *value, ip4_addr_t *addr) {
+    if (!value || !addr) {
+        return false;
+    }
+
+    ip4_addr_t parsed = {};
+    if (ip4addr_aton(value, &parsed) == 0) {
+        return false;
+    }
+
+    *addr = parsed;
+    return true;
+}
+
+static bool parse_required_ipv4_addr(const cJSON *root, const char *field, ip4_addr_t *addr, cJSON *responseDoc) {
+    const char *value = cjson_get_string(root, field, nullptr);
+    if (!value || strlen(value) == 0) {
+        cJSON_AddStringToObject(responseDoc, msgError, "Missing IPv4 address field");
+        return false;
+    }
+
+    if (!parse_ipv4_addr(value, addr) || addr->addr == IPADDR_ANY || addr->addr == IPADDR_NONE) {
+        cJSON_AddStringToObject(responseDoc, msgError, "Invalid IPv4 address");
+        return false;
+    }
+
+    return true;
+}
+
+static const char *ipv4_addr_to_string(const ip4_addr_t *addr, char *buf, size_t buf_len) {
+    if (!addr || !buf || buf_len == 0 || addr->addr == IPADDR_ANY || addr->addr == IPADDR_NONE) {
+        return nullptr;
+    }
+
+    return ip4addr_ntoa_r(addr, buf, buf_len);
+}
+
 #if CONFIG_LWIP_IPV6
 static const char *ipv6_addr_type_to_string(esp_ip6_addr_type_t type) {
     switch (type) {
@@ -779,26 +816,20 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
 
         if (!dhcp) {
             // Static mode: ip/mask/gw required
-            std::string ip_str = cjson_get_string(root, "ip", "");
-            std::string mask_str = cjson_get_string(root, "mask", "");
-            std::string gw_str = cjson_get_string(root, "gw", "");
+            ip4_addr_t ip = {};
+            ip4_addr_t mask = {};
+            ip4_addr_t gw = {};
 
-            if (ip_str.empty() || mask_str.empty() || gw_str.empty()) {
+            if (!parse_required_ipv4_addr(root, "ip", &ip, responseDoc) ||
+                !parse_required_ipv4_addr(root, "mask", &mask, responseDoc) ||
+                !parse_required_ipv4_addr(root, "gw", &gw, responseDoc)) {
                 code = 400;
-                cJSON_AddStringToObject(responseDoc, msgError, "Missing ip/mask/gw for static mode");
                 goto send_response;
             }
 
-            cfg->ip.ip.addr = ipaddr_addr(ip_str.c_str());
-            cfg->ip.netmask.addr = ipaddr_addr(mask_str.c_str());
-            cfg->ip.gw.addr = ipaddr_addr(gw_str.c_str());
-
-            if (cfg->ip.ip.addr == IPADDR_NONE || cfg->ip.netmask.addr == IPADDR_NONE ||
-                cfg->ip.gw.addr == IPADDR_NONE) {
-                code = 400;
-                cJSON_AddStringToObject(responseDoc, msgError, "Invalid ip/mask/gw");
-                goto send_response;
-            }
+            cfg->ip.ip.addr = ip.addr;
+            cfg->ip.netmask.addr = mask.addr;
+            cfg->ip.gw.addr = gw.addr;
         }
 
         if (!config_->setNetwork(netcfg)) {
@@ -820,14 +851,23 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             cJSON *obj = cJSON_CreateObject();
             cJSON_AddItemToObject(root, name, obj);
 
-            const char *mode_str = cfg.dhcp ? "dhcp" : "static";
-            cJSON_AddStringToObject(obj, "mode", mode_str);
+            cJSON_AddStringToObject(obj, "mode", cfg.dhcp ? "dhcp" : "static");
 
-            if (!cfg.dhcp && cfg.ip.ip.addr && cfg.ip.ip.addr != IPADDR_NONE) {
-                cJSON_AddStringToObject(obj, "ip", ip4addr_ntoa_r((ip4_addr_t *)&cfg.ip.ip, ip_str, sizeof(ip_str)));
-                cJSON_AddStringToObject(obj, "mask",
-                                        ip4addr_ntoa_r((ip4_addr_t *)&cfg.ip.netmask, ip_str, sizeof(ip_str)));
-                cJSON_AddStringToObject(obj, "gw", ip4addr_ntoa_r((ip4_addr_t *)&cfg.ip.gw, ip_str, sizeof(ip_str)));
+            if (!cfg.dhcp) {
+                const char *address = ipv4_addr_to_string((const ip4_addr_t *)&cfg.ip.ip, ip_str, sizeof(ip_str));
+                if (address) {
+                    cJSON_AddStringToObject(obj, "ip", address);
+                }
+
+                address = ipv4_addr_to_string((const ip4_addr_t *)&cfg.ip.netmask, ip_str, sizeof(ip_str));
+                if (address) {
+                    cJSON_AddStringToObject(obj, "mask", address);
+                }
+
+                address = ipv4_addr_to_string((const ip4_addr_t *)&cfg.ip.gw, ip_str, sizeof(ip_str));
+                if (address) {
+                    cJSON_AddStringToObject(obj, "gw", address);
+                }
             }
         };
 
@@ -835,19 +875,16 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         add_iface(responseDoc, "wifi", netcfg.wifi);
 
         // DNS settings are global and not per-interface
-        ip4_addr_t dns = config_->getDnsServer1();
-        if (dns.addr && dns.addr != IPADDR_NONE) {
-            const char *address = ip4addr_ntoa_r(&dns, ip_str, sizeof(ip_str));
-            if (address) {
-                cJSON_AddStringToObject(responseDoc, "dns1", address);
-            }
+        ip4_addr_t  dns = config_->getDnsServer1();
+        const char *address = ipv4_addr_to_string(&dns, ip_str, sizeof(ip_str));
+        if (address) {
+            cJSON_AddStringToObject(responseDoc, "dns1", address);
         }
+
         dns = config_->getDnsServer2();
-        if (dns.addr && dns.addr != IPADDR_NONE) {
-            const char *address = ip4addr_ntoa_r(&dns, ip_str, sizeof(ip_str));
-            if (address) {
-                cJSON_AddStringToObject(responseDoc, "dns2", address);
-            }
+        address = ipv4_addr_to_string(&dns, ip_str, sizeof(ip_str));
+        if (address) {
+            cJSON_AddStringToObject(responseDoc, "dns2", address);
         }
 
         cJSON_AddBoolToObject(responseDoc, "sntp_enabled", config_->isNtpEnabled());
@@ -913,19 +950,28 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         code = 200;
     } else if (command == "set_dns") {
         bool       ok = true;
-        ip4_addr_t dns1 = {0}, dns2 = {0};
+        bool       removed_dns = false;
+        ip4_addr_t dns1 = config_->getDnsServer1();
+        ip4_addr_t dns2 = config_->getDnsServer2();
 
-        const char *server = cjson_get_string(root, "dns1");
-        if (server) {
-            if (ip4addr_aton(server, &dns1) == 0) {
+        if (cJSON_HasObjectItem(root, "dns1")) {
+            const char *server = cjson_get_string(root, "dns1", "");
+            if (strlen(server) == 0) {
+                removed_dns = dns1.addr != 0;
+                dns1.addr = 0;
+            } else if (!parse_ipv4_addr(server, &dns1) || dns1.addr == IPADDR_ANY || dns1.addr == IPADDR_NONE) {
                 code = 400;
                 cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns1 address");
                 goto send_response;
             }
         }
-        server = cjson_get_string(root, "dns2");
-        if (server) {
-            if (ip4addr_aton(server, &dns2) == 0) {
+
+        if (cJSON_HasObjectItem(root, "dns2")) {
+            const char *server = cjson_get_string(root, "dns2", "");
+            if (strlen(server) == 0) {
+                removed_dns = removed_dns || dns2.addr != 0;
+                dns2.addr = 0;
+            } else if (!parse_ipv4_addr(server, &dns2) || dns2.addr == IPADDR_ANY || dns2.addr == IPADDR_NONE) {
                 code = 400;
                 cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns2 address");
                 goto send_response;
@@ -935,6 +981,9 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         ok = config_->setDnsServer(dns1, dns2);
         if (ok) {
             apply_custom_dns();
+            if (removed_dns) {
+                cJSON_AddBoolToObject(responseDoc, "reboot", true);
+            }
         }
         code = ok ? 200 : 400;
     } else if (command == "get_port_modes") {

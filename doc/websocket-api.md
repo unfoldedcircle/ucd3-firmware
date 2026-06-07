@@ -280,10 +280,12 @@ Enable TCP serial server:
 ```
 
 - DNS is a global configuration, not per interface.
-- dns1 and dns2 must be IPv4 addresses.
-- Too clear a DNS server: omit the `dns#` field. An empty value is not valid.
+- `dns1` and `dns2` must be IPv4 addresses.
+- Omit a field to keep the current value unchanged.
+- Set a field to an empty string to clear that DNS server.
 - Manually configured DNS servers take priority over DHCP assigned servers.
-- New DNS settings are applied immediately. Removing a DNS setting requires a reboot.
+- New DNS settings are applied immediately.
+- Removing a DNS setting requires a reboot to clear the currently active DNS server.
 
 ### Set a static IPv4 configuration
 

@@ -508,11 +508,13 @@ static esp_err_t set_dns_server(esp_netif_t *netif, ip4_addr_t ip4, esp_netif_dn
 
 void apply_custom_dns() {
     esp_netif_t *netif = nullptr;
+    esp_netif_t *eth_netif = esp_netif_get_handle_from_ifkey("ETH_DEF");
+    esp_netif_t *wifi_netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
 
-    if (is_eth_connected()) {
-        netif = esp_netif_get_handle_from_ifkey("ETH_DEF");
-    } else if (is_wifi_up()) {
-        netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+    if (is_eth_connected() && network_is_interface_connected(eth_netif)) {
+        netif = eth_netif;
+    } else if (network_is_interface_connected(wifi_netif)) {
+        netif = wifi_netif;
     }
 
     if (netif) {
