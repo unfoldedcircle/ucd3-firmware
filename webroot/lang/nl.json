@@ -79,9 +79,9 @@
   "lbl_log_level": "Logniveau",
   "lbl_filter": "Filter",
   "lbl_firmware_file": "Firmware file (.bin)",
-  "lbl_poe_voltage": "Verhoogde PoE-spanning (alleen rev6) *",
-  "lbl_itach_emulation": "iTach-emulatie *",
-  "lbl_amxb_beacon": "AMXB discovery beacon *",
+  "lbl_poe_voltage": "Verhoogde PoE-spanning (alleen rev6)",
+  "lbl_itach_emulation": "iTach-emulatie",
+  "lbl_amxb_beacon": "AMXB discovery beacon",
   "lbl_rs232_tcp": "RS232 TCP-server (poorten 4999, 5000)",
   "lbl_reboot_required": "* herstart vereist",
 
