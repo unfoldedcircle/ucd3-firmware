@@ -37,6 +37,7 @@
   "lbl_ethernet": "Ethernet",
   "lbl_wifi": "WiFi",
   "lbl_uptime": "Käynnissäoloaika",
+  "lbl_time": "Aika",
   "lbl_free_heap": "Vapaa muisti",
   "lbl_reset_reason": "Resetoinnin syy",
   "lbl_status_led": "Tila-LED",

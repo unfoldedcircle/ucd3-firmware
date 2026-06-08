@@ -37,6 +37,7 @@
   "lbl_ethernet": "Ethernet",
   "lbl_wifi": "WiFi",
   "lbl_uptime": "Uptime",
+  "lbl_time": "Time",
   "lbl_free_heap": "Free heap",
   "lbl_reset_reason": "Reset reason",
   "lbl_status_led": "Status LED",

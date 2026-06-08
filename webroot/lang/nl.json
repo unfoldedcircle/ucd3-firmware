@@ -37,6 +37,7 @@
   "lbl_static": "Statisch",
   "lbl_dns_server_1": "DNS-server 1",
   "lbl_dns_server_2": "DNS-server 2",
+  "lbl_time": "Tijd",
   "lbl_ntp_enabled": "NTP inschakelen",
   "lbl_ntp_server_1": "NTP-server 1",
   "lbl_ntp_server_2": "NTP-server 2",

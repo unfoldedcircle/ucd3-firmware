@@ -37,6 +37,7 @@
   "lbl_ethernet": "Ethernet",
   "lbl_wifi": "WLAN",
   "lbl_uptime": "Laufzeit",
+  "lbl_time": "Zeit",
   "lbl_free_heap": "Freier Speicher",
   "lbl_reset_reason": "Reset-Grund",
   "lbl_status_led": "Status-LED",

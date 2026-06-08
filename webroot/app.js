@@ -619,6 +619,8 @@ Pages.Status = {
       ? I18N.t("st_connected") + (data.ssid ? " (" + data.ssid + ")" : "")
       : I18N.t("st_disconnected");
     document.getElementById("s-uptime").textContent = data.uptime || "\u2014";
+    const date = data.time ? new Date(data.time) : null;
+    document.getElementById("s-time").textContent = date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : "\u2014";
     document.getElementById("s-heap").textContent = data.free_heap || "\u2014";
     document.getElementById("s-reset").textContent = data.reset_reason || "\u2014";
   },
