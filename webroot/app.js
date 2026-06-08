@@ -982,7 +982,7 @@ Pages.Network = {
 
       WS.request("set_network", data)
         .then(function () {
-          Toast.success(I18N.t("t_wifi_saved"));
+          Toast.success(I18N.t("t_network_saved"));
         })
         .catch(function (e) {
           Toast.error(e);
