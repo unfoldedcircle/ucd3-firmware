@@ -323,7 +323,7 @@ const WS = {
     this.stopStatusRefresh();
     this.statusRefreshTimer = setInterval(function () {
       if (self.authenticated && UI.currentPage === "status") {
-        Pages.Status.load();
+        Pages.Status.load(true);  // Force refresh to get new data
       }
     }, 60000);
   },
