@@ -390,9 +390,20 @@ const Toast = {
   },
 
   error: function (msg) {
+    console.error(msg);
     let text = "Error";
-    if (msg && msg.code) text += " " + msg.code;
-    if (msg && msg.msg) text += ": " + msg.msg || I18N.t("e_unknown");
+    if (msg) {
+      if (msg.code) text += " " + msg.code;
+      if (msg.msg) {
+        text += ": " + msg.msg || I18N.t("e_unknown");
+        if (msg.error) {
+          text += ". " + msg.error;
+        }
+      } else {
+        text += ": " + msg
+      }
+    }
+
     this.show(text, true);
   },
 
