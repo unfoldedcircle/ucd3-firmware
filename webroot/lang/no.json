@@ -13,6 +13,9 @@
   "hdr_access_token": "Aksesstoken",
   "hdr_actions": "Handlinger",
   "hdr_conn_status": "Tilkoblingsstatus",
+  "hdr_wifi_net": "WiFi-nettverk",
+  "hdr_eth_config": "Ethernet-konfigurasjon",
+  "hdr_dns_config": "DNS-konfigurasjon",
   "hdr_wifi_config": "WiFi-konfigurasjon",
   "hdr_send_ir": "Send IR",
   "hdr_learn_ir": "Lær IR",
@@ -69,6 +72,18 @@
   "lbl_amxb_beacon": "AMXB discovery beacon *",
   "lbl_rs232_tcp": "RS232 TCP-server (porter 4999, 5000)",
   "lbl_reboot_required": "* omstart kreves",
+  "lbl_ip_address": "IP-adresse",
+  "lbl_netmask": "Subnettmaske",
+  "lbl_gateway": "Gateway",
+  "lbl_dns_servers": "DNS-tjenere",
+  "lbl_ipv6_addresses": "IPv6-adresser",
+  "lbl_dhcp": "DHCP",
+  "lbl_static": "Statisk",
+  "lbl_dns_server_1": "DNS-tjener 1",
+  "lbl_dns_server_2": "DNS-tjener 2",
+  "lbl_ntp_enabled": "Aktiver NTP",
+  "lbl_ntp_server_1": "NTP-tjener 1",
+  "lbl_ntp_server_2": "NTP-tjener 2",
 
   "ph_friendly_name": "Kallenavn",
   "ph_token": "Aksesstoken",
@@ -101,6 +116,10 @@
   "btn_start_streaming": "Start strømming",
   "btn_stop_streaming": "Stopp strømming",
 
+  "info_net_cfg_ipv4": "Kun IPv4 støttes for statisk nettverkskonfigurasjon.",
+  "info_net_cfg_restart": "Docken starter på nytt etter at nettverksendringer er brukt.",
+  "info_dns_global": "DNS-innstillinger er globale og gjelder for både Ethernet og WiFi.",
+  "info_dns_priority": "DNS-innstillinger har prioritet over DHCP-tildelte DNS-tjenere. La stå tomt for å tømme.",
   "info_ir_repeat": "Gjentakelsesteller (1–20), overstyrer enhver gjentakelsesverdi i koden.<p><strong>HEX:</strong> Overstyrer gjentakelsesfeltet; protokollspesifikk gjentakelsesatferd håndteres automatisk.</p><p><strong>PRONTO:</strong> Gjentar den 2. burst-par sekvensen (4. tall i PRONTO-koden); ignoreres hvis koden ikke har gjentakelsessekvens.</p>",
   "info_ir_hold": "Minimum varighet i ms for å sende IR-koden, simulerer et langt knappetrykk.<p><strong>Overstyrer gjentakelse</strong> hvis satt.</p><p>Signalet fullfører alltid sin siste IR-melding, så den faktiske sendetiden kan være litt lengre.</p>",
   "info_ir_repeat_mode": "Aktiver IR-gjentakelsesmodus. Hold «Start gjentakelse»-knappen nede for å sende IR-koden kontinuerlig.<p>Krever en <strong>Gjentakelse</strong>-verdi > 0 med et matchende gjentakelsesintervall for å fornye IR-signalet.</p>",
@@ -116,7 +135,6 @@
   "info_ota_webconfig": "Bruk i stedet <strong>Web-Konfiguratoren</strong> på Remote-enheten din for vanlige oppdateringer.<br/>Den vil varsle deg når en offisiell oppdatering er tilgjengelig og veilede deg trygt gjennom prosessen.",
 
   "note_eth_priority": "Ethernet har prioritet over WiFi.",
-  "note_wifi_restart": "Docken vil starte på nytt etter WiFi-endringer.",
   "note_no_disconnect": "⚠️ <strong>Ikke koble fra docken under oppdatering.</strong>",
   "note_expert_warning": "🧪 <strong>Eksperimentelle funksjoner</strong> – Innstillingene nedenfor er tidlig tilgang eller utviklingsfunksjoner som ennå ikke er tilgjengelige i standardproduktet. De er deaktivert som standard og kun ment for testformål. Fortsett med forsiktighet. Vi setter pris på tilbakemeldinger, men kan ikke tilby støtte.",
   "note_status_info": "💡 Dette er Dockens avanserte administrasjonsgrensesnitt. Bruk Web-Konfiguratoren på Remote-enheten din for normal konfigurasjon – åpne Remote-adressen i nettleseren din i stedet.",
@@ -135,7 +153,6 @@
 
   "confirm_reboot": "Start docken på nytt?",
   "confirm_reset": "Tilbakestill til fabrikkinnstillinger?\nAlle innstillinger vil bli slettet!",
-  "confirm_wifi": "Docken vil starte på nytt for å bruke WiFi-endringer. Fortsett?",
 
   "t_name_saved": "Navn lagret",
   "t_brightness_saved": "Lysstyrke lagret",
@@ -160,6 +177,9 @@
   "t_logged_out": "Logget ut",
   "t_logging_applied": "Logging-konfigurasjon brukt",
   "t_expert_saved": "Innstillinger lagret",
+  "t_network_saved": "Nettverkskonfigurasjon lagret",
+  "t_dns_saved": "DNS-konfigurasjon lagret",
+  "t_ntp_saved": "NTP-konfigurasjon lagret",
   "confirm_reboot_now": "Docken vil starte på nytt for å aktivere endringer. Last inn siden på nytt?",
 
   "e_no_file": "Ingen fil valgt",
@@ -174,5 +194,6 @@
   "e_auth_failed": "Autentisering mislyktes.",
   "e_upload_auth": "Opplasting-autentisering mislyktes",
   "e_conn_lost": "Tilkobling tapt",
-  "e_upload_failed": "Opplasting mislyktes: {status}"
+  "e_upload_failed": "Opplasting mislyktes: {status}",
+  "e_invalid_ip": "Ugyldig IPv4-adresseformat"
 }

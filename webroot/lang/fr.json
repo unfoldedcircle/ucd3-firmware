@@ -13,6 +13,9 @@
   "hdr_access_token": "Jeton d'accès",
   "hdr_actions": "Actions",
   "hdr_conn_status": "État de la connexion",
+  "hdr_wifi_net": "Réseau WiFi",
+  "hdr_eth_config": "Configuration Ethernet",
+  "hdr_dns_config": "Configuration DNS",
   "hdr_wifi_config": "Configuration WiFi",
   "hdr_send_ir": "Envoyer IR",
   "hdr_learn_ir": "Apprendre IR",
@@ -69,6 +72,18 @@
   "lbl_amxb_beacon": "Balise de découverte AMXB *",
   "lbl_rs232_tcp": "Serveur TCP RS232 (ports 4999, 5000)",
   "lbl_reboot_required": "* redémarrage requis",
+  "lbl_ip_address": "Adresse IP",
+  "lbl_netmask": "Masque de sous-réseau",
+  "lbl_gateway": "Passerelle",
+  "lbl_dns_servers": "Serveurs DNS",
+  "lbl_ipv6_addresses": "Adresses IPv6",
+  "lbl_dhcp": "DHCP",
+  "lbl_static": "Statique",
+  "lbl_dns_server_1": "Serveur DNS 1",
+  "lbl_dns_server_2": "Serveur DNS 2",
+  "lbl_ntp_enabled": "Activer NTP",
+  "lbl_ntp_server_1": "Serveur NTP 1",
+  "lbl_ntp_server_2": "Serveur NTP 2",
 
   "ph_friendly_name": "Nom convivial",
   "ph_token": "Jeton d'accès",
@@ -101,6 +116,10 @@
   "btn_start_streaming": "Démarrer le flux",
   "btn_stop_streaming": "Arrêter le flux",
 
+  "info_net_cfg_ipv4": "Seul IPv4 est pris en charge pour la configuration réseau statique.",
+  "info_net_cfg_restart": "Le dock redémarrera après l'application des modifications réseau.",
+  "info_dns_global": "Les paramètres DNS sont globaux et s'appliquent à Ethernet et WiFi.",
+  "info_dns_priority": "Les paramètres DNS ont priorité sur les serveurs DNS attribués par DHCP. Laissez vide pour effacer.",
   "info_ir_repeat": "Nombre de répétitions (1–20), remplaçant toute valeur de répétition dans le code.<p><strong>HEX:</strong> Remplace le champ de répétition; le comportement de répétition spécifique au protocole est géré automatiquement.</p><p><strong>PRONTO:</strong> Répète la 2ème séquence de paires de bursts (4ème nombre dans le code PRONTO); ignoré si le code n'a pas de séquence de répétition.</p>",
   "info_ir_hold": "Durée minimale en ms pour envoyer le code IR, simulant un appui long sur le bouton.<p><strong>Remplace la répétition</strong> si défini.</p><p>Le signal termine toujours son dernier message IR, donc le temps d'envoi réel peut être légèrement plus long.</p>",
   "info_ir_repeat_mode": "Activez le mode de répétition IR. Maintenez le bouton « Démarrer la répétition » enfoncé pour envoyer continuellement le code IR.<p>Nécessite une valeur de <strong>Répétition</strong> > 0 avec un intervalle de répétition correspondant pour renouveler le signal IR.</p>",
@@ -116,7 +135,6 @@
   "info_ota_webconfig": "Pour les mises à jour régulières, utilisez plutôt le <strong>Web-Configurator</strong> sur votre appareil Remote.<br/>Il vous notifiera lorsqu'une mise à jour officielle sera disponible et vous guidera en toute sécurité dans le processus.",
 
   "note_eth_priority": "Ethernet a la priorité sur le WiFi.",
-  "note_wifi_restart": "Le dock redémarrera après l'application des modifications WiFi.",
   "note_no_disconnect": "⚠️ <strong>Ne déconnectez pas le dock pendant la mise à jour.</strong>",
   "note_expert_warning": "🧪 <strong>Fonctionnalités expérimentales</strong> – Les paramètres ci-dessous sont des fonctionnalités d'accès anticipé ou de développement non encore disponibles dans le produit standard. Elles sont désactivées par défaut et destinées uniquement à des fins de test. Procédez avec prudence. Nous apprécions les retours, mais ne pouvons pas fournir de support.",
   "note_status_info": "💡 Ceci est l'interface de gestion avancée du Dock. Pour la configuration normale, utilisez le Web-Configurator sur votre appareil Remote – ouvrez l'adresse du Remote dans votre navigateur à la place.",
@@ -135,7 +153,6 @@
 
   "confirm_reboot": "Redémarrer le dock ?",
   "confirm_reset": "Réinitialisation usine ?\nTous les paramètres seront effacés !",
-  "confirm_wifi": "Le dock va redémarrer. Continuer ?",
 
   "t_name_saved": "Nom enregistré",
   "t_brightness_saved": "Luminosité enregistrée",
@@ -160,6 +177,9 @@
   "t_logged_out": "Déconnecté",
   "t_logging_applied": "Configuration de journalisation appliquée",
   "t_expert_saved": "Paramètres enregistrés",
+  "t_network_saved": "Configuration réseau enregistrée",
+  "t_dns_saved": "Configuration DNS enregistrée",
+  "t_ntp_saved": "Configuration NTP enregistrée",
   "confirm_reboot_now": "Le dock va redémarrer pour activer les changements. Recharger la page?",
 
   "e_no_file": "Aucun fichier sélectionné",
@@ -174,5 +194,6 @@
   "e_auth_failed": "Authentification échouée.",
   "e_upload_auth": "Authentification du téléversement échouée",
   "e_conn_lost": "Connexion perdue",
-  "e_upload_failed": "Téléversement échoué : {status}"
+  "e_upload_failed": "Téléversement échoué : {status}",
+  "e_invalid_ip": "Format d'adresse IPv4 invalide"
 }

@@ -813,6 +813,11 @@ progress::-moz-progress-bar {
   flex-shrink: 0;
 }
 
+.input-ip {
+  width: 140px;
+  flex-shrink: 0;
+}
+
 .trigger-controls {
   display: flex;
   flex-wrap: wrap;

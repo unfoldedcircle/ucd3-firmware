@@ -13,6 +13,9 @@
   "hdr_access_token": "Åtkomsttoken",
   "hdr_actions": "Åtgärder",
   "hdr_conn_status": "Anslutningsstatus",
+  "hdr_wifi_net": "WiFi-nätverk",
+  "hdr_eth_config": "Ethernet-konfiguration",
+  "hdr_dns_config": "DNS-konfiguration",
   "hdr_wifi_config": "WiFi-konfiguration",
   "hdr_send_ir": "Skicka IR",
   "hdr_learn_ir": "Lär IR",
@@ -69,6 +72,18 @@
   "lbl_amxb_beacon": "AMXB discovery beacon *",
   "lbl_rs232_tcp": "RS232 TCP-server (portar 4999, 5000)",
   "lbl_reboot_required": "* omstart krävs",
+  "lbl_ip_address": "IP-adress",
+  "lbl_netmask": "Subnätmask",
+  "lbl_gateway": "Gateway",
+  "lbl_dns_servers": "DNS-servrar",
+  "lbl_ipv6_addresses": "IPv6-adresser",
+  "lbl_dhcp": "DHCP",
+  "lbl_static": "Statisk",
+  "lbl_dns_server_1": "DNS-server 1",
+  "lbl_dns_server_2": "DNS-server 2",
+  "lbl_ntp_enabled": "Aktivera NTP",
+  "lbl_ntp_server_1": "NTP-server 1",
+  "lbl_ntp_server_2": "NTP-server 2",
 
   "ph_friendly_name": "Smeknamn",
   "ph_token": "Åtkomsttoken",
@@ -101,6 +116,10 @@
   "btn_start_streaming": "Starta strömning",
   "btn_stop_streaming": "Stoppa strömning",
 
+  "info_net_cfg_ipv4": "Endast IPv4 stöds för statisk nätverkskonfiguration.",
+  "info_net_cfg_restart": "Docken startas om efter att nätverksändringar har tillämpats.",
+  "info_dns_global": "DNS-inställningar är globala och gäller för både Ethernet och WiFi.",
+  "info_dns_priority": "DNS-inställningar har prioritet över DHCP-tilldelade DNS-servrar. Lämna tomt för att rensa.",
   "info_ir_repeat": "Upprepningsräknare (1–20), åsidosätter alla upprepningsvärden i koden.<p><strong>HEX:</strong> Åsidosätter upprepningsfältet; protokollspecifik upprepningsbeteende hanteras automatiskt.</p><p><strong>PRONTO:</strong> Upprepar den 2:a burst-par sekvensen (4:e talet i PRONTO-koden); ignoreras om koden inte har en upprepningssekvens.</p>",
   "info_ir_hold": "Minsta varaktighet i ms för att skicka IR-koden, simulerar ett långt knapptryck.<p><strong>Åsidosätter upprepning</strong> om inställt.</p><p>Signalen slutför alltid sitt sista IR-meddelande, så den faktiska sändningstiden kan vara något längre.</p>",
   "info_ir_repeat_mode": "Aktivera IR-upprepningsläge. Håll knappen «Starta upprepning» nedtryckt för att kontinuerligt skicka IR-koden.<p>Kräver ett <strong>Upprepnings</strong>-värde > 0 med ett matchande upprepningsintervall för att förnya IR-signalen.</p>",
@@ -116,7 +135,6 @@
   "info_ota_webconfig": "Använd istället <strong>Web-Konfiguratorn</strong> på din Remote-enhet för vanliga uppdateringar.<br/>Den kommer att meddela dig när en officiell uppdatering är tillgänglig och vägleda dig säkert genom processen.",
 
   "note_eth_priority": "Ethernet har prioritet över WiFi.",
-  "note_wifi_restart": "Docken kommer att starta om efter WiFi-ändringar.",
   "note_no_disconnect": "⚠️ <strong>Koppla inte från docken under uppdatering.</strong>",
   "note_expert_warning": "🧪 <strong>Experimentella funktioner</strong> – Inställningarna nedan är tidig tillgång eller utvecklingsfunktioner som ännu inte är tillgängliga i standardprodukten. De är inaktiverade som standard och avsedda endast för teständamål. Fortsätt med försiktighet. Vi uppskattar feedback, men kan inte erbjuda support.",
   "note_status_info": "💡 Detta är Dockens avancerade administrationsgränssnitt. Använd Web-Konfiguratorn på din Remote-enhet för normal konfiguration – öppna istället Remote-adressen i din webbläsare.",
@@ -135,7 +153,6 @@
 
   "confirm_reboot": "Starta om docken?",
   "confirm_reset": "Fabriksåterställning?\nAlla inställningar kommer att raderas!",
-  "confirm_wifi": "Docken kommer att starta om för att verkställa WiFi-ändringar. Fortsätt?",
 
   "t_name_saved": "Namn sparat",
   "t_brightness_saved": "Ljusstyrka sparad",
@@ -160,6 +177,9 @@
   "t_logged_out": "Utloggad",
   "t_logging_applied": "Loggningskonfiguration verkställd",
   "t_expert_saved": "Inställningar sparade",
+  "t_network_saved": "Nätverkskonfiguration sparad",
+  "t_dns_saved": "DNS-konfiguration sparad",
+  "t_ntp_saved": "NTP-konfiguration sparad",
   "confirm_reboot_now": "Docken kommer att starta om för att aktivera ändringar. Ladda om sidan?",
 
   "e_no_file": "Ingen fil vald",
@@ -174,5 +194,6 @@
   "e_auth_failed": "Autentisering misslyckades.",
   "e_upload_auth": "Uppladdningsautentisering misslyckades",
   "e_conn_lost": "Anslutning förlorad",
-  "e_upload_failed": "Uppladdning misslyckades: {status}"
+  "e_upload_failed": "Uppladdning misslyckades: {status}",
+  "e_invalid_ip": "Ogiltigt IPv4-adressformat"
 }

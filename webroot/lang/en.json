@@ -13,6 +13,9 @@
   "hdr_access_token": "Access Token",
   "hdr_actions": "Actions",
   "hdr_conn_status": "Connection Status",
+  "hdr_wifi_net": "WiFi Network",
+  "hdr_eth_config": "Ethernet Configuration",
+  "hdr_dns_config": "DNS Configuration",
   "hdr_wifi_config": "WiFi Configuration",
   "hdr_send_ir": "Send IR",
   "hdr_learn_ir": "Learn IR",
@@ -69,6 +72,18 @@
   "lbl_amxb_beacon": "AMXB discovery beacon *",
   "lbl_rs232_tcp": "RS232 TCP server (ports 4999, 5000)",
   "lbl_reboot_required": "* reboot required",
+  "lbl_ip_address": "IP Address",
+  "lbl_netmask": "Subnet mask",
+  "lbl_gateway": "Gateway",
+  "lbl_dns_servers": "DNS Servers",
+  "lbl_ipv6_addresses": "IPv6 Addresses",
+  "lbl_dhcp": "DHCP",
+  "lbl_static": "Static",
+  "lbl_dns_server_1": "DNS Server 1",
+  "lbl_dns_server_2": "DNS Server 2",
+  "lbl_ntp_enabled": "Enable NTP",
+  "lbl_ntp_server_1": "NTP Server 1",
+  "lbl_ntp_server_2": "NTP Server 2",
 
   "ph_friendly_name": "Friendly name",
   "ph_token": "Access Token",
@@ -101,6 +116,10 @@
   "btn_start_streaming": "Start Streaming",
   "btn_stop_streaming": "Stop Streaming",
 
+  "info_net_cfg_ipv4": "Only IPv4 is supported for static network configuration.",
+  "info_net_cfg_restart": "The dock will restart after applying network changes.",
+  "info_dns_global": "DNS settings are global and apply to both Ethernet and WiFi.",
+  "info_dns_priority": "DNS settings take priority over DHCP-assigned DNS servers. Leave empty to clear.",
   "info_ir_repeat": "Repeat count (1–20), overriding any repeat value in the code.<p><strong>HEX:</strong> Overrides the repeat field; protocol-specific repeat behavior is handled automatically.</p><p><strong>PRONTO:</strong> Repeats the 2nd burst pair sequence (4th number in the PRONTO code); ignored if the code has no repeat sequence.</p>",
   "info_ir_hold": "Minimum duration in ms to send the IR code, simulating a long button press.<p><strong>Overrides repeat</strong> if set.</p><p>The signal always completes its final IR message, so the actual send time may be slightly longer.</p>",
   "info_ir_repeat_mode": "Activate IR repeat mode. Press and hold the Start Repeat button to continuously send the IR code.<p>Requires <strong>Repeat</strong> value > 0 with a matching repeat interval to renew the IR signal.</p>",
@@ -116,7 +135,6 @@
   "info_ota_webconfig": "For regular updates, use the <strong>Web-Configurator</strong> on your Remote device instead.<br/>It will notify you when an official update is available and guide you through the process safely.",
 
   "note_eth_priority": "Ethernet has priority over WiFi.",
-  "note_wifi_restart": "The dock will restart after applying WiFi changes.",
   "note_expert_warning": "🧪 <strong>Experimental Features</strong> – The settings below are early-access or development features not yet available in the standard product. They are disabled by default and intended for testing purposes only. Proceed with caution. We appreciate feedback but can't provide support.",
   "note_no_disconnect": "⚠️ <strong>Do not disconnect the dock during update.</strong>",
   "note_status_info": "💡 This is the Dock's advanced management UI. For normal configuration, use the Web-Configurator on your Remote device – open the Remote's address in your browser instead.",
@@ -135,7 +153,6 @@
 
   "confirm_reboot": "Reboot the dock?",
   "confirm_reset": "Factory reset?\nAll settings will be erased!",
-  "confirm_wifi": "The dock will restart to apply WiFi changes. Continue?",
 
   "t_name_saved": "Name saved",
   "t_brightness_saved": "Brightness saved",
@@ -160,6 +177,9 @@
   "t_logged_out": "Logged out",
   "t_logging_applied": "Logging configuration applied",
   "t_expert_saved": "Settings saved",
+  "t_network_saved": "Network configuration saved",
+  "t_dns_saved": "DNS configuration saved",
+  "t_ntp_saved": "NTP configuration saved",
   "confirm_reboot_now": "Dock will reboot to activate changes. Reload page?",
 
   "e_unknown": "Unknown error occurred",
@@ -175,5 +195,6 @@
   "e_auth_failed": "Authentication failed.",
   "e_upload_auth": "Upload authentication failed",
   "e_conn_lost": "Connection lost",
-  "e_upload_failed": "Upload failed: {status}"
+  "e_upload_failed": "Upload failed: {status}",
+  "e_invalid_ip": "Invalid IPv4 address format"
 }

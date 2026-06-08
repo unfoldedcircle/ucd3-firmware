@@ -13,6 +13,9 @@
   "hdr_access_token": "Token de acceso",
   "hdr_actions": "Acciones",
   "hdr_conn_status": "Estado de conexión",
+  "hdr_wifi_net": "Red WiFi",
+  "hdr_eth_config": "Configuración Ethernet",
+  "hdr_dns_config": "Configuración DNS",
   "hdr_wifi_config": "Configuración WiFi",
   "hdr_send_ir": "Enviar IR",
   "hdr_learn_ir": "Aprender IR",
@@ -69,6 +72,18 @@
   "lbl_amxb_beacon": "Baliza de descubrimiento AMXB *",
   "lbl_rs232_tcp": "Servidor TCP RS232 (puertos 4999, 5000)",
   "lbl_reboot_required": "* reinicio requerido",
+  "lbl_ip_address": "Dirección IP",
+  "lbl_netmask": "Máscara de subred",
+  "lbl_gateway": "Puerta de enlace",
+  "lbl_dns_servers": "Servidores DNS",
+  "lbl_ipv6_addresses": "Direcciones IPv6",
+  "lbl_dhcp": "DHCP",
+  "lbl_static": "Estático",
+  "lbl_dns_server_1": "Servidor DNS 1",
+  "lbl_dns_server_2": "Servidor DNS 2",
+  "lbl_ntp_enabled": "Activar NTP",
+  "lbl_ntp_server_1": "Servidor NTP 1",
+  "lbl_ntp_server_2": "Servidor NTP 2",
 
   "ph_friendly_name": "Nombre descriptivo",
   "ph_token": "Token de acceso",
@@ -101,6 +116,10 @@
   "btn_start_streaming": "Iniciar transmisión",
   "btn_stop_streaming": "Detener transmisión",
 
+  "info_net_cfg_ipv4": "Solo IPv4 es compatible con la configuración de red estática.",
+  "info_net_cfg_restart": "El dock se reiniciará después de aplicar los cambios de red.",
+  "info_dns_global": "La configuración DNS es global y se aplica a Ethernet y WiFi.",
+  "info_dns_priority": "La configuración DNS tiene prioridad sobre los servidores DNS asignados por DHCP. Deje vacío para borrar.",
   "info_ir_repeat": "Número de repeticiones (1–20), anulando cualquier valor de repetición en el código.<p><strong>HEX:</strong> Anula el campo de repetición; el comportamiento de repetición específico del protocolo se maneja automáticamente.</p><p><strong>PRONTO:</strong> Repite la 2a secuencia de pares de bursts (4º número en el código PRONTO); se ignora si el código no tiene secuencia de repetición.</p>",
   "info_ir_hold": "Duración mínima en ms para enviar el código IR, simulando una pulsación larga del botón.<p><strong>Anula la repetición</strong> si está establecido.</p><p>La señal siempre completa su último mensaje IR, por lo que el tiempo de envío real puede ser ligeramente más largo.</p>",
   "info_ir_repeat_mode": "Activa el modo de repetición IR. Mantén presionado el botón «Iniciar repetición» para enviar continuamente el código IR.<p>Requiere un valor de <strong>Repetición</strong> > 0 con un intervalo de repetición coincidente para renovar la señal IR.</p>",
@@ -116,7 +135,6 @@
   "info_ota_webconfig": "Para actualizaciones regulares, use el <strong>Web-Configurator</strong> en su dispositivo Remote en su lugar.<br/>Le notificará cuando haya una actualización oficial disponible y le guiará de forma segura a través del proceso.",
 
   "note_eth_priority": "Ethernet tiene prioridad sobre WiFi.",
-  "note_wifi_restart": "El dock se reiniciará después de aplicar los cambios de WiFi.",
   "note_no_disconnect": "⚠️ <strong>No desconecte el dock durante la actualización.</strong>",
   "note_expert_warning": "🧪 <strong>Funciones experimentales</strong> – Las configuraciones siguientes son funciones de acceso anticipado o en desarrollo que aún no están disponibles en el producto estándar. Están desactivadas por defecto y destinadas solo para fines de prueba. Proceda con precaución. Apreciamos los comentarios, pero no podemos proporcionar soporte.",
   "note_status_info": "💡 Esta es la interfaz de gestión avanzada del Dock. Para la configuración normal, use el Web-Configurator en su dispositivo Remote – abra la dirección del Remote en su navegador en su lugar.",
@@ -135,7 +153,6 @@
 
   "confirm_reboot": "¿Reiniciar el dock?",
   "confirm_reset": "¿Restablecimiento de fábrica?\n¡Se borrarán todos los ajustes!",
-  "confirm_wifi": "El dock se reiniciará. ¿Continuar?",
 
   "t_name_saved": "Nombre guardado",
   "t_brightness_saved": "Brillo guardado",
@@ -160,6 +177,9 @@
   "t_logged_out": "Sesión cerrada",
   "t_logging_applied": "Configuración de registro aplicada",
   "t_expert_saved": "Configuración guardada",
+  "t_network_saved": "Configuración de red guardada",
+  "t_dns_saved": "Configuración DNS guardada",
+  "t_ntp_saved": "Configuración NTP guardada",
   "confirm_reboot_now": "El dock se reiniciará para activar los cambios. ¿Recargar página?",
 
   "e_no_file": "Ningún archivo seleccionado",
@@ -174,5 +194,6 @@
   "e_auth_failed": "Autenticación fallida.",
   "e_upload_auth": "Autenticación de subida fallida",
   "e_conn_lost": "Conexión perdida",
-  "e_upload_failed": "Subida fallida: {status}"
+  "e_upload_failed": "Subida fallida: {status}",
+  "e_invalid_ip": "Formato de dirección IPv4 no válido"
 }

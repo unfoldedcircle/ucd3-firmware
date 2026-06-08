@@ -752,8 +752,28 @@ Pages.General = {
 // Page: Network
 // ============================================================
 Pages.Network = {
+  ethConfig: {
+    mode: "dhcp",
+    ip: "",
+    mask: "",
+    gw: ""
+  },
+  wifiConfig: {
+    mode: "dhcp",
+    ip: "",
+    mask: "",
+    gw: ""
+  },
+  dnsConfig: {
+    dns1: "",
+    dns2: ""
+  },
+
   load: function () {
+    const self = this;
+
     WS.request("get_sysinfo").then(function (data) {
+      // Connection status
       document.getElementById("net-eth").textContent = data.ethernet
         ? I18N.t("st_connected") : I18N.t("st_disconnected");
       document.getElementById("net-wifi").textContent = data.wifi
@@ -763,13 +783,172 @@ Pages.Network = {
     }).catch(function (e) {
       Toast.error(e);
     });
+
+    // Get network configuration
+    WS.request("get_network").then(function (data) {
+      // Active configuration
+      if (data.active) {
+        document.getElementById("net-ip").textContent = data.active.ip || "\u2014";
+        document.getElementById("net-mask").textContent = data.active.mask || "\u2014";
+        document.getElementById("net-gw").textContent = data.active.gw || "\u2014";
+
+        // DNS servers
+        let dnsList = [];
+        if (data.active.dns1) dnsList.push(data.active.dns1);
+        if (data.active.dns2) dnsList.push(data.active.dns2);
+        if (data.active.dns3) dnsList.push(data.active.dns3);
+        document.getElementById("net-dns").textContent = dnsList.length > 0 ? dnsList.join(", ") : "\u2014";
+
+        // IPv6 addresses
+        if (data.active.ipv6 && data.active.ipv6.addresses && data.active.ipv6.addresses.length > 0) {
+          let ipv6List = data.active.ipv6.addresses.map(function (addr) {
+            let typeLabel = addr.type ? " (" + addr.type.replace("_", "-") + ")" : "";
+            return addr.address + typeLabel;
+          });
+          document.getElementById("net-ipv6").textContent = ipv6List.join(", ");
+        } else {
+          document.getElementById("net-ipv6").textContent = "\u2014";
+        }
+      }
+
+      // Ethernet configuration
+      if (data.eth) {
+        self.ethConfig.mode = data.eth.mode || "dhcp";
+        self.ethConfig.ip = data.eth.ip || "";
+        self.ethConfig.mask = data.eth.mask || "";
+        self.ethConfig.gw = data.eth.gw || "";
+        document.getElementById("cfg-eth-mode").value = self.ethConfig.mode;
+        document.getElementById("cfg-eth-ip").value = self.ethConfig.ip;
+        document.getElementById("cfg-eth-mask").value = self.ethConfig.mask;
+        document.getElementById("cfg-eth-gw").value = self.ethConfig.gw;
+      }
+      self.updateEthFields();
+
+      // WiFi configuration
+      if (data.wifi) {
+        self.wifiConfig.mode = data.wifi.mode || "dhcp";
+        self.wifiConfig.ip = data.wifi.ip || "";
+        self.wifiConfig.mask = data.wifi.mask || "";
+        self.wifiConfig.gw = data.wifi.gw || "";
+      }
+      document.getElementById("cfg-wifi-mode").value = self.wifiConfig.mode;
+      document.getElementById("cfg-wifi-ip").value = self.wifiConfig.ip;
+      document.getElementById("cfg-wifi-mask").value = self.wifiConfig.mask;
+      document.getElementById("cfg-wifi-gw").value = self.wifiConfig.gw;
+      self.updateWifiFields();
+
+      // DNS configuration
+      if (data.dns1 !== undefined) self.dnsConfig.dns1 = data.dns1;
+      if (data.dns2 !== undefined) self.dnsConfig.dns2 = data.dns2;
+      document.getElementById("cfg-dns1").value = self.dnsConfig.dns1;
+      document.getElementById("cfg-dns2").value = self.dnsConfig.dns2;
+
+      // NTP configuration (for expert page)
+      if (data.sntp_enabled !== undefined) {
+        document.getElementById("exp-ntp-enabled").checked = data.sntp_enabled;
+      }
+      if (data.sntp1 !== undefined) {
+        document.getElementById("exp-ntp1").value = data.sntp1;
+      }
+      if (data.sntp2 !== undefined) {
+        document.getElementById("exp-ntp2").value = data.sntp2;
+      }
+      self.updateNtpFields();
+
+    }).catch(function (e) {
+      Toast.error(e);
+    });
+  },
+
+  updateEthFields: function () {
+    let isStatic = this.ethConfig.mode === "static";
+    document.getElementById("cfg-eth-ip").disabled = !isStatic;
+    document.getElementById("cfg-eth-mask").disabled = !isStatic;
+    document.getElementById("cfg-eth-gw").disabled = !isStatic;
+  },
+
+  updateWifiFields: function () {
+    let isStatic = this.wifiConfig.mode === "static";
+    document.getElementById("cfg-wifi-ip").disabled = !isStatic;
+    document.getElementById("cfg-wifi-mask").disabled = !isStatic;
+    document.getElementById("cfg-wifi-gw").disabled = !isStatic;
+  },
+
+  updateNtpFields: function () {
+    let enabled = document.getElementById("exp-ntp-enabled").checked;
+    document.getElementById("exp-ntp1").disabled = !enabled;
+    document.getElementById("exp-ntp2").disabled = !enabled;
+  },
+
+  validateIp: function (ip) {
+    if (!ip) return true; // empty is valid (will be ignored)
+    let pattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+    let match = ip.match(pattern);
+    if (!match) return false;
+    for (let i = 1; i <= 4; i++) {
+      if (parseInt(match[i]) > 255) return false;
+    }
+    return true;
   },
 
   init: function () {
+    const self = this;
+
+    // Ethernet mode change
+    document.getElementById("cfg-eth-mode").addEventListener("change", function () {
+      self.ethConfig.mode = this.value;
+      self.updateEthFields();
+    });
+
+    // Ethernet save
+    document.getElementById("btn-save-eth").addEventListener("click", function () {
+      let ip = document.getElementById("cfg-eth-ip").value.trim();
+      let mask = document.getElementById("cfg-eth-mask").value.trim();
+      let gw = document.getElementById("cfg-eth-gw").value.trim();
+
+      if (!self.validateIp(ip)) {
+        Toast.show(I18N.t("e_invalid_ip"), true);
+        return;
+      }
+      if (!self.validateIp(mask)) {
+        Toast.show(I18N.t("e_invalid_ip"), true);
+        return;
+      }
+      if (!self.validateIp(gw)) {
+        Toast.show(I18N.t("e_invalid_ip"), true);
+        return;
+      }
+
+      let data = {
+        interface: "eth",
+        mode: self.ethConfig.mode
+      };
+      if (self.ethConfig.mode === "static") {
+        data.ip = ip;
+        data.mask = mask;
+        data.gw = gw;
+      }
+
+      WS.request("set_network", data)
+        .then(function () {
+          Toast.success(I18N.t("t_network_saved"));
+        })
+        .catch(function (e) {
+          Toast.error(e);
+        });
+    });
+
+    // WiFi mode change
+    document.getElementById("cfg-wifi-mode").addEventListener("change", function () {
+      self.wifiConfig.mode = this.value;
+      self.updateWifiFields();
+    });
+
     // WiFi save
     document.getElementById("btn-save-wifi").addEventListener("click", function () {
       let ssid = document.getElementById("cfg-ssid").value.trim();
       let pw = document.getElementById("cfg-wifi-pw").value;
+
       if (!ssid) {
         Toast.show(I18N.t("e_ssid_required"), true);
         return;
@@ -778,8 +957,49 @@ Pages.Network = {
         Toast.show(I18N.t("e_pw_required"), true);
         return;
       }
-      if (!confirm(I18N.t("confirm_wifi"))) return;
+
       WS.request("set_config", {ssid: ssid, wifi_password: pw})
+        .then(function () {
+          Toast.success(I18N.t("t_wifi_saved"));
+        })
+        .catch(function (e) {
+          Toast.error(e);
+        });
+    });
+
+    // WiFi network save
+    document.getElementById("btn-save-wifi-net").addEventListener("click", function () {
+      let ip = document.getElementById("cfg-wifi-ip").value.trim();
+      let mask = document.getElementById("cfg-wifi-mask").value.trim();
+      let gw = document.getElementById("cfg-wifi-gw").value.trim();
+
+      if (!self.validateIp(ip)) {
+        Toast.show(I18N.t("e_invalid_ip"), true);
+        return;
+      }
+      if (!self.validateIp(mask)) {
+        Toast.show(I18N.t("e_invalid_ip"), true);
+        return;
+      }
+      if (!self.validateIp(gw)) {
+        Toast.show(I18N.t("e_invalid_ip"), true);
+        return;
+      }
+
+      const data = self.wifiConfig.mode === "static" ?
+        {
+          interface: "wifi",
+          mode: "static",
+          ip: ip,
+          mask: mask,
+          gw: gw
+        }
+        : {
+          interface: "wifi",
+          mode: "dhcp"
+        };
+
+      WS.request("set_network", data)
         .then(function () {
           Toast.success(I18N.t("t_wifi_saved"));
         })
@@ -794,6 +1014,33 @@ Pages.Network = {
       let show = input.type === "password";
       input.type = show ? "text" : "password";
       this.textContent = show ? I18N.t("btn_hide") : I18N.t("btn_show");
+    });
+
+    // DNS save
+    document.getElementById("btn-save-dns").addEventListener("click", function () {
+      let dns1 = document.getElementById("cfg-dns1").value.trim();
+      let dns2 = document.getElementById("cfg-dns2").value.trim();
+
+      if (dns1 && !self.validateIp(dns1)) {
+        Toast.show(I18N.t("e_invalid_ip"), true);
+        return;
+      }
+      if (dns2 && !self.validateIp(dns2)) {
+        Toast.show(I18N.t("e_invalid_ip"), true);
+        return;
+      }
+
+      let data = {};
+      if (dns1) data.dns1 = dns1;
+      if (dns2) data.dns2 = dns2;
+
+      WS.request("set_dns", data)
+        .then(function () {
+          Toast.success(I18N.t("t_dns_saved"));
+        })
+        .catch(function (e) {
+          Toast.error(e);
+        });
     });
   }
 };
@@ -1763,6 +2010,7 @@ Pages.Logs = {
   }
 };
 
+
 // ============================================================
 // Page: Expert
 // ============================================================
@@ -1771,7 +2019,10 @@ Pages.Expert = {
     itach_emulation: false,
     itach_beacon: false,
     serial_tcp: false,
-    poe_voltage: false
+    poe_voltage: false,
+    ntp_enabled: false,
+    ntp_server1: "",
+    ntp_server2: ""
   },
   deviceRevision: null,
 
@@ -1814,6 +2065,13 @@ Pages.Expert = {
     }).catch(function (e) {
       Toast.error(e);
     });
+
+    // Get NTP config from network response (already loaded by Pages.Network.load())
+    // Values are set in Network.load(), just sync local config
+    self.config.ntp_enabled = document.getElementById("exp-ntp-enabled").checked;
+    self.config.ntp_server1 = document.getElementById("exp-ntp1").value;
+    self.config.ntp_server2 = document.getElementById("exp-ntp2").value;
+    self.updateNtpFields();
   },
 
   updatePoeVisibility: function () {
@@ -1823,12 +2081,21 @@ Pages.Expert = {
     }
   },
 
+  updateNtpFields: function () {
+    const enabled = this.config.ntp_enabled;
+    document.getElementById("exp-ntp1").disabled = !enabled;
+    document.getElementById("exp-ntp2").disabled = !enabled;
+  },
+
   apply: function () {
     const self = this;
     const itachEmulation = document.getElementById("exp-itach-emulation").checked;
     const itachBeacon = document.getElementById("exp-amxb-beacon").checked;
     const serialTcp = document.getElementById("exp-rs232-tcp").checked;
     const poeVoltage = document.getElementById("exp-poe-voltage").checked;
+    const ntpEnabled = document.getElementById("exp-ntp-enabled").checked;
+    const ntpServer1 = document.getElementById("exp-ntp1").value.trim();
+    const ntpServer2 = document.getElementById("exp-ntp2").value.trim();
 
     // Apply iTach config if changed
     if (itachEmulation !== this.config.itach_emulation || itachBeacon !== this.config.itach_beacon) {
@@ -1865,6 +2132,25 @@ Pages.Expert = {
         });
     }
 
+    // Apply NTP config if changed
+    if (ntpEnabled !== this.config.ntp_enabled ||
+      ntpServer1 !== this.config.ntp_server1 ||
+      ntpServer2 !== this.config.ntp_server2) {
+      WS.request("set_sntp", {
+        sntp_enabled: ntpEnabled,
+        sntp_server1: ntpServer1,
+        sntp_server2: ntpServer2
+      })
+        .then(function () {
+          self.config.ntp_enabled = ntpEnabled;
+          self.config.ntp_server1 = ntpServer1;
+          self.config.ntp_server2 = ntpServer2;
+        })
+        .catch(function (e) {
+          Toast.error(e);
+        });
+    }
+
     // Show saved message (reboot message is shown globally in WS.onMessage)
     setTimeout(function () {
       Toast.success(I18N.t("t_expert_saved"));
@@ -1873,6 +2159,12 @@ Pages.Expert = {
 
   init: function () {
     const self = this;
+
+    // NTP enabled checkbox change
+    document.getElementById("exp-ntp-enabled").addEventListener("change", function () {
+      self.config.ntp_enabled = this.checked;
+      self.updateNtpFields();
+    });
 
     document.getElementById("btn-expert-apply").addEventListener("click", function () {
       self.apply();

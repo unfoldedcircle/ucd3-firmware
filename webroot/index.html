@@ -109,17 +109,64 @@
       <!-- ============ Network ============ -->
       <section id="page-network" class="hidden">
         <div class="card">
-          <h2 data-i18n="hdr_conn_status">Connection Status</h2>
+          <h2>
+            <span data-i18n="hdr_conn_status">Connection Status</span>
+            <button class="info-trigger" aria-label="Connection status info" popovertarget="conn-status-info">i</button>
+          </h2>
+          <div id="conn-status-info" class="info-popover" popover role="dialog" data-i18n="note_eth_priority">
+            Ethernet has priority over WiFi.
+          </div>
           <ul id="net-status-list">
             <li><span class="title" data-i18n="lbl_ethernet">Ethernet</span><span class="content" id="net-eth">&mdash;</span></li>
             <li><span class="title" data-i18n="lbl_wifi">WiFi</span><span class="content" id="net-wifi">&mdash;</span></li>
             <li><span class="title" data-i18n="lbl_ssid">SSID</span><span class="content" id="net-ssid">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_ip_address">IP Address</span><span class="content" id="net-ip">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_netmask">Netmask</span><span class="content" id="net-mask">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_gateway">Gateway</span><span class="content" id="net-gw">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_dns_servers">DNS Servers</span><span class="content" id="net-dns">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_ipv6_addresses">IPv6 Addresses</span><span class="content" id="net-ipv6">&mdash;</span></li>
           </ul>
-          <p class="note" data-i18n="note_eth_priority">Ethernet has priority over WiFi.</p>
         </div>
 
         <div class="card">
-          <h2 data-i18n="hdr_wifi_config">WiFi Configuration</h2>
+          <h2>
+            <span data-i18n="hdr_eth_config">Ethernet Configuration</span>
+            <button class="info-trigger" aria-label="Ethernet Configuration info" popovertarget="eth-cfg-info">i</button>
+          </h2>
+          <div id="eth-cfg-info" class="info-popover" popover role="dialog">
+            <p data-i18n="info_net_cfg_ipv4">Only IPv4 is supported for static network configuration.</p>
+            <p data-i18n="info_net_cfg_reboot">The dock will restart after applying network changes.</p>
+          </div>
+          <div class="form-row form-inline">
+            <label for="cfg-eth-mode" data-i18n="lbl_mode">Mode</label>
+            <select id="cfg-eth-mode">
+              <option value="dhcp" data-i18n="lbl_dhcp">DHCP</option>
+              <option value="static" data-i18n="lbl_static">Static</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="cfg-eth-ip" data-i18n="lbl_ip_address">IP Address</label>
+            <input type="text" id="cfg-eth-ip" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-eth-mask" data-i18n="lbl_netmask">Subnet mask</label>
+            <input type="text" id="cfg-eth-mask" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-eth-gw" data-i18n="lbl_gateway">Gateway</label>
+            <input type="text" id="cfg-eth-gw" maxlength="15">
+          </div>
+          <button id="btn-save-eth" data-i18n="btn_apply">Apply</button>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_wifi_net">WiFi Network</span>
+            <button class="info-trigger" aria-label="WiFi Network info" popovertarget="wifi-net-info">i</button>
+          </h2>
+          <div id="wifi-net-info" class="info-popover" popover role="dialog">
+            <p data-i18n="info_net_cfg_restart">The dock will restart after applying network changes.</p>
+          </div>
           <div class="form-row">
             <label for="cfg-ssid" data-i18n="lbl_ssid">SSID</label>
             <input type="text" id="cfg-ssid" maxlength="32">
@@ -133,7 +180,58 @@
             </div>
           </div>
           <button id="btn-save-wifi" data-i18n="btn_apply">Apply</button>
-          <p class="note" data-i18n="note_wifi_restart">The dock will restart after applying WiFi changes.</p>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_wifi_config">WiFi Configuration</span>
+            <button class="info-trigger" aria-label="WiFi Configuration info" popovertarget="wifi-cfg-info">i</button>
+          </h2>
+          <div id="wifi-cfg-info" class="info-popover" popover role="dialog">
+            <p data-i18n="info_net_cfg_ipv4">Only IPv4 is supported for static network configuration.</p>
+            <p data-i18n="info_net_cfg_restart">The dock will restart after applying network changes.</p>
+          </div>
+          <div class="form-row form-inline">
+            <label for="cfg-wifi-mode" data-i18n="lbl_mode">Mode</label>
+            <select id="cfg-wifi-mode">
+              <option value="dhcp" data-i18n="lbl_dhcp">DHCP</option>
+              <option value="static" data-i18n="lbl_static">Static</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="cfg-wifi-ip" data-i18n="lbl_ip_address">IP Address</label>
+            <input type="text" id="cfg-wifi-ip" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-wifi-mask" data-i18n="lbl_netmask">Subnet mask</label>
+            <input type="text" id="cfg-wifi-mask" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-wifi-gw" data-i18n="lbl_gateway">Gateway</label>
+            <input type="text" id="cfg-wifi-gw" maxlength="15">
+          </div>
+          <button id="btn-save-wifi-net" data-i18n="btn_apply">Apply</button>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_dns_config">DNS Configuration</span>
+            <button class="info-trigger" aria-label="DNS Configuration info" popovertarget="dns-cfg-info">i</button>
+          </h2>
+          <div id="dns-cfg-info" class="info-popover" popover role="dialog">
+            <p data-i18n="info_dns_global">DNS settings are global and apply to both Ethernet and WiFi.</p>
+            <p data-i18n="info_dns_priority">DNS settings take priority over DHCP-assigned DNS servers. Leave empty to clear.</p>
+            <p data-i18n="info_net_cfg_restart">The dock will restart after applying network changes.</p>
+          </div>
+          <div class="form-row">
+            <label for="cfg-dns1" data-i18n="lbl_dns_server_1">DNS Server 1</label>
+            <input type="text" id="cfg-dns1" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-dns2" data-i18n="lbl_dns_server_2">DNS Server 2</label>
+            <input type="text" id="cfg-dns2" maxlength="15">
+          </div>
+          <button id="btn-save-dns" data-i18n="btn_apply">Apply</button>
         </div>
       </section>
 
@@ -570,6 +668,20 @@
               <input type="checkbox" id="exp-amxb-beacon">
               <span data-i18n="lbl_amxb_beacon">AMXB discovery beacon</span>
             </label>
+          </div>
+          <div class="form-row">
+            <label class="cb-label">
+              <input type="checkbox" id="exp-ntp-enabled">
+              <span data-i18n="lbl_ntp_enabled">Enable NTP *</span>
+            </label>
+          </div>
+          <div class="form-row">
+            <label for="exp-ntp1" data-i18n="lbl_ntp_server_1">NTP Server 1</label>
+            <input type="text" id="exp-ntp1" maxlength="64">
+          </div>
+          <div class="form-row">
+            <label for="exp-ntp2" data-i18n="lbl_ntp_server_2">NTP Server 2</label>
+            <input type="text" id="exp-ntp2" maxlength="64">
           </div>
 
           <div class="form-row" style="margin-top: 16px;">

@@ -13,6 +13,9 @@
   "hdr_access_token": "Käyttöoikeustunnus",
   "hdr_actions": "Toiminnot",
   "hdr_conn_status": "Yhteystila",
+  "hdr_wifi_net": "WiFi-verkko",
+  "hdr_eth_config": "Ethernet-asetukset",
+  "hdr_dns_config": "DNS-asetukset",
   "hdr_wifi_config": "WiFi-asetukset",
   "hdr_send_ir": "Lähetä IR",
   "hdr_learn_ir": "Opi IR",
@@ -69,6 +72,18 @@
   "lbl_amxb_beacon": "AMXB discovery beacon *",
   "lbl_rs232_tcp": "RS232 TCP-palvelin (portit 4999, 5000)",
   "lbl_reboot_required": "* uudelleenkäynnistys vaaditaan",
+  "lbl_ip_address": "IP-osoite",
+  "lbl_netmask": "Aliverkon peite",
+  "lbl_gateway": "Yhdyskäytävä",
+  "lbl_dns_servers": "DNS-palvelimet",
+  "lbl_ipv6_addresses": "IPv6-osoitteet",
+  "lbl_dhcp": "DHCP",
+  "lbl_static": "Kiinteä",
+  "lbl_dns_server_1": "DNS-palvelin 1",
+  "lbl_dns_server_2": "DNS-palvelin 2",
+  "lbl_ntp_enabled": "Käytä NTP:tä",
+  "lbl_ntp_server_1": "NTP-palvelin 1",
+  "lbl_ntp_server_2": "NTP-palvelin 2",
 
   "ph_friendly_name": "Kutsumanimi",
   "ph_token": "Käyttöoikeustunnus",
@@ -101,6 +116,10 @@
   "btn_start_streaming": "Aloita suoratoisto",
   "btn_stop_streaming": "Pysäytä suoratoisto",
 
+  "info_net_cfg_ipv4": "Vain IPv4 on tuettu staattiseen verkkoasetukseen.",
+  "info_net_cfg_restart": "Telakka käynnistyy uudelleen verkkoasetusten käytön jälkeen.",
+  "info_dns_global": "DNS-asetukset ovat globaaleja ja koskevat sekä Ethernetiä että WiFiä.",
+  "info_dns_priority": "DNS-asetukset ohittavat DHCP:n määrittämät DNS-palvelimet. Tyhjennä jättämällä tyhjäksi.",
   "info_ir_repeat": "Toistomäärä (1–20), ohittaa koodin toistoarvon.<p><strong>HEX:</strong> Ohittaa toistokentän; protokollakohtainen toistotoiminta käsitellään automaattisesti.</p><p><strong>PRONTO:</strong> Toistaa 2. burst-pari sekvenssin (4. numero PRONTO-koodissa); jätetään huomiotta, jos koodissa ei ole toistosekvenssiä.</p>",
   "info_ir_hold": "Minimikesto ms:nä IR-koodin lähettämiseen, simuloi pitkää painallusta.<p><strong>Ohittaa toiston</strong> jos asetettu.</p><p>Signaali viimeistelee aina viimeisen IR-viestinsä, joten todellinen lähetysaika voi olla hieman pidempi.</p>",
   "info_ir_repeat_mode": "Aktivoi IR-toistotila. Pidä «Aloita toisto» -painiketta painettuna lähettääksesi IR-koodia jatkuvasti.<p>Vaatii <strong>Toisto</strong>-arvon > 0 sopivan toistovälin kanssa IR-signaalin uudistamiseksi.</p>",
@@ -116,7 +135,6 @@
   "info_ota_webconfig": "Käytä säännöllisiin päivityksiin sen sijaan Remote-laitteesi <strong>Web-Konfiguraattoria</strong>.<br/>Se ilmoittaa, kun virallinen päivitys on saatavilla, ja opastaa sinut turvallisesti prosessin läpi.",
 
   "note_eth_priority": "Ethernetillä on etusija WiFiin nähden.",
-  "note_wifi_restart": "Telakka käynnistyy uudelleen WiFi-muutosten jälkeen.",
   "note_no_disconnect": "⚠️ <strong>Älä irrota telakkaa päivityksen aikana.</strong>",
   "note_expert_warning": "🧪 <strong>Kokeelliset ominaisuudet</strong> – Alla olevat asetukset ovat varhaisen pääsyn tai kehitysvaiheen ominaisuuksia, jotka eivät vielä ole saatavilla vakiotuotteessa. Ne on oletusarvoisesti poistettu käytöstä ja tarkoitettu vain testikäyttöön. Jatka varoen. Arvostamme palautetta, mutta emme voi tarjota tukea.",
   "note_status_info": "💡 Tämä on Telakan edistynyt hallintakäyttöliittymä. Käytä normaaliin määritykseen Remote-laitteesi Web-Konfiguraattoria – avaa sen sijaan Remote-laitteen osoite selaimessasi.",
@@ -135,7 +153,6 @@
 
   "confirm_reboot": "Käynnistetäänkö telakka uudelleen?",
   "confirm_reset": "Tehdasasetukset?\nKaikki asetukset poistetaan!",
-  "confirm_wifi": "Telakka käynnistyy uudelleen WiFi-muutosten käyttämiseksi. Jatketaanko?",
 
   "t_name_saved": "Nimi tallennettu",
   "t_brightness_saved": "Kirkkaus tallennettu",
@@ -160,6 +177,9 @@
   "t_logged_out": "Kirjauduttu ulos",
   "t_logging_applied": "Lokiasetukset käytetty",
   "t_expert_saved": "Asetukset tallennettu",
+  "t_network_saved": "Verkkoasetukset tallennettu",
+  "t_dns_saved": "DNS-asetukset tallennettu",
+  "t_ntp_saved": "NTP-asetukset tallennettu",
   "confirm_reboot_now": "Telakka käynnistyy uudelleen aktivoidakseen muutokset. Ladataanko sivu uudelleen?",
 
   "e_no_file": "Ei tiedostoa valittuna",
@@ -174,5 +194,6 @@
   "e_auth_failed": "Todennus epäonnistui.",
   "e_upload_auth": "Lähetyksen todennus epäonnistui",
   "e_conn_lost": "Yhteys katkesi",
-  "e_upload_failed": "Lähetys epäonnistui: {status}"
+  "e_upload_failed": "Lähetys epäonnistui: {status}",
+  "e_invalid_ip": "Virheellinen IPv4-osoitteen muoto"
 }

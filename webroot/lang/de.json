@@ -13,6 +13,9 @@
   "hdr_access_token": "Zugangstoken",
   "hdr_actions": "Aktionen",
   "hdr_conn_status": "Verbindungsstatus",
+  "hdr_wifi_net": "WiFi-Netzwerk",
+  "hdr_eth_config": "Ethernet-Konfiguration",
+  "hdr_dns_config": "DNS-Konfiguration",
   "hdr_wifi_config": "WLAN-Konfiguration",
   "hdr_send_ir": "IR senden",
   "hdr_learn_ir": "IR lernen",
@@ -68,6 +71,18 @@
   "lbl_amxb_beacon": "AMXB Discovery-Beacon *",
   "lbl_rs232_tcp": "RS232 TCP-Server (Ports 4999, 5000)",
   "lbl_reboot_required": "* Neustart erforderlich",
+  "lbl_ip_address": "IP-Adresse",
+  "lbl_netmask": "Subnetzmaske",
+  "lbl_gateway": "Gateway",
+  "lbl_dns_servers": "DNS-Server",
+  "lbl_ipv6_addresses": "IPv6-Adressen",
+  "lbl_dhcp": "DHCP",
+  "lbl_static": "Statisch",
+  "lbl_dns_server_1": "DNS-Server 1",
+  "lbl_dns_server_2": "DNS-Server 2",
+  "lbl_ntp_enabled": "NTP aktivieren",
+  "lbl_ntp_server_1": "NTP-Server 1",
+  "lbl_ntp_server_2": "NTP-Server 2",
 
   "ph_friendly_name": "Anzeigename",
   "ph_token": "Zugangstoken",
@@ -100,6 +115,10 @@
   "btn_start_streaming": "Streaming starten",
   "btn_stop_streaming": "Streaming stoppen",
 
+  "info_net_cfg_ipv4": "Nur IPv4 wird für die statische Netzwerkkonfiguration unterstützt.",
+  "info_net_cfg_restart": "Das Dock wird nach der Übernahme der Netzwerkänderungen neu gestartet.",
+  "info_dns_global": "DNS-Einstellungen sind global und gelten für Ethernet und WiFi.",
+  "info_dns_priority": "DNS-Einstellungen haben Vorrang vor DHCP-zugewiesenen DNS-Servern. Leer lassen zum Löschen.",
   "info_ir_repeat": "Wiederholungsanzahl (1–20), überschreibt jeden Wiederholungswert im Code.<p><strong>HEX:</strong> Überschreibt das Wiederholungsfeld; protokollspezifisches Wiederholungsverhalten wird automatisch behandelt.</p><p><strong>PRONTO:</strong> Wiederholt die 2. Burst-Pair-Sequenz (4. Zahl im PRONTO-Code); wird ignoriert, wenn der Code keine Wiederholungssequenz hat.</p>",
   "info_ir_hold": "Mindestdauer in ms zum Senden des IR-Codes, simuliert einen langen Tastendruck.<p><strong>Überschreibt Wiederholung</strong> wenn gesetzt.</p><p>Das Signal schließt immer seine finale IR-Nachricht ab, daher kann die tatsächliche Sendezeit etwas länger sein.</p>",  "lbl_output": "Ausgang",
   "info_ir_repeat_mode": "IR-Wiederholungsmodus aktivieren. Halte die Taste \"Wiederholung starten\" gedrückt, um den IR-Code kontinuierlich zu senden.<p>Erfordert einen <strong>Wiederholungs</strong>-Wert > 0 mit passendem Wiederholintervall zur Erneuerung des IR-Signals.</p>",
@@ -115,7 +134,6 @@
   "info_ota_webconfig": "Verwende für regelmäßige Updates stattdessen den <strong>Web-Konfigurator</strong> auf deinem Remote-Gerät.<br/>Dieser benachrichtigt dich, wenn ein offizielles Update verfügbar ist, und führt dich sicher durch den Prozess.",
 
   "note_eth_priority": "Ethernet hat Vorrang vor WLAN.",
-  "note_wifi_restart": "Das Dock wird nach Übernahme der WLAN-Einstellungen neu gestartet.",
   "note_no_disconnect": "⚠️ <strong>Trenne das Dock während des Updates nicht.</strong>",
   "note_expert_warning": "🧪 <strong>Experimentelle Funktionen</strong> – Die folgenden Einstellungen sind Early-Access- oder Entwicklungsfunktionen, die im Standardprodukt noch nicht verfügbar sind. Sie sind standardmäßig deaktiviert und nur für Testzwecke gedacht. Gehe mit Vorsicht vor. Wir freuen uns über Feedback, können aber keinen Support bieten.",
   "note_status_info": "💡 Dies ist die erweiterte Management-Oberfläche des Docks. Verwende für die normale Konfiguration den Web-Konfigurator auf deinem Remote-Gerät – öffne stattdessen die Adresse der Fernbedienung in deinem Browser.",
@@ -134,7 +152,6 @@
 
   "confirm_reboot": "Dock neu starten?",
   "confirm_reset": "Werkseinstellungen wiederherstellen?\nAlle Einstellungen werden gelöscht!",
-  "confirm_wifi": "Das Dock wird neu gestartet. Fortfahren?",
 
   "t_name_saved": "Name gespeichert",
   "t_brightness_saved": "Helligkeit gespeichert",
@@ -159,6 +176,9 @@
   "t_logged_out": "Abgemeldet",
   "t_logging_applied": "Protokollkonfiguration übernommen",
   "t_expert_saved": "Einstellungen gespeichert",
+  "t_network_saved": "Netzwerkkonfiguration gespeichert",
+  "t_dns_saved": "DNS-Konfiguration gespeichert",
+  "t_ntp_saved": "NTP-Konfiguration gespeichert",
   "confirm_reboot_now": "Dock wird neu gestartet, um Änderungen zu aktivieren. Seite neu laden?",
 
   "e_no_file": "Keine Datei ausgewählt",
@@ -173,5 +193,6 @@
   "e_auth_failed": "Authentifizierung fehlgeschlagen.",
   "e_upload_auth": "Upload-Authentifizierung fehlgeschlagen",
   "e_conn_lost": "Verbindung verloren",
-  "e_upload_failed": "Upload fehlgeschlagen: {status}"
+  "e_upload_failed": "Upload fehlgeschlagen: {status}",
+  "e_invalid_ip": "Ungültiges IPv4-Adressformat"
 }

@@ -13,6 +13,9 @@
   "hdr_access_token": "Adgangstoken",
   "hdr_actions": "Handlinger",
   "hdr_conn_status": "Forbindelsesstatus",
+  "hdr_wifi_net": "WiFi-netværk",
+  "hdr_eth_config": "Ethernet-konfiguration",
+  "hdr_dns_config": "DNS-konfiguration",
   "hdr_wifi_config": "WiFi-konfiguration",
   "hdr_send_ir": "Send IR",
   "hdr_learn_ir": "Lær IR",
@@ -69,6 +72,18 @@
   "lbl_amxb_beacon": "AMXB discovery beacon *",
   "lbl_rs232_tcp": "RS232 TCP-server (porte 4999, 5000)",
   "lbl_reboot_required": "* genstart påkrævet",
+  "lbl_ip_address": "IP-adresse",
+  "lbl_netmask": "Subnetmaske",
+  "lbl_gateway": "Gateway",
+  "lbl_dns_servers": "DNS-servere",
+  "lbl_ipv6_addresses": "IPv6-adresser",
+  "lbl_dhcp": "DHCP",
+  "lbl_static": "Statisk",
+  "lbl_dns_server_1": "DNS-server 1",
+  "lbl_dns_server_2": "DNS-server 2",
+  "lbl_ntp_enabled": "Aktivér NTP",
+  "lbl_ntp_server_1": "NTP-server 1",
+  "lbl_ntp_server_2": "NTP-server 2",
 
   "ph_friendly_name": "Kaldenavn",
   "ph_token": "Adgangstoken",
@@ -101,6 +116,10 @@
   "btn_start_streaming": "Start streaming",
   "btn_stop_streaming": "Stop streaming",
 
+  "info_net_cfg_ipv4": "Kun IPv4 understøttes til statisk netværkskonfiguration.",
+  "info_net_cfg_restart": "Docken genstarter efter anvendelse af netværksændringer.",
+  "info_dns_global": "DNS-indstillinger er globale og gælder for både Ethernet og WiFi.",
+  "info_dns_priority": "DNS-indstillinger har prioritet over DHCP-tildelte DNS-servere. Lad stå tomt for at rydde.",
   "info_ir_repeat": "Gentagelsestælling (1–20), tilsidesætter enhver gentagelsesværdi i koden.<p><strong>HEX:</strong> Tilsidesætter gentagelsesfeltet; protokolspecifik gentagelsesadfærd håndteres automatisk.</p><p><strong>PRONTO:</strong> Gentager den 2. burst-par sekvens (4. tal i PRONTO-koden); ignoreres hvis koden ikke har en gentagelsessekvens.</p>",
   "info_ir_hold": "Minimum varighed i ms for at sende IR-koden, simulerer et langt knaptryk.<p><strong>Tilsidesætter gentagelse</strong> hvis indstillet.</p><p>Signalet fuldfører altid sin sidste IR-besked, så den faktiske sendetid kan være lidt længere.</p>",
   "info_ir_repeat_mode": "Aktivér IR-gentagelsestilstand. Hold knappen «Start gentagelse» nede for kontinuerligt at sende IR-koden.<p>Kræver en <strong>Gentagelses</strong>-værdi > 0 med et matchende gentagelsesinterval for at fornye IR-signalet.</p>",
@@ -116,7 +135,6 @@
   "info_ota_webconfig": "Brug i stedet <strong>Web-Konfiguratoren</strong> på din Remote-enhed til regelmæssige opdateringer.<br/>Den vil underrette dig, når en officiel opdatering er tilgængelig og guide dig sikkert gennem processen.",
 
   "note_eth_priority": "Ethernet har prioritet over WiFi.",
-  "note_wifi_restart": "Dock'en genstarter efter WiFi-ændringer.",
   "note_no_disconnect": "⚠️ <strong>Afbryd ikke dock'en under opdatering.</strong>",
   "note_expert_warning": "🧪 <strong>Eksperimentelle funktioner</strong> – Indstillingerne nedenfor er early-access eller udviklingsfunktioner, der endnu ikke er tilgængelige i standardproduktet. De er deaktiveret som standard og kun beregnet til testformål. Fortsæt med forsigtighed. Vi sætter pris på feedback, men kan ikke yde support.",
   "note_status_info": "💡 Dette er Dock'ens avancerede administrations-UI. Brug Web-Konfiguratoren på din Remote-enhed til normal konfiguration – åbn i stedet Remote'ens adresse i din browser.",
@@ -135,7 +153,6 @@
 
   "confirm_reboot": "Genstart dock'en?",
   "confirm_reset": "Fabriksnulstilling?\nAlle indstillinger vil blive slettet!",
-  "confirm_wifi": "Dock'en genstarter for at anvende WiFi-ændringer. Fortsæt?",
 
   "t_name_saved": "Navn gemt",
   "t_brightness_saved": "Lysstyrke gemt",
@@ -160,6 +177,9 @@
   "t_logged_out": "Logget ud",
   "t_logging_applied": "Logging-konfiguration anvendt",
   "t_expert_saved": "Indstillinger gemt",
+  "t_network_saved": "Netværkskonfiguration gemt",
+  "t_dns_saved": "DNS-konfiguration gemt",
+  "t_ntp_saved": "NTP-konfiguration gemt",
   "confirm_reboot_now": "Dock'en genstarter for at aktivere ændringer. Genindlæs side?",
 
   "e_no_file": "Ingen fil valgt",
@@ -174,5 +194,6 @@
   "e_auth_failed": "Godkendelse mislykkedes.",
   "e_upload_auth": "Upload-godkendelse mislykkedes",
   "e_conn_lost": "Forbindelse mistet",
-  "e_upload_failed": "Upload mislykkedes: {status}"
+  "e_upload_failed": "Upload mislykkedes: {status}",
+  "e_invalid_ip": "Ugyldigt IPv4-adresseformat"
 }
