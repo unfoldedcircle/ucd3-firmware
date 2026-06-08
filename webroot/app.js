@@ -2063,18 +2063,18 @@ Pages.Expert = {
     // Get network configuration
     WS.request("get_network").then(function (data) {
       // NTP configuration
-      if (data.sntp_enabled === undefined) {
-        data.sntp_enabled = false;
+      if (data.ntp_enabled === undefined) {
+        data.ntp_enabled = false;
       }
-      self.config.ntp_enabled = data.sntp_enabled;
-      document.getElementById("exp-ntp-enabled").checked = data.sntp_enabled;
-      if (data.sntp1 !== undefined) {
-        self.config.ntp_server1 = data.sntp1;
-        document.getElementById("exp-ntp1").value = data.sntp1;
+      self.config.ntp_enabled = data.ntp_enabled;
+      document.getElementById("exp-ntp-enabled").checked = data.ntp_enabled;
+      if (data.ntp1 !== undefined) {
+        self.config.ntp_server1 = data.ntp1;
+        document.getElementById("exp-ntp1").value = data.ntp1;
       }
-      if (data.sntp2 !== undefined) {
-        self.config.ntp_server2 = data.sntp2;
-        document.getElementById("exp-ntp2").value = data.sntp2;
+      if (data.ntp2 !== undefined) {
+        self.config.ntp_server2 = data.ntp2;
+        document.getElementById("exp-ntp2").value = data.ntp2;
       }
       self.updateNtpFields(self.config.ntp_enabled);
 
@@ -2147,10 +2147,10 @@ Pages.Expert = {
     if (ntpEnabled !== this.config.ntp_enabled ||
       ntpServer1 !== this.config.ntp_server1 ||
       ntpServer2 !== this.config.ntp_server2) {
-      WS.request("set_sntp", {
-        sntp_enabled: ntpEnabled,
-        sntp_server1: ntpServer1,
-        sntp_server2: ntpServer2
+      WS.request("set_ntp", {
+        ntp_enabled: ntpEnabled,
+        ntp1: ntpServer1,
+        ntp2: ntpServer2
       })
         .then(function () {
           self.config.ntp_enabled = ntpEnabled;
