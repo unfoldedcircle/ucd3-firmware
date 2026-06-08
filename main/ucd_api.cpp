@@ -236,6 +236,21 @@ static bool parse_required_ipv4_addr(const cJSON *root, const char *field, ip4_a
     return true;
 }
 
+static bool parse_optional_ipv4_addr(const cJSON *root, const char *field, ip4_addr_t *addr, cJSON *responseDoc) {
+    const char *value = cjson_get_string(root, field, nullptr);
+    if (!value || strlen(value) == 0) {
+        addr->addr = IPADDR_ANY;
+        return true;
+    }
+
+    if (!parse_ipv4_addr(value, addr) || addr->addr == IPADDR_NONE) {
+        cJSON_AddStringToObject(responseDoc, msgError, "Invalid IPv4 address");
+        return false;
+    }
+
+    return true;
+}
+
 static const char *ipv4_addr_to_string(const ip4_addr_t *addr, char *buf, size_t buf_len) {
     if (!addr || !buf || buf_len == 0 || addr->addr == IPADDR_ANY || addr->addr == IPADDR_NONE) {
         return nullptr;
@@ -898,14 +913,14 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         cfg->dhcp = dhcp;
 
         if (!dhcp) {
-            // Static mode: ip/mask/gw required
+            // Static mode: ip/mask required, gw optional
             ip4_addr_t ip = {};
             ip4_addr_t mask = {};
             ip4_addr_t gw = {};
 
             if (!parse_required_ipv4_addr(root, "ip", &ip, responseDoc) ||
                 !parse_required_ipv4_addr(root, "mask", &mask, responseDoc) ||
-                !parse_required_ipv4_addr(root, "gw", &gw, responseDoc)) {
+                !parse_optional_ipv4_addr(root, "gw", &gw, responseDoc)) {
                 code = 400;
                 goto send_response;
             }
