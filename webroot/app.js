@@ -842,19 +842,6 @@ Pages.Network = {
       if (data.dns2 !== undefined) self.dnsConfig.dns2 = data.dns2;
       document.getElementById("cfg-dns1").value = self.dnsConfig.dns1;
       document.getElementById("cfg-dns2").value = self.dnsConfig.dns2;
-
-      // NTP configuration (for expert page)
-      if (data.sntp_enabled !== undefined) {
-        document.getElementById("exp-ntp-enabled").checked = data.sntp_enabled;
-      }
-      if (data.sntp1 !== undefined) {
-        document.getElementById("exp-ntp1").value = data.sntp1;
-      }
-      if (data.sntp2 !== undefined) {
-        document.getElementById("exp-ntp2").value = data.sntp2;
-      }
-      self.updateNtpFields();
-
     }).catch(function (e) {
       Toast.error(e);
     });
@@ -872,12 +859,6 @@ Pages.Network = {
     document.getElementById("cfg-wifi-ip").disabled = !isStatic;
     document.getElementById("cfg-wifi-mask").disabled = !isStatic;
     document.getElementById("cfg-wifi-gw").disabled = !isStatic;
-  },
-
-  updateNtpFields: function () {
-    let enabled = document.getElementById("exp-ntp-enabled").checked;
-    document.getElementById("exp-ntp1").disabled = !enabled;
-    document.getElementById("exp-ntp2").disabled = !enabled;
   },
 
   validateIp: function (ip) {
@@ -2066,12 +2047,27 @@ Pages.Expert = {
       Toast.error(e);
     });
 
-    // Get NTP config from network response (already loaded by Pages.Network.load())
-    // Values are set in Network.load(), just sync local config
-    self.config.ntp_enabled = document.getElementById("exp-ntp-enabled").checked;
-    self.config.ntp_server1 = document.getElementById("exp-ntp1").value;
-    self.config.ntp_server2 = document.getElementById("exp-ntp2").value;
-    self.updateNtpFields();
+    // Get network configuration
+    WS.request("get_network").then(function (data) {
+      // NTP configuration
+      if (data.sntp_enabled === undefined) {
+        data.sntp_enabled = false;
+      }
+      self.config.ntp_enabled = data.sntp_enabled;
+      document.getElementById("exp-ntp-enabled").checked = data.sntp_enabled;
+      if (data.sntp1 !== undefined) {
+        self.config.ntp_server1 = data.sntp1;
+        document.getElementById("exp-ntp1").value = data.sntp1;
+      }
+      if (data.sntp2 !== undefined) {
+        self.config.ntp_server2 = data.sntp2;
+        document.getElementById("exp-ntp2").value = data.sntp2;
+      }
+      self.updateNtpFields(self.config.ntp_enabled);
+
+    }).catch(function (e) {
+      Toast.error(e);
+    });
   },
 
   updatePoeVisibility: function () {
@@ -2081,8 +2077,7 @@ Pages.Expert = {
     }
   },
 
-  updateNtpFields: function () {
-    const enabled = this.config.ntp_enabled;
+  updateNtpFields: function (enabled) {
     document.getElementById("exp-ntp1").disabled = !enabled;
     document.getElementById("exp-ntp2").disabled = !enabled;
   },
@@ -2105,6 +2100,7 @@ Pages.Expert = {
       }).then(function (data) {
         self.config.itach_emulation = itachEmulation;
         self.config.itach_beacon = itachBeacon;
+        Toast.success(I18N.t("t_expert_saved"));
       }).catch(function (e) {
         Toast.error(e);
       });
@@ -2115,6 +2111,7 @@ Pages.Expert = {
       WS.request("set_serial_tcp", {enable: serialTcp})
         .then(function () {
           self.config.serial_tcp = serialTcp;
+          Toast.success(I18N.t("t_expert_saved"));
         })
         .catch(function (e) {
           Toast.error(e);
@@ -2126,6 +2123,7 @@ Pages.Expert = {
       WS.request("set_poe", {mode: poeVoltage ? 1 : 0})
         .then(function () {
           self.config.poe_voltage = poeVoltage;
+          Toast.success(I18N.t("t_expert_saved"));
         })
         .catch(function (e) {
           Toast.error(e);
@@ -2145,16 +2143,12 @@ Pages.Expert = {
           self.config.ntp_enabled = ntpEnabled;
           self.config.ntp_server1 = ntpServer1;
           self.config.ntp_server2 = ntpServer2;
+          Toast.success(I18N.t("t_ntp_saved"));
         })
         .catch(function (e) {
           Toast.error(e);
         });
     }
-
-    // Show saved message (reboot message is shown globally in WS.onMessage)
-    setTimeout(function () {
-      Toast.success(I18N.t("t_expert_saved"));
-    }, 500);
   },
 
   init: function () {
@@ -2162,8 +2156,7 @@ Pages.Expert = {
 
     // NTP enabled checkbox change
     document.getElementById("exp-ntp-enabled").addEventListener("change", function () {
-      self.config.ntp_enabled = this.checked;
-      self.updateNtpFields();
+      self.updateNtpFields(this.checked);
     });
 
     document.getElementById("btn-expert-apply").addEventListener("click", function () {
