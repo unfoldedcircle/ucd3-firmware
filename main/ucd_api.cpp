@@ -409,13 +409,13 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
 #else
                 struct sockaddr_in addr_in;
 #endif
-                char buf[20] = {0};
+                char buf[48] = {0};
                 if (WebServer::getRemoteIp(sockfd, &addr_in) == ESP_OK) {
                     ESP_LOGI(TAG, "[%s:%d] new WS client connection: %d",
 #if CONFIG_LWIP_IPV6
                              inet_ntoa_r(addr_in.sin6_addr.un.u32_addr[3], buf, sizeof(buf)), addr_in.sin6_port,
 #else
-                             inet_ntoa_r(((struct sockaddr_in *)&addr_in)->sin_addr, buf, sizeof(buf) - 1),
+                             inet_ntoa_r(((struct sockaddr_in *)&addr_in)->sin_addr, buf, sizeof(buf)),
                              ntohs(addr_in.sin_port),
 #endif
                              sockfd);
@@ -824,22 +824,33 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
     } else if (command == "set_logging") {
         code = 501;  // not yet implemented
     } else if (command == "set_sntp") {
-        bool ok = true;
+        bool changed = false;
         if (cJSON_HasObjectItem(root, "sntp_server1") || cJSON_HasObjectItem(root, "sntp_server2")) {
+            std::string old_server1 = config_->getNtpServer1();
+            std::string old_server2 = config_->getNtpServer2();
             std::string server1 = cjson_get_string(root, "sntp_server1", "");
             std::string server2 = cjson_get_string(root, "sntp_server2", "");
+            changed = (server1 != old_server1) || (server2 != old_server2);
             if (!config_->setNtpServer(server1, server2)) {
-                ok = false;
+                code = 400;
+                goto send_response;
             }
         }
         item = cJSON_GetObjectItem(root, "sntp_enabled");
         if (item) {
+            bool old_enabled = config_->isNtpEnabled();
             bool enabled = cJSON_IsTrue(item);
+            changed = changed || (enabled != old_enabled);
             if (!config_->enableNtp(enabled)) {
-                ok = false;
+                code = 400;
+                goto send_response;
             }
         }
-        code = ok ? 200 : 400;
+
+        if (changed) {
+            cJSON_AddBoolToObject(responseDoc, "reboot", true);
+            schedule_restart(web, 2000);
+        }
     } else if (command == "set_network") {
         bool ok = true;
 
@@ -882,6 +893,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
 
         network_cfg_t    netcfg = config_->getNetwork();
         iface_net_cfg_t *cfg = (iface == IFACE_ETH) ? &netcfg.eth : &netcfg.wifi;
+        bool             changed = (cfg->dhcp != dhcp);
 
         cfg->dhcp = dhcp;
 
@@ -898,6 +910,8 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                 goto send_response;
             }
 
+            changed = changed || (cfg->ip.ip.addr != ip.addr) || (cfg->ip.netmask.addr != mask.addr) ||
+                      (cfg->ip.gw.addr != gw.addr);
             cfg->ip.ip.addr = ip.addr;
             cfg->ip.netmask.addr = mask.addr;
             cfg->ip.gw.addr = gw.addr;
@@ -909,9 +923,10 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             goto send_response;
         }
 
-        code = 200;
-        cJSON_AddBoolToObject(responseDoc, "reboot", true);
-        schedule_restart(web, 2000);
+        if (changed) {
+            cJSON_AddBoolToObject(responseDoc, "reboot", true);
+            schedule_restart(web, 2000);
+        }
     } else if (command == "get_network") {
         char          ip_str[48];
         network_cfg_t netcfg = config_->getNetwork();
