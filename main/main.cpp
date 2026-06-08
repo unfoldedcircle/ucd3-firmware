@@ -366,7 +366,7 @@ extern "C" void app_main(void) {
 
     // setup external ports
     auto ports = init_external_ports(&cfg, vcc_adc_unit, vcc_channel);
-    uc_fatal_error_check(network_start(), uc_errors::UC_ERROR_INIT_NET);
+    uc_fatal_error_check(network_start(cfg.isNtpEnabled()), uc_errors::UC_ERROR_INIT_NET);
     uc_error_check(init_mdns(&cfg), uc_errors::UC_ERROR_INIT_MDNS);
 
     static WebServer web;

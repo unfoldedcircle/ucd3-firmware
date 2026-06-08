@@ -838,20 +838,24 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(UC_DOCK_EVENTS, UC_ACTION_IDENTIFY, NULL, 0, pdMS_TO_TICKS(200)));
     } else if (command == "set_logging") {
         code = 501;  // not yet implemented
-    } else if (command == "set_sntp") {
+    } else if (command == "set_ntp") {
         bool changed = false;
-        if (cJSON_HasObjectItem(root, "sntp_server1") || cJSON_HasObjectItem(root, "sntp_server2")) {
+        if (cJSON_HasObjectItem(root, "ntp1") || cJSON_HasObjectItem(root, "ntp2")) {
             std::string old_server1 = config_->getNtpServer1();
             std::string old_server2 = config_->getNtpServer2();
-            std::string server1 = cjson_get_string(root, "sntp_server1", "");
-            std::string server2 = cjson_get_string(root, "sntp_server2", "");
+            std::string server1 = cjson_get_string(root, "ntp1", "");
+            std::string server2 = cjson_get_string(root, "ntp2", "");
+            if (server1.empty() && !server2.empty()) {
+                server1 = server2;
+                server2 = "";
+            }
             changed = (server1 != old_server1) || (server2 != old_server2);
             if (!config_->setNtpServer(server1, server2)) {
                 code = 400;
                 goto send_response;
             }
         }
-        item = cJSON_GetObjectItem(root, "sntp_enabled");
+        item = cJSON_GetObjectItem(root, "ntp_enabled");
         if (item) {
             bool old_enabled = config_->isNtpEnabled();
             bool enabled = cJSON_IsTrue(item);
@@ -986,14 +990,14 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             cJSON_AddStringToObject(responseDoc, "dns2", dns_server.c_str());
         }
 
-        cJSON_AddBoolToObject(responseDoc, "sntp_enabled", config_->isNtpEnabled());
+        cJSON_AddBoolToObject(responseDoc, "ntp_enabled", config_->isNtpEnabled());
         std::string server = config_->getNtpServer1();
         if (!server.empty()) {
-            cJSON_AddStringToObject(responseDoc, "sntp1", server.c_str());
+            cJSON_AddStringToObject(responseDoc, "ntp1", server.c_str());
         }
         server = config_->getNtpServer2();
         if (!server.empty()) {
-            cJSON_AddStringToObject(responseDoc, "sntp2", server.c_str());
+            cJSON_AddStringToObject(responseDoc, "ntp2", server.c_str());
         }
 
         esp_netif_t *active_netif = nullptr;

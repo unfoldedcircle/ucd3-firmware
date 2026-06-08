@@ -288,6 +288,19 @@ Enable TCP serial server:
 - New DNS settings are applied immediately.
 - Removing a DNS setting requires a reboot to clear the currently active DNS server.
 
+### Set NTP servers
+
+```json
+{
+    "type": "dock",
+    "id": 123,
+    "command": "set_ntp",
+    "ntp_enabled": true,
+    "ntp1": "192.168.1.1",
+    "ntp2": "pool.ntp.org"
+}
+```
+
 ### Set a static IPv4 configuration
 
 ```json
@@ -305,6 +318,7 @@ Enable TCP serial server:
 
 - Configuration is per `interface`: `eth` or `wifi`
 - `mode`: `static` or `dhcp`
+- `gw` is optional
 
 ### Get network configuration
 
@@ -333,8 +347,8 @@ Response:
         "mode": "dhcp"
     },
     "dns1": "8.8.8.8",
-    "sntp_enabled": false,
-    "sntp1": "pool.ntp.org",
+    "ntp_enabled": true,
+    "ntp1": "pool.ntp.org",
     "active": {
         "interface": "eth",
         "ip": "192.168.16.88",

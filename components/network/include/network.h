@@ -47,7 +47,7 @@ typedef enum update_reason_code_t {
     UPDATE_WIFI_PROVISIONING
 } update_reason_code_t;
 
-esp_err_t network_start(void);
+esp_err_t network_start(bool enable_sntp);
 
 // --- Public state machine events --------------------------------------------
 
