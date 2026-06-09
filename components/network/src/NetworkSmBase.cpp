@@ -367,6 +367,9 @@ void NetworkBase::statusUpdate(update_reason_code_t update_reason_code) {
     // send custom system event (used by display state-machine)
     esp_netif_ip_info_t      ip_info;
     uc_event_network_state_t net_state;
+    Config                  &config = Config::instance();
+    network_cfg_t            netcfg = config.getNetwork();
+
     memset(&net_state, 0, sizeof(net_state));
     net_state.connection = WIFI;
     net_state.eth_link = is_eth_link_up();
@@ -390,7 +393,6 @@ void NetworkBase::statusUpdate(update_reason_code_t update_reason_code) {
         case UPDATE_LOST_CONNECTION: {
             event_id = UC_EVENT_DISCONNECTED;
             // use configured SSID
-            Config     &config = Config::instance();
             std::string ssid = config.getWifiSsid();
             strncpy(reinterpret_cast<char *>(net_state.ssid), ssid.c_str(), sizeof(net_state.ssid));
             break;
@@ -402,7 +404,6 @@ void NetworkBase::statusUpdate(update_reason_code_t update_reason_code) {
             event_id = UC_EVENT_DISCONNECTED;
             // Using the confiugred SSID might not be the expected information if a user wanted to connect to a new AP!
             // Since the UI screens are not yet finalized, this is good enough for now :-)
-            Config     &config = Config::instance();
             std::string ssid = config.getWifiSsid();
             strncpy(reinterpret_cast<char *>(net_state.ssid), ssid.c_str(), sizeof(net_state.ssid));
             break;
@@ -443,6 +444,15 @@ void NetworkBase::statusUpdate(update_reason_code_t update_reason_code) {
     }
 
     assert(event_id);
+
+    switch (net_state.connection) {
+        case WIFI:
+            net_state.dhcp = netcfg.wifi.dhcp;
+            break;
+        case ETHERNET:
+            net_state.dhcp = netcfg.eth.dhcp;
+            break;
+    }
 
     ESP_ERROR_CHECK_WITHOUT_ABORT(
         esp_event_post(UC_DOCK_EVENTS, event_id, &net_state, sizeof(net_state), pdMS_TO_TICKS(1000)));
@@ -513,6 +523,7 @@ void NetworkBase::setImprovProvisioning() {
     net_state.connection = WIFI;
     net_state.eth_link = is_eth_link_up();
     net_state.ip.type = ESP_IPADDR_TYPE_ANY;
+    net_state.dhcp = true;  // Improv provisioning always uses DHCP
 
     if (event_parameters_.ssid) {
         strncpy(reinterpret_cast<char *>(net_state.ssid), event_parameters_.ssid, sizeof(net_state.ssid));
