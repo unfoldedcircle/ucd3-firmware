@@ -382,8 +382,9 @@ void network_ip_event_handler(void *arg, esp_event_base_t event_base, int32_t ev
 
             if (sntp_enabled && !sntp_initialized) {
                 sntp_initialized = true;
-                esp_netif_sntp_start();
-                ESP_LOGI(TAG, "SNTP started on first IP event (%s)", event_id == IP_EVENT_ETH_GOT_IP ? "ETH" : "WiFi");
+                ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_sntp_start());
+                ESP_LOGI(TAG, "SNTP started on first IP event (%s). Renew: %ds",
+                         event_id == IP_EVENT_ETH_GOT_IP ? "ETH" : "WiFi", CONFIG_LWIP_SNTP_UPDATE_DELAY / 1000);
             }
         } break;
         case IP_EVENT_STA_LOST_IP:
@@ -415,27 +416,33 @@ void network_ip_event_handler(void *arg, esp_event_base_t event_base, int32_t ev
 }
 
 void on_got_time(struct timeval *tv) {
-    struct tm *timeinfo = localtime(&tv->tv_sec);
+    struct tm timeinfo;
+    localtime_r(&tv->tv_sec, &timeinfo);
 
     char buffer[50];
-    strftime(buffer, sizeof(buffer), "%c", timeinfo);
-    auto server = esp_sntp_getservername(0) ? esp_sntp_getservername(0) : ipaddr_ntoa(esp_sntp_getserver(0));
-    ESP_LOGI(TAG, "SNTP update %s: %s", server ? server : "", buffer);
+    strftime(buffer, sizeof(buffer), "%c", &timeinfo);
+    ESP_LOGI(TAG, "SNTP update: %s", buffer);
 }
 
-/**
- * @brief Initialize SNTP.
- *
- * Server selection logic:
- *   - No custom servers configured: DHCP option 42 at slot 0, "pool.ntp.org" at slot 1
- *     (fallback). Requires CONFIG_LWIP_SNTP_MAX_SERVERS >= 2.
- *   - One custom server configured: slot 0 = server1. DHCP and fallback disabled.
- *   - Two custom servers configured: slot 0 = server1, slot 1 = server2. DHCP and
- *     fallback disabled. Requires CONFIG_LWIP_SNTP_MAX_SERVERS >= 2.
- *
- * @return ESP_OK or error code
- */
+/// @brief Initialize SNTP.
+///
+/// Server selection logic:
+///   - No custom servers configured: DHCP option 42 at slot 0, "pool.ntp.org" fallback at slot 1.
+///     Requires CONFIG_LWIP_SNTP_MAX_SERVERS >= 2.
+///   - One custom server configured: slot 0 = server1. DHCP and fallback disabled.
+///   - Two custom servers configured: slot 0 = server1, slot 1 = server2. DHCP and fallback disabled.
+///     Requires CONFIG_LWIP_SNTP_MAX_SERVERS >= 2.
+///
+/// @return ESP_OK or error code
 esp_err_t init_sntp() {
+    if (!sntp_enabled) {
+        return ESP_OK;
+    }
+
+    // IMPORTANT: esp_sntp_config_t.servers[] holds const char* pointers.
+    // `esp_netif_sntp_init()` calls strdup() internally to copy the names into its own storage (but only if
+    // `sntp_config.renew_servers_after_new_IP = true;` is set!), so the strings only need to be valid for the duration
+    // of this call — NOT for the lifetime of the SNTP service.  The std::string locals below are therefore safe.
     Config           &cfg = Config::instance();
     const std::string ntp1 = cfg.getNtpServer1();
     const std::string ntp2 = cfg.getNtpServer2();
@@ -444,40 +451,40 @@ esp_err_t init_sntp() {
     esp_sntp_config_t sntp_config;
 
     if (use_custom) {
-        // --- Custom server(s): no DHCP, no fallback ---
-        // Servers are placed starting at slot 0; DHCP slot reservation not needed.
-        sntp_config = ESP_NETIF_SNTP_DEFAULT_CONFIG(ntp1.c_str());
-        sntp_config.server_from_dhcp = false;
-        sntp_config.renew_servers_after_new_IP = false;
-        sntp_config.index_of_first_server = 0;
-
+        // Custom server(s): no DHCP, no pool.ntp.org fallback.
         if (!ntp2.empty()) {
 #if CONFIG_LWIP_SNTP_MAX_SERVERS >= 2
-            sntp_config.num_of_servers = 2;
-            sntp_config.servers[1] = ntp2.c_str();
-            ESP_LOGI(TAG, "SNTP: custom servers %s (slot0), %s (slot1)", ntp1.c_str(), ntp2.c_str());
+            sntp_config = (esp_sntp_config_t)ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(
+                2, ESP_SNTP_SERVER_LIST(ntp1.c_str(), ntp2.c_str()));
+            ESP_LOGI(TAG, "SNTP: custom servers %s, %s", ntp1.c_str(), ntp2.c_str());
 #else
+            // Only one slot available — use server1, warn about server2.
+            sntp_config =
+                (esp_sntp_config_t)ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(1, ESP_SNTP_SERVER_LIST(ntp1.c_str()));
             ESP_LOGW(TAG, "Second NTP server '%s' ignored: CONFIG_LWIP_SNTP_MAX_SERVERS < 2", ntp2.c_str());
-            ESP_LOGI(TAG, "SNTP: custom server %s (slot0)", ntp1.c_str());
+            ESP_LOGI(TAG, "SNTP: custom server %s", ntp1.c_str());
 #endif
         } else {
-            ESP_LOGI(TAG, "SNTP: custom server %s (slot0)", ntp1.c_str());
+            sntp_config =
+                (esp_sntp_config_t)ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(1, ESP_SNTP_SERVER_LIST(ntp1.c_str()));
+            ESP_LOGI(TAG, "SNTP: custom server %s", ntp1.c_str());
         }
+        sntp_config.server_from_dhcp = false;
+        sntp_config.index_of_first_server = 0;
     } else {
-        // --- No custom servers: DHCP (slot0) + pool.ntp.org fallback (slot1) ---
-        sntp_config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
+        // No custom servers: DHCP (slot 0) + pool.ntp.org fallback (slot 1).
+        sntp_config =
+            (esp_sntp_config_t)ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(1, ESP_SNTP_SERVER_LIST("pool.ntp.org"));
         sntp_config.server_from_dhcp = true;
-        sntp_config.renew_servers_after_new_IP = true;
         sntp_config.index_of_first_server = 1;  // reserve slot 0 for DHCP
-        ESP_LOGI(TAG, "SNTP: DHCP (slot0), pool.ntp.org fallback (slot1)");
+        ESP_LOGI(TAG, "SNTP: DHCP, pool.ntp.org fallback");
     }
 
+    // always required: otherwise lwIP does NOT make copies of our custom servers during initialization!
+    sntp_config.renew_servers_after_new_IP = true;
     sntp_config.start = false;
     sntp_config.sync_cb = on_got_time;
-
-    // ip_event_to_renew accepts only a single event id (not a bitmask).
-    // Ethernet has priority; a second handler registered below covers WiFi.
-    // Only meaningful when server_from_dhcp = true, but harmless otherwise.
+    // ip_event_to_renew when using DHCP. Ethernet has priority; second handler below covers WiFi.
     sntp_config.ip_event_to_renew = IP_EVENT_ETH_GOT_IP;
 
     esp_err_t ret = esp_netif_sntp_init(&sntp_config);
@@ -485,13 +492,14 @@ esp_err_t init_sntp() {
         return ret;
     }
 
-    // Second renew handler for WiFi path (covers IP_EVENT_STA_GOT_IP).
-    // Only truly needed when server_from_dhcp = true, but registering it
-    // unconditionally is harmless — renew_servers is a no-op when the
-    // static server list hasn't changed.
-    ret = esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, esp_netif_sntp_renew_servers, NULL);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to register SNTP WiFi renew handler: %s", esp_err_to_name(ret));
+    // Second renew handler for the WiFi path (IP_EVENT_ETH_GOT_IP is covered by ip_event_to_renew above).
+    // Only needed for the DHCP path, but harmless on the custom-server path since renew_servers is a no-op when the
+    // static list hasn't changed.
+    if (!use_custom) {
+        ret = esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, esp_netif_sntp_renew_servers, NULL);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to register SNTP WiFi renew handler: %s", esp_err_to_name(ret));
+        }
     }
     return ret;
 }
@@ -711,13 +719,7 @@ esp_err_t apply_eth_ipv4_config(esp_netif_t *netif) {
     }
 
     ESP_LOGI(TAG, "ETH using static IPv4");
-    esp_err_t ret = set_static_ip(netif, eth->ip);
-    if (ret == ESP_OK && sntp_enabled && !sntp_initialized) {
-        sntp_initialized = true;
-        esp_netif_sntp_start();
-        ESP_LOGI(TAG, "SNTP started after static ETH IP assignment");
-    }
-    return ret;
+    return set_static_ip(netif, eth->ip);
 }
 
 esp_err_t apply_wifi_ipv4_config(esp_netif_t *netif) {
@@ -739,11 +741,5 @@ esp_err_t apply_wifi_ipv4_config(esp_netif_t *netif) {
     }
 
     ESP_LOGI(TAG, "WiFi using static IPv4");
-    esp_err_t ret = set_static_ip(netif, wifi->ip);
-    if (ret == ESP_OK && sntp_enabled && !sntp_initialized) {
-        sntp_initialized = true;
-        esp_netif_sntp_start();
-        ESP_LOGI(TAG, "SNTP started after static WiFi IP assignment");
-    }
-    return ret;
+    return set_static_ip(netif, wifi->ip);
 }
