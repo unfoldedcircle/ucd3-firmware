@@ -143,6 +143,46 @@ This might be changed if more pages are added.
 - **Unauthenticated users**: WebSocket opens for status fetch, then closes to conserve resources
 - **Login link**: Available in header when not authenticated
 - **Logout**: Clears token, closes WebSocket, navigates to Status
+- **Inactivity timeout**: Automatically disconnects after 10 minutes of inactivity (see below)
+
+### Inactivity Timeout
+
+To conserve limited WebSocket connections on the ESP32, authenticated sessions are automatically disconnected after a period of inactivity.
+
+**Timeout Values:**
+- **Warning**: Shown after 9.5 minutes (570 seconds) of inactivity
+- **Disconnect**: Executed after 10 minutes (600 seconds) of inactivity
+
+**Activity Triggers (reset the timer):**
+- User-initiated WebSocket requests (all commands except `get_sysinfo`)
+- Received `log` events (system log streaming)
+- Received `serial_data` events (serial console output)
+- Received `ir_receive` events (IR learning)
+- Navigation between pages (clicking tabs)
+
+**Excluded from Activity Tracking:**
+- Auto-refresh status requests (`get_sysinfo` every 60s on Status page)
+- Automatic re-authentication on page reload
+- Port mode change events (`port_mode`)
+
+**Warning Flow:**
+1. After 9.5 minutes of inactivity, a toast notification appears: "Session will expire soon due to inactivity"
+2. User has 30 seconds to perform any activity (click, navigate, send command)
+3. Activity dismisses the warning and resets the timer to 10 minutes
+4. If no activity occurs, WebSocket closes after 30 seconds
+
+**After Timeout:**
+- WebSocket connection is closed
+- Authentication state is cleared (`WS.authenticated = false`)
+- Token remains in `sessionStorage` for easy re-login
+- Connection status shows "Disconnected"
+- Login button becomes visible in header
+- User can click "Login" to reconnect (no need to re-enter token if still in session)
+
+**Timer Management:**
+- Timer starts on successful authentication (`authentication` message with code 200)
+- Timer stops on manual logout, connection loss, or page unload
+- Timer resets on page reload (new session starts fresh)
 
 ### Connection Flow
 
@@ -221,6 +261,7 @@ Event (dock to client, unsolicited):
 - `sessionStorage`: survives page reload, cleared on browser/tab close
 - Never stored in `localStorage` (security consideration)
 - On successful token change: update stored token for reconnect
+- **Inactivity timeout**: Token is preserved for easy re-login after automatic disconnect
 
 ## Authentication
 
@@ -230,6 +271,14 @@ Event (dock to client, unsolicited):
 - ESC closes login dialog, returns to current page
 - After successful auth, navigates to the tab that triggered login (`pendingPage`)
 - Logout: clears token, closes WebSocket, navigates to Status
+- **Inactivity timeout**: After 10 minutes of inactivity, connection closes but token remains in sessionStorage
+
+### Session Persistence
+
+- **Page reload**: Token is restored from sessionStorage, automatic re-authentication occurs
+- **Inactivity disconnect**: Token persists, user can re-login without re-entering credentials
+- **Manual logout**: Token is explicitly cleared from sessionStorage
+- **Browser/tab close**: sessionStorage is cleared by browser (session ends)
 
 ### OTA Upload Authentication
 

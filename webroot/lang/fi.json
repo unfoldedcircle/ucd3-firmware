@@ -181,6 +181,8 @@
   "t_network_saved": "Verkkoasetukset tallennettu",
   "t_dns_saved": "DNS-asetukset tallennettu",
   "t_ntp_saved": "NTP-asetukset tallennettu",
+  "t_inactivity_warning": "Istunto vanenee pian toimettomuuden vuoksi",
+  "t_inactivity_disconnected": "Yhteys katkaistu toimettomuuden vuoksi",
   "confirm_reboot_now": "Telakka käynnistyy uudelleen aktivoidakseen muutokset. Ladataanko sivu uudelleen?",
 
   "e_no_file": "Ei tiedostoa valittuna",

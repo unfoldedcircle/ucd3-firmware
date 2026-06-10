@@ -181,6 +181,8 @@
   "t_network_saved": "Configuration réseau enregistrée",
   "t_dns_saved": "Configuration DNS enregistrée",
   "t_ntp_saved": "Configuration NTP enregistrée",
+  "t_inactivity_warning": "La session expirera bientôt en raison de l'inactivité",
+  "t_inactivity_disconnected": "Déconnecté en raison de l'inactivité",
   "confirm_reboot_now": "Le dock va redémarrer pour activer les changements. Recharger la page?",
 
   "e_no_file": "Aucun fichier sélectionné",

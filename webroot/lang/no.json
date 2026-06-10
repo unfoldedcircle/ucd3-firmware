@@ -181,6 +181,8 @@
   "t_network_saved": "Nettverkskonfigurasjon lagret",
   "t_dns_saved": "DNS-konfigurasjon lagret",
   "t_ntp_saved": "NTP-konfigurasjon lagret",
+  "t_inactivity_warning": "Økten utløper snart på grunn av inaktivitet",
+  "t_inactivity_disconnected": "Frakoblet på grunn av inaktivitet",
   "confirm_reboot_now": "Docken vil starte på nytt for å aktivere endringer. Last inn siden på nytt?",
 
   "e_no_file": "Ingen fil valgt",

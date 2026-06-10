@@ -181,6 +181,8 @@
   "t_network_saved": "Configurazione di rete salvata",
   "t_dns_saved": "Configurazione DNS salvata",
   "t_ntp_saved": "Configurazione NTP salvata",
+  "t_inactivity_warning": "La sessione scadrà presto a causa di inattività",
+  "t_inactivity_disconnected": "Disconnesso a causa di inattività",
   "confirm_reboot_now": "Il dock si riavvierà per attivare le modifiche. Ricaricare la pagina?",
 
   "e_no_file": "Nessun file selezionato",

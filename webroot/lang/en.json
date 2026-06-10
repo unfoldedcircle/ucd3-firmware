@@ -181,6 +181,8 @@
   "t_network_saved": "Network configuration saved",
   "t_dns_saved": "DNS configuration saved",
   "t_ntp_saved": "NTP configuration saved",
+  "t_inactivity_warning": "Session will expire soon due to inactivity",
+  "t_inactivity_disconnected": "Disconnected due to inactivity",
   "confirm_reboot_now": "Dock will reboot to activate changes. Reload page?",
 
   "e_unknown": "Unknown error occurred",

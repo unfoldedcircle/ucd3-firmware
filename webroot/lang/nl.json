@@ -181,6 +181,8 @@
   "t_network_saved": "Netwerkconfiguratie opgeslagen",
   "t_dns_saved": "DNS-configuratie opgeslagen",
   "t_ntp_saved": "NTP-configuratie opgeslagen",
+  "t_inactivity_warning": "Sessie verloopt binnenkort door inactiviteit",
+  "t_inactivity_disconnected": "Verbinding verbroken door inactiviteit",
   "confirm_reboot_now": "Dock zal herstarten om wijzigingen te activeren. Pagina herladen?",
 
   "e_no_file": "Geen bestand geselecteerd",

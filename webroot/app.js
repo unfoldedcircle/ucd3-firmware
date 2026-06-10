@@ -175,6 +175,14 @@ const WS = {
   statusRefreshTimer: null,
   keepConnected: false,
 
+  // Timeout until inactivity warning
+  INACTIVITY_TIMEOUT_MS: 570000,  // 9.5 min
+  // Timeout until disconnect after warning
+  DISCONNECT_TIMEOUT_MS: 30000,
+  inactivityTimer: null,
+  warningTimer: null,
+  warningShown: false,
+
   connect: function () {
     if (this.socket && this.socket.readyState < 2) return;
     clearTimeout(this.reconnectTimer);
@@ -238,12 +246,14 @@ const WS = {
         UI.onAuthenticated();
         this.startStatusRefresh();
         this.keepConnected = true;
+        this.startInactivityTimer();
       } else {
         this.token = null;
         sessionStorage.removeItem("token");
         UI.setStatus("err");
         UI.showLogin(I18N.t("e_invalid_token"));
         this.stopStatusRefresh();
+        this.stopInactivityTimer();
       }
       return;
     }
@@ -272,8 +282,14 @@ const WS = {
     if (msg.type === "event") {
       let h = this.eventHandlers[msg.msg];
       if (h) h(msg);
+
+      // Reset inactivity timer on specific events (user-visible activity)
+      if (msg.msg === "log" || msg.msg === "serial_data" || msg.msg === "ir_receive") {
+        this.trackActivity();
+      }
     }
   },
+
 
   request: function (command, data) {
     let id = ++this.msgId;
@@ -292,6 +308,10 @@ const WS = {
       self.pending[id] = {resolve: resolve, reject: reject, timer: timer};
       try {
         self.socket.send(JSON.stringify(msg));
+        // Track user-initiated activity (exclude auto-refresh and auto-auth)
+        if (command !== "get_sysinfo" && command !== "auth") {
+          self.trackActivity();
+        }
       } catch (e) {
         clearTimeout(timer);
         delete self.pending[id];
@@ -341,6 +361,7 @@ const WS = {
     if (this.socket && this.socket.readyState === 1) {
       this.socket.close();
     }
+    this.stopInactivityTimer();
   },
 
   rejectAllPending: function () {
@@ -352,6 +373,7 @@ const WS = {
     }
     this.pending = {};
     this.stopStatusRefresh();
+    this.stopInactivityTimer();
   },
 
   on: function (msg, handler) {
@@ -369,7 +391,100 @@ const WS = {
     } else {
       this.connect();
     }
+  },
+
+  startInactivityTimer: function () {
+    if (!this.authenticated) return;
+
+    const self = this;
+    this.clearInactivityTimers();
+    this.warningShown = false;
+    console.debug("startInactivityTimer")
+
+    this.inactivityTimer = setTimeout(function () {
+      self.handleInactivityTimeout();
+    }, this.INACTIVITY_TIMEOUT_MS);
+  },
+
+  stopInactivityTimer: function () {
+    console.debug("stopInactivityTimer")
+    this.clearInactivityTimers();
+    this.warningShown = false;
+  },
+
+  clearInactivityTimers: function () {
+    console.debug("clearInactivityTimer")
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+      this.inactivityTimer = null;
+    }
+    if (this.warningTimer) {
+      clearTimeout(this.warningTimer);
+      this.warningTimer = null;
+    }
+  },
+
+  resetInactivityTimer: function () {
+    if (!this.authenticated) return;
+    console.debug("resetInactivityTimer")
+
+    const self = this;
+    clearTimeout(this.warningTimer);
+    this.warningShown = false;
+
+    clearTimeout(this.inactivityTimer);
+    this.inactivityTimer = setTimeout(function () {
+      self.handleInactivityTimeout();
+    }, this.INACTIVITY_TIMEOUT_MS);
+  },
+
+  handleInactivityTimeout: function () {
+    const self = this;
+    console.debug("handleInactivityTimeout: %s", this.warningShown);
+
+    // Show warning at 9.5 minutes
+    if (!this.warningShown) {
+      this.warningShown = true;
+      this.showInactivityWarning();
+
+      // Schedule actual disconnect after 30 seconds
+      this.warningTimer = setTimeout(function () {
+        self.performDisconnect();
+      }, this.DISCONNECT_TIMEOUT_MS);
+      return;
+    }
+
+    // Perform disconnect if warning already shown
+    this.performDisconnect();
+  },
+
+  showInactivityWarning: function () {
+    Toast.show(I18N.t("t_inactivity_warning"), false);
+  },
+
+  performDisconnect: function () {
+    console.debug("performDisconnect");
+    // Reset auth state but keep token
+    this.authenticated = false;
+    this.keepConnected = false;
+
+    // Close WebSocket
+    if (this.socket && this.socket.readyState === 1) {
+      this.socket.close();
+    }
+
+    // Update UI
+    UI.setStatus("err");
+    UI.updateLogoutVisibility();
+    Toast.show(I18N.t("t_inactivity_disconnected"), true);
+  },
+
+  trackActivity: function () {
+    if (this.authenticated) {
+      this.resetInactivityTimer();
+    }
   }
+
 };
 
 // ============================================================
@@ -509,6 +624,8 @@ const UI = {
       } else {
         WS.stopStatusRefresh();
       }
+      // Reset inactivity timer on navigation (user activity)
+      WS.trackActivity();
     }
   },
 

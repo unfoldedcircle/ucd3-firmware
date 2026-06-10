@@ -181,6 +181,8 @@
   "t_network_saved": "Nätverkskonfiguration sparad",
   "t_dns_saved": "DNS-konfiguration sparad",
   "t_ntp_saved": "NTP-konfiguration sparad",
+  "t_inactivity_warning": "Sessionen upphör snart på grund av inaktivitet",
+  "t_inactivity_disconnected": "Frånkopplad på grund av inaktivitet",
   "confirm_reboot_now": "Docken kommer att starta om för att aktivera ändringar. Ladda om sidan?",
 
   "e_no_file": "Ingen fil vald",

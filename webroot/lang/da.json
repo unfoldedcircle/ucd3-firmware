@@ -181,6 +181,8 @@
   "t_network_saved": "Netværkskonfiguration gemt",
   "t_dns_saved": "DNS-konfiguration gemt",
   "t_ntp_saved": "NTP-konfiguration gemt",
+  "t_inactivity_warning": "Sessionen udløber snart på grund af inaktivitet",
+  "t_inactivity_disconnected": "Frakoblet på grund af inaktivitet",
   "confirm_reboot_now": "Dock'en genstarter for at aktivere ændringer. Genindlæs side?",
 
   "e_no_file": "Ingen fil valgt",

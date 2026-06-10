@@ -180,6 +180,8 @@
   "t_network_saved": "Netzwerkkonfiguration gespeichert",
   "t_dns_saved": "DNS-Konfiguration gespeichert",
   "t_ntp_saved": "NTP-Konfiguration gespeichert",
+  "t_inactivity_warning": "Sitzung läuft bald ab aufgrund von Inaktivität",
+  "t_inactivity_disconnected": "Verbindung aufgrund von Inaktivität getrennt",
   "confirm_reboot_now": "Dock wird neu gestartet, um Änderungen zu aktivieren. Seite neu laden?",
 
   "e_no_file": "Keine Datei ausgewählt",
