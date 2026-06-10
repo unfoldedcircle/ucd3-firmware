@@ -1047,6 +1047,27 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                 }
             }
 
+            if (config_->isNtpEnabled()) {
+                for (uint8_t i = 0; i < CONFIG_LWIP_SNTP_MAX_SERVERS; i++) {
+                    char key[8];
+                    snprintf(key, sizeof(key), "ntp%u", i + 1);
+                    const char *server_name = esp_sntp_getservername(i);
+                    if (server_name) {
+                        cJSON_AddStringToObject(active_net, key, server_name);
+                    } else {
+                        // IPv4 or IPv6 address
+                        char             buf[48];
+                        ip_addr_t const *ip = esp_sntp_getserver(i);
+                        if (ip) {
+                            server_name = ipaddr_ntoa_r(ip, buf, sizeof(buf));
+                            if (server_name != NULL) {
+                                cJSON_AddStringToObject(active_net, key, server_name);
+                            }
+                        }
+                    }
+                }
+            }
+
 #if CONFIG_LWIP_IPV6
             add_ipv6_addresses_to_json(active_net, active_netif);
 #endif

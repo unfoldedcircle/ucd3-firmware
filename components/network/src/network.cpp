@@ -383,6 +383,11 @@ void network_ip_event_handler(void *arg, esp_event_base_t event_base, int32_t ev
             if (sntp_enabled && !sntp_initialized) {
                 sntp_initialized = true;
                 ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_sntp_start());
+                // esp_netif_sntp_start() calls sntp_stop()+sntp_init() without
+                // re-applying server names. Force a renew immediately so that the
+                // strdup'd names in s_storage are pushed back into lwIP via
+                // sntp_setservername() before the first poll fires.
+                esp_netif_sntp_renew_servers(NULL, IP_EVENT, event_id, event_data);
                 ESP_LOGI(TAG, "SNTP started on first IP event (%s). Renew: %ds",
                          event_id == IP_EVENT_ETH_GOT_IP ? "ETH" : "WiFi", CONFIG_LWIP_SNTP_UPDATE_DELAY / 1000);
             }

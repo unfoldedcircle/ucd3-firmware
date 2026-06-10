@@ -240,7 +240,7 @@ bool Config::setNtpServer(const std::string& server1, const std::string& server2
 }
 
 std::string Config::getNtpServer1() {
-    return getStringSetting(m_prefGeneral, "ntp_server1", "pool.ntp.org");
+    return getStringSetting(m_prefGeneral, "ntp_server1", "");
 }
 
 std::string Config::getNtpServer2() {
