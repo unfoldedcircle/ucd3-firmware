@@ -225,7 +225,7 @@ bool Config::isNtpEnabled() {
 }
 
 bool Config::setNtpServer(const std::string& server1, const std::string& server2) {
-    if (server1.length() > 32 || server2.length() > 32) {
+    if (server1.length() > 47 || server2.length() > 47) {
         ESP_LOGW(m_ctx, "Ignoring ntp server: name too long");
         return false;
     }
