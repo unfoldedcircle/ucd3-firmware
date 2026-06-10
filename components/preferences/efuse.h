@@ -12,6 +12,7 @@ class Efuse {
     const char *getModel() const;
     const char *getHwRevision() const;
 
+    bool hasPoeFeature() const;
     bool hasChargingFeature() const;
 
     static Efuse &instance();

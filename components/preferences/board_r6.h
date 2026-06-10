@@ -9,6 +9,3 @@
 
 #define UCD_HW_MODEL_NAME "UCD3"
 #define UCD_HW_REVISION_NAME "6"
-
-// OUTPUT, PoE voltage switch (rev6+). Not used yet
-#define POE_SWITCH GPIO_NUM_7

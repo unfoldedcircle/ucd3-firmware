@@ -73,6 +73,10 @@ const char* Efuse::getHwRevision() const {
     return device_desc.revision;
 }
 
+bool Efuse::hasPoeFeature() const {
+    return device_desc.features.poe;
+}
+
 bool Efuse::hasChargingFeature() const {
     return device_desc.features.charging;
 }

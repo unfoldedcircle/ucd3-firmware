@@ -113,6 +113,8 @@ class Config {
     const char* getModel() const;
     // get device hardware revision
     const char* getRevision() const;
+    // check if dock supports PoE
+    bool hasPoeFeature() const;
     // check if it is a charging dock
     bool hasChargingFeature() const;
 
@@ -232,6 +234,15 @@ class Config {
     /// @param port port number, 1-based.
     /// @param timeout_ms Timeout in milliseconds. 0 = no timeout.
     bool setSerialTimeout(uint8_t port, uint16_t timeout_ms);
+
+    /// @brief Get the PoE voltage mode (if supported by hardware).
+    /// @return Mode 0 is normal operation, mode 1 enables the higher PoE voltage on compatible hardware revisions.
+    uint8_t getPoeVoltageMode();
+
+    /// @brief Set the PoE voltage mode (if supported by hardware).
+    /// @param mode Mode 0 is normal operation, mode 1 enables the higher PoE voltage on compatible hardware revisions.
+    /// @return true if configuration could be saved, false otherwise.
+    bool setPoeVoltageMode(uint8_t mode);
 
     // reset config to defaults
     void reset();

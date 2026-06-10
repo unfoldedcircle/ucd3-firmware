@@ -28,7 +28,7 @@ Config::Config() {
     esp_read_mac(baseMac, ESP_MAC_WIFI_STA);
     snprintf(dockHostName, sizeof(dockHostName), "UCD3-%02X%02X%02X", baseMac[3], baseMac[4], baseMac[5]);
 
-    m_hostname = dockHostName;
+    m_hostname = dockHostName;  // TODO add .local
 
     // if no friendly name is set, use mac address
     if (getFriendlyName().empty()) {
@@ -202,6 +202,10 @@ const char* Config::getModel() const {
 const char* Config::getRevision() const {
     auto efuseRev = Efuse::instance().getHwRevision();
     return strlen(efuseRev) ? efuseRev : UCD_HW_REVISION_NAME;
+}
+
+bool Config::hasPoeFeature() const {
+    return Efuse::instance().hasPoeFeature();
 }
 
 bool Config::hasChargingFeature() const {
@@ -455,6 +459,17 @@ bool Config::setSerialTimeout(uint8_t port, uint16_t timeout_ms) {
     char keyname[16];
     snprintf(keyname, sizeof(keyname), "serial%u_to", port);
     return setUShortSetting(m_prefGeneral, keyname, timeout_ms);
+}
+
+uint8_t Config::getPoeVoltageMode() {
+    return getUCharSetting(m_prefGeneral, "poe_voltage", 0);
+}
+
+bool Config::setPoeVoltageMode(uint8_t mode) {
+    if (mode > 1) {
+        mode = 1;
+    }
+    return setUCharSetting(m_prefGeneral, "poe_voltage", mode);
 }
 
 // reset config to defaults
