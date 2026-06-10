@@ -83,9 +83,9 @@ class DockApi {
     void loadSerialBufferConfig(uint8_t port);
 
     // Log streaming support
-    uint16_t         handleEnableLogEvents(int sockfd, const cJSON* root, cJSON* responseDoc);
-    void             sendLogToSubscribers(const char* tag, esp_log_level_t level, const char* message, size_t len);
-    static esp_err_t logCallback(const char* tag, esp_log_level_t level, const char* message, size_t len, void* ctx);
+    uint16_t    handleEnableLogEvents(int sockfd, const cJSON* root, cJSON* responseDoc);
+    void        sendLogToSubscribers(const char* tag, esp_log_level_t level, const char* message, size_t len);
+    static void logSenderTask(void* arg);
 
     Config*    config_;
     WebServer* web_;
@@ -106,5 +106,7 @@ class DockApi {
     // Per-client log streaming subscriptions
     std::set<int>     log_subscribers_;
     SemaphoreHandle_t log_subscribers_mutex_;
-    int               log_callback_id_;
+
+    TaskHandle_t  log_sender_task_handle_;
+    QueueHandle_t log_queue_;
 };

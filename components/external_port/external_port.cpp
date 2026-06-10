@@ -512,8 +512,6 @@ void ExternalPort::applyVector(int g, int e, int t, bool is_mono) {
 }
 
 ExtPortMode ExternalPort::detectPortType() {
-    esp_err_t ret = ESP_OK;
-
     const size_t test_cases = sizeof(VECTOR) / sizeof(vector_t);
     int          voltages[test_cases];
     int          rx_vals[test_cases];

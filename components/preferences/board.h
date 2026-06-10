@@ -137,6 +137,9 @@ gpio_num_t board_get_spi_cs(void);
 // @return pin or GPIO_NUM_NC if not used
 gpio_num_t board_get_ir_send_pin_int_top(void);
 
+/// GPIO pin of the PoE switch (if revision has one, otherwise GPIO_NUM_NC)
+gpio_num_t board_get_poe_switch_pin(void);
+
 // GPIO pin of the charger measurement
 gpio_num_t board_get_charging_current_pin(void);
 

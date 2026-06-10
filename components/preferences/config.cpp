@@ -28,7 +28,7 @@ Config::Config() {
     esp_read_mac(baseMac, ESP_MAC_WIFI_STA);
     snprintf(dockHostName, sizeof(dockHostName), "UCD3-%02X%02X%02X", baseMac[3], baseMac[4], baseMac[5]);
 
-    m_hostname = dockHostName;
+    m_hostname = dockHostName;  // TODO add .local
 
     // if no friendly name is set, use mac address
     if (getFriendlyName().empty()) {
@@ -204,6 +204,10 @@ const char* Config::getRevision() const {
     return strlen(efuseRev) ? efuseRev : UCD_HW_REVISION_NAME;
 }
 
+bool Config::hasPoeFeature() const {
+    return Efuse::instance().hasPoeFeature();
+}
+
 bool Config::hasChargingFeature() const {
     return Efuse::instance().hasChargingFeature();
 }
@@ -225,7 +229,7 @@ bool Config::isNtpEnabled() {
 }
 
 bool Config::setNtpServer(const std::string& server1, const std::string& server2) {
-    if (server1.length() > 32 || server2.length() > 32) {
+    if (server1.length() > 47 || server2.length() > 47) {
         ESP_LOGW(m_ctx, "Ignoring ntp server: name too long");
         return false;
     }
@@ -240,7 +244,7 @@ bool Config::setNtpServer(const std::string& server1, const std::string& server2
 }
 
 std::string Config::getNtpServer1() {
-    return getStringSetting(m_prefGeneral, "ntp_server1", "pool.ntp.org");
+    return getStringSetting(m_prefGeneral, "ntp_server1", "");
 }
 
 std::string Config::getNtpServer2() {
@@ -251,31 +255,38 @@ bool Config::setNetwork(network_cfg_t cfg) {
     if (!m_preferences.begin(m_prefGeneral, false)) {
         return false;
     }
-    m_preferences.putBool("ip_dhcp", cfg.dhcp);
-    m_preferences.putUInt("ip_addr", cfg.ip.ip.addr);
-    m_preferences.putUInt("ip_mask", cfg.ip.netmask.addr);
-    m_preferences.putUInt("ip_gw", cfg.ip.gw.addr);
+    m_preferences.putBool("eth_dhcp", cfg.eth.dhcp);
+    m_preferences.putUInt("eth_ip", cfg.eth.ip.ip.addr);
+    m_preferences.putUInt("eth_mask", cfg.eth.ip.netmask.addr);
+    m_preferences.putUInt("eth_gw", cfg.eth.ip.gw.addr);
+
+    m_preferences.putBool("wifi_dhcp", cfg.wifi.dhcp);
+    m_preferences.putUInt("wifi_ip", cfg.wifi.ip.ip.addr);
+    m_preferences.putUInt("wifi_mask", cfg.wifi.ip.netmask.addr);
+    m_preferences.putUInt("wifi_gw", cfg.wifi.ip.gw.addr);
 
     m_preferences.end();
     return true;
 }
 
 network_cfg_t Config::getNetwork() {
-    esp_netif_ip_info_t ip;
-    memset(&ip, 0, sizeof(esp_netif_ip_info_t));
-    ip.ip.addr = getUIntSetting(m_prefGeneral, "ip_addr", 0);
-    ip.netmask.addr = getUIntSetting(m_prefGeneral, "ip_mask", 0);
-    ip.gw.addr = getUIntSetting(m_prefGeneral, "ip_gw", 0);
+    network_cfg_t cfg = {};
 
-    network_cfg_t cfg;
-    cfg.dhcp = getBoolSetting(m_prefGeneral, "ip_dhcp", true);
-    cfg.ip = ip;
+    cfg.eth.dhcp = getBoolSetting(m_prefGeneral, "eth_dhcp", true);
+    cfg.eth.ip.ip.addr = getUIntSetting(m_prefGeneral, "eth_ip", 0);
+    cfg.eth.ip.netmask.addr = getUIntSetting(m_prefGeneral, "eth_mask", 0);
+    cfg.eth.ip.gw.addr = getUIntSetting(m_prefGeneral, "eth_gw", 0);
+
+    cfg.wifi.dhcp = getBoolSetting(m_prefGeneral, "wifi_dhcp", true);
+    cfg.wifi.ip.ip.addr = getUIntSetting(m_prefGeneral, "wifi_ip", 0);
+    cfg.wifi.ip.netmask.addr = getUIntSetting(m_prefGeneral, "wifi_mask", 0);
+    cfg.wifi.ip.gw.addr = getUIntSetting(m_prefGeneral, "wifi_gw", 0);
 
     return cfg;
 }
 
 bool Config::setDnsServer(const std::string& server1, const std::string& server2) {
-    if (server1.length() > 32 || server2.length() > 32) {
+    if (server1.length() > 47 || server2.length() > 47) {
         ESP_LOGW(m_ctx, "Ignoring dns server: name too long");
         return false;
     }
@@ -455,6 +466,17 @@ bool Config::setSerialTimeout(uint8_t port, uint16_t timeout_ms) {
     char keyname[16];
     snprintf(keyname, sizeof(keyname), "serial%u_to", port);
     return setUShortSetting(m_prefGeneral, keyname, timeout_ms);
+}
+
+uint8_t Config::getPoeVoltageMode() {
+    return getUCharSetting(m_prefGeneral, "poe_voltage", 0);
+}
+
+bool Config::setPoeVoltageMode(uint8_t mode) {
+    if (mode > 1) {
+        mode = 1;
+    }
+    return setUCharSetting(m_prefGeneral, "poe_voltage", mode);
 }
 
 // reset config to defaults

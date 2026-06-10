@@ -10,9 +10,6 @@ CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ=240
 
 CONFIG_ESP_TASK_WDT_PANIC=y
 
-# default 2304 causes stack overflow with REST requests. Likely caused by the stack allocated log buffer in the log router.
-CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=3072
-
 # default 2048 causes stack overflow and 3072 is still not enough. Likely because of timer usage in the state machines.
 CONFIG_FREERTOS_TIMER_TASK_STACK_DEPTH=4092
 
@@ -81,6 +78,13 @@ CONFIG_UCD_GLOBALCACHE_MAX_CLIENTS=6
 CONFIG_LWIP_MAX_ACTIVE_TCP=32
 # Maximum number of simultaneously listening TCP connections (leave at default): WebSocket API, webserver, GlobalCache server
 CONFIG_LWIP_MAX_LISTENING_TCP=16
+
+#
+# UDP
+#
+# Increase from default 6 for a larger httpd work queue, otherwise response messages are silently dropped if full.
+CONFIG_LWIP_UDP_RECVMBOX_SIZE=12
+# end of UDP
 
 #
 # SNTP

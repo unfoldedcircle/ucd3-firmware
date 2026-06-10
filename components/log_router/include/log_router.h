@@ -4,58 +4,80 @@
 
 #pragma once
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "esp_err.h"
-#include "esp_log.h"
 #include "esp_log_level.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+
+// Maximum length of a formatted log message including null terminator.
+// Must match the message field size in log_entry_t.
+#define LOG_MESSAGE_LEN 100
+
+// Reserved level value used as a sentinel to signal the sender task to stop.
+// Must not overlap any esp_log_level_t value (which are 0–5).
+#define LOG_ENTRY_SENTINEL 0xFF
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief Callback function type for sending log messages to external destinations
+ * @brief A single log entry delivered through the queue.
  *
- * @param tag Log tag
- * @param level Log level
- * @param message Full log message (includes timestamp, level, tag, text)
- * @param len Length of the message
- * @param ctx User context
- * @return esp_err_t ESP_OK on success
+ * Allocated on the heap by log_router_vprintf. The receiver owns the pointer
+ * and must free() it after use.
  */
-typedef esp_err_t (*log_output_callback_t)(const char *tag, esp_log_level_t level, const char *message, size_t len,
-                                           void *ctx);
+typedef struct {
+    char     tag[11];                   ///< Null-terminated log tag, e.g. "CHARGE"
+    uint8_t  level;                     ///< esp_log_level_t cast to uint8_t
+    uint16_t len;                       ///< Length of message, not including null terminator
+    char     message[LOG_MESSAGE_LEN];  ///< Full formatted log line, null-terminated
+} log_entry_t;
 
 /**
- * @brief Initialize the log router
+ * @brief Initialise the log router.
  *
- * This sets up a custom log writer that forwards all ESP_LOG* messages to
- * registered output callbacks while keeping the default console output active.
+ * Installs a custom vprintf handler that intercepts all ESP_LOG* output.
+ * Console/UART output is always preserved. The internal queue is created but
+ * forwarding is inactive until log_router_start() is called.
  *
- * @return esp_err_t ESP_OK on success
+ * Must be called once at startup, before any task uses the log router.
+ *
+ * @return ESP_OK on success, ESP_ERR_NO_MEM if the queue cannot be created.
  */
 esp_err_t log_router_init(void);
 
 /**
- * @brief Register a callback for log output (e.g., WebSocket)
+ * @brief Start forwarding log entries to the queue.
  *
- * Multiple callbacks can be registered. Each will receive all log messages.
+ * Returns the queue handle. The caller is responsible for draining it.
+ * Entries are heap-allocated log_entry_t pointers; the receiver must free()
+ * each one after processing.
  *
- * @param callback Callback function (NULL to unregister)
- * @param ctx User context passed to callback
- * @param callback_id Output parameter to store the callback ID for later removal
- * @return esp_err_t ESP_OK on success, ESP_ERR_NO_MEM if max callbacks reached
+ * Calling start when already started is a no-op and returns the existing handle.
+ *
+ * @param[out] queue  Receives the queue handle.
+ * @return ESP_OK on success.
+ *         ESP_ERR_INVALID_STATE if log_router_init() has not been called.
+ *         ESP_ERR_INVALID_ARG if queue is NULL.
  */
-esp_err_t log_router_register_callback(log_output_callback_t callback, void *ctx, int *callback_id);
+esp_err_t log_router_start(QueueHandle_t *queue);
 
 /**
- * @brief Unregister a previously registered callback
+ * @brief Stop forwarding log entries to the queue.
  *
- * @param callback_id ID returned from log_router_register_callback
- * @return esp_err_t ESP_OK on success, ESP_ERR_NOT_FOUND if ID not found
+ * After this returns, no new entries will be enqueued. Entries already in the
+ * queue are not flushed; the caller should drain the queue before destroying it.
+ *
+ * Calling stop when already stopped is a no-op.
+ *
+ * @return ESP_OK on success.
+ *         ESP_ERR_INVALID_STATE if log_router_init() has not been called.
  */
-esp_err_t log_router_unregister_callback(int callback_id);
+esp_err_t log_router_stop(void);
 
 #ifdef __cplusplus
 }

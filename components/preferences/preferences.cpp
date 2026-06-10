@@ -40,6 +40,7 @@ Preferences::~Preferences() {
 
 bool Preferences::begin(const char* name, bool readOnly, const char* partition_label) {
     if (_started) {
+        ESP_LOGW(TAG, "Already started. Call end() before beginning again.");
         return false;
     }
     _readOnly = readOnly;
@@ -85,7 +86,7 @@ bool Preferences::clear() {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s", nvs_error(err));
+        ESP_LOGE(TAG, "clear nvs_commit fail: %s", nvs_error(err));
         return false;
     }
     return true;
@@ -106,7 +107,7 @@ bool Preferences::remove(const char* key) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "remove nvs_commit fail: %s %s", key, nvs_error(err));
         return false;
     }
     return true;
@@ -127,7 +128,7 @@ size_t Preferences::putChar(const char* key, int8_t value) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putChar %d nvs_commit fail: %s %s", value, key, nvs_error(err));
         return 0;
     }
     return 1;
@@ -144,7 +145,7 @@ size_t Preferences::putUChar(const char* key, uint8_t value) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putUChar %u nvs_commit fail: %s %s", value, key, nvs_error(err));
         return 0;
     }
     return 1;
@@ -161,7 +162,7 @@ size_t Preferences::putShort(const char* key, int16_t value) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putShort %d nvs_commit fail: %s %s", value, key, nvs_error(err));
         return 0;
     }
     return 2;
@@ -178,7 +179,7 @@ size_t Preferences::putUShort(const char* key, uint16_t value) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putUShort %u nvs_commit fail: %s %s", value, key, nvs_error(err));
         return 0;
     }
     return 2;
@@ -195,7 +196,7 @@ size_t Preferences::putInt(const char* key, int32_t value) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putInt %ld nvs_commit fail: %s %s", value, key, nvs_error(err));
         return 0;
     }
     return 4;
@@ -212,7 +213,7 @@ size_t Preferences::putUInt(const char* key, uint32_t value) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putUInt %lu nvs_commit fail: %s %s", value, key, nvs_error(err));
         return 0;
     }
     return 4;
@@ -237,7 +238,7 @@ size_t Preferences::putLong64(const char* key, int64_t value) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putLong64 %lld nvs_commit fail: %s %s", value, key, nvs_error(err));
         return 0;
     }
     return 8;
@@ -254,7 +255,7 @@ size_t Preferences::putULong64(const char* key, uint64_t value) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putULong64 %llu nvs_commit fail: %s %s", value, key, nvs_error(err));
         return 0;
     }
     return 8;
@@ -283,7 +284,7 @@ size_t Preferences::putString(const char* key, const char* value) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putString '%s' nvs_commit fail: %s %s", value, key, nvs_error(err));
         return 0;
     }
     return strlen(value);
@@ -304,7 +305,7 @@ size_t Preferences::putBytes(const char* key, const void* value, size_t len) {
     }
     err = nvs_commit(_handle);
     if (err) {
-        ESP_LOGE(TAG, "nvs_commit fail: %s %s", key, nvs_error(err));
+        ESP_LOGE(TAG, "putBytes nvs_commit fail: %s %s", key, nvs_error(err));
         return 0;
     }
     return len;

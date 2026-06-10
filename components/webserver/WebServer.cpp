@@ -677,6 +677,9 @@ esp_err_t WebServer::sendWsTxt(int id, char *msg) {
     resp_arg->type = HTTPD_WS_TYPE_TEXT;
     resp_arg->payload = (uint8_t *)msg;
     resp_arg->len = 0;
+    // WARNING httpd_queue_work silently drops messages if queue is full in IDF 5.4!
+    // This has only been recently fixed: https://github.com/espressif/esp-idf/issues/18563
+    // https://github.com/espressif/esp-idf/commit/c911c781ae94e40d0df6596a25c53025c5f98fb5
     esp_err_t ret = httpd_queue_work(resp_arg->hd, ws_async_send, resp_arg);
     if (ret != ESP_OK) {
         free(resp_arg->payload);
@@ -703,7 +706,11 @@ void WebServer::broadcastWsTxt(std::string &msg) {
     }
 }
 
+#if CONFIG_LWIP_IPV6
 esp_err_t WebServer::getRemoteIp(int fd, struct sockaddr_in6 *addr_in) {
+#else
+esp_err_t WebServer::getRemoteIp(int fd, struct sockaddr_in *addr_in) {
+#endif
     socklen_t addrlen = sizeof(*addr_in);
     if (lwip_getpeername(fd, (struct sockaddr *)addr_in, &addrlen) != -1) {
         return ESP_OK;

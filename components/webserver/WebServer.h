@@ -106,7 +106,11 @@ class WebServer {
     /// @param msg text message
     void broadcastWsTxt(std::string &msg);
 
+#if CONFIG_LWIP_IPV6
     static esp_err_t getRemoteIp(int id, struct sockaddr_in6 *addr_in);
+#else
+    static esp_err_t getRemoteIp(int id, struct sockaddr_in *addr_in);
+#endif
 
     uint16_t wsClientCount();
 

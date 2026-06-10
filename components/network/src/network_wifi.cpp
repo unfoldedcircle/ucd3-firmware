@@ -101,6 +101,16 @@ static void network_wifi_event_handler(void* arg, esp_event_base_t event_base, i
                     "WIFI_EVENT_STA_CONNECTED. Channel: %d, Access point: %s, BSSID: %02x:%02x:%02x:%02x:%02x:%02x",
                     s->channel, ssid, s->bssid[0], s->bssid[1], s->bssid[2], s->bssid[3], s->bssid[4], s->bssid[5]);
             }
+
+#if CONFIG_LWIP_IPV6
+            esp_err_t err = esp_netif_create_ip6_linklocal(wifi_netif);
+            if (err == ESP_OK) {
+                ESP_LOGI(TAG, "Creating IPv6 link-local address for WiFi");
+            } else if (err != ESP_ERR_INVALID_STATE) {
+                ESP_LOGW(TAG, "Failed to create IPv6 link-local address for WiFi: %s", esp_err_to_name(err));
+            }
+#endif
+
             trigger_connected_event();
 
         } break;
@@ -151,7 +161,6 @@ esp_netif_t* network_wifi_start() {
         ESP_ERROR_CHECK_WITHOUT_ABORT(
             esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &network_wifi_event_handler, NULL, NULL));
         ESP_LOGD(TAG, "Setting up wifi Storage");
-        // TODO decide on storage option: RAM or FLASH
         ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_set_storage(WIFI_STORAGE_RAM));
     }
     ESP_LOGI(TAG, "Setting up wifi mode as STA");

@@ -5,213 +5,197 @@
 #include "log_router.h"
 
 #include <stdarg.h>
-#include <stdbool.h>
+#include <stdatomic.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "esp_log.h"
 
 static const char *TAG = "LOG_ROUTER";
 
-// Maximum number of log output callbacks. At the moment we only have the UC WS API.
-#define MAX_LOG_CALLBACKS 1
+// Number of log_entry_t* pointers that can be buffered.
+// If the sender task falls behind, oldest entries are dropped (non-blocking send).
+#define LOG_QUEUE_DEPTH 64
 
-// Maximum length of formatted log message. Note: we are not using long log messages, 256 should be plenty
-#define MAX_LOG_LEN 256
+// Original vprintf installed by IDF (outputs to UART/console). Always called.
+static vprintf_like_t g_original_vprintf = NULL;
 
-// Callback entry structure
-typedef struct {
-    int                   id;
-    log_output_callback_t callback;
-    void                 *ctx;
-    bool                  active;
-} log_callback_entry_t;
+// The queue through which log_entry_t* pointers are delivered to the consumer.
+static QueueHandle_t g_log_queue = NULL;
 
-// Static storage for callbacks
-static log_callback_entry_t s_callbacks[MAX_LOG_CALLBACKS];
-static int                  s_next_id = 1;
-static bool                 s_initialized = false;
+// Atomic flag: true when the consumer has called log_router_start().
+// acquire/release ordering ensures that g_log_queue is visible before
+// forwarding begins, and that the NULL write in stop is visible after the flag drops.
+static _Atomic bool g_active = false;
 
-// Original vprintf function (outputs to console/UART)
-static int (*g_original_vprintf)(const char *fmt, va_list args) = NULL;
+static bool g_initialized = false;
 
-// Helper to parse log message and extract tag/level
-static void parse_log_message(const char *message, size_t len, char *tag, size_t tag_size, esp_log_level_t *level) {
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+static esp_log_level_t parse_level(char c) {
+    switch (c) {
+        case 'E':
+            return ESP_LOG_ERROR;
+        case 'W':
+            return ESP_LOG_WARN;
+        case 'I':
+            return ESP_LOG_INFO;
+        case 'D':
+            return ESP_LOG_DEBUG;
+        case 'V':
+            return ESP_LOG_VERBOSE;
+        default:
+            return ESP_LOG_INFO;
+    }
+}
+
+static void parse_tag(const char *message, size_t len, char *tag, size_t tag_size) {
     tag[0] = '\0';
-    *level = ESP_LOG_INFO;
-
     if (len < 10) {
         return;
     }
 
-    // Extract level (first character)
-    switch (message[0]) {
-        case 'E':
-            *level = ESP_LOG_ERROR;
-            break;
-        case 'W':
-            *level = ESP_LOG_WARN;
-            break;
-        case 'I':
-            *level = ESP_LOG_INFO;
-            break;
-        case 'D':
-            *level = ESP_LOG_DEBUG;
-            break;
-        case 'V':
-            *level = ESP_LOG_VERBOSE;
-            break;
-        default:
-            *level = ESP_LOG_INFO;
-            break;
-    }
-
-    // Find tag between ") " and ":"
+    // Format: "L (timestamp) TAG: text"
+    // Tag lives between ") " and ":"
     const char *tag_start = strchr(message, ')');
-    if (tag_start) {
+    if (!tag_start) {
+        return;
+    }
+
+    tag_start++;
+    while (*tag_start == ' ' && tag_start < message + len) {
         tag_start++;
-        while (*tag_start == ' ' && tag_start < message + len) tag_start++;
-
-        const char *tag_end = strchr(tag_start, ':');
-        if (tag_end && (tag_end - tag_start < (ptrdiff_t)tag_size)) {
-            size_t tag_len = tag_end - tag_start;
-            if (tag_len >= tag_size) {
-                tag_len = tag_size - 1;
-            }
-            strncpy(tag, tag_start, tag_len);
-            tag[tag_len] = '\0';
-        }
     }
+
+    const char *tag_end = strchr(tag_start, ':');
+    if (!tag_end) {
+        return;
+    }
+
+    size_t tag_len = (size_t)(tag_end - tag_start);
+    if (tag_len >= tag_size) {
+        tag_len = tag_size - 1;
+    }
+
+    memcpy(tag, tag_start, tag_len);
+    tag[tag_len] = '\0';
 }
 
-// Helper to check if any callbacks are active (fast path check)
-static inline bool has_active_callbacks(void) {
-    // Quick check: if next_id is still 1, no callbacks were ever registered
-    if (s_next_id == 1) {
-        return false;
-    }
+// ---------------------------------------------------------------------------
+// Custom vprintf — installed by log_router_init()
+// ---------------------------------------------------------------------------
 
-    // Check if any callback is currently active
-    for (int i = 0; i < MAX_LOG_CALLBACKS; i++) {
-        if (s_callbacks[i].active) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// Custom vprintf function that forwards to multiple outputs
 static int log_router_vprintf(const char *fmt, va_list args) {
-    // Always output to console (original vprintf) - this is the common case
+    // Always forward to the original console handler first.
     int ret = 0;
     if (g_original_vprintf) {
-        va_list args_copy;
-        va_copy(args_copy, args);
-        ret = g_original_vprintf(fmt, args_copy);
-        va_end(args_copy);
+        va_list console_args;
+        va_copy(console_args, args);
+        ret = g_original_vprintf(fmt, console_args);
+        va_end(console_args);
     }
 
-    // FAST PATH: Skip all callback logic if no subscribers active
-    // This is the most common case - no extra log clients
-    if (!has_active_callbacks()) {
+    // Fast path: skip queue logic when not active.
+    // acquire: if we observe true, g_log_queue is guaranteed visible.
+    if (!atomic_load_explicit(&g_active, memory_order_acquire)) {
         return ret;
     }
 
-    // SLOW PATH: Only execute when callbacks are registered
-    // Format the message into a buffer for callbacks (don't use a static buffer for thread safety)
-    char    log_buffer[MAX_LOG_LEN];
-    va_list args_copy2;
-    va_copy(args_copy2, args);
-    int len = vsnprintf(log_buffer, sizeof(log_buffer), fmt, args_copy2);
-    va_end(args_copy2);
+    // Allocate entry. If the heap is exhausted we drop the message rather than block.
+    // The log hook must never stall the calling task.
+    log_entry_t *entry = (log_entry_t *)malloc(sizeof(log_entry_t));
+    if (!entry) {
+        return ret;
+    }
+
+    // Format into the entry's message buffer.
+    va_list fmt_args;
+    va_copy(fmt_args, args);
+    int len = vsnprintf(entry->message, LOG_MESSAGE_LEN, fmt, fmt_args);
+    va_end(fmt_args);
 
     if (len <= 0) {
+        free(entry);
         return ret;
     }
 
-    // Ensure null termination
-    if (len >= (int)sizeof(log_buffer)) {
-        len = sizeof(log_buffer) - 1;
-    }
-    log_buffer[len] = '\0';
+    entry->len = (len < LOG_MESSAGE_LEN) ? (uint16_t)len : (uint16_t)(LOG_MESSAGE_LEN - 1);
+    entry->message[entry->len] = '\0';
 
-    // Parse the message to extract tag and level
-    char            tag[32] = {0};
-    esp_log_level_t level = ESP_LOG_INFO;
+    // Parse level and tag directly from the formatted line.
+    entry->level = (uint8_t)parse_level(entry->message[0]);
+    parse_tag(entry->message, entry->len, entry->tag, sizeof(entry->tag));
 
-    parse_log_message(log_buffer, len, tag, sizeof(tag), &level);
-
-    // Forward to all registered callbacks
-    for (int i = 0; i < MAX_LOG_CALLBACKS; i++) {
-        if (s_callbacks[i].active && s_callbacks[i].callback) {
-            s_callbacks[i].callback(tag, level, log_buffer, len, s_callbacks[i].ctx);
-        }
+    // Post to queue non-blocking. Drop if full, producer must never block.
+    if (xQueueSend(g_log_queue, &entry, 0) != pdTRUE) {
+        free(entry);
     }
 
     return ret;
 }
 
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
 esp_err_t log_router_init(void) {
-    if (s_initialized) {
+    if (g_initialized) {
         return ESP_OK;
     }
 
-    memset(s_callbacks, 0, sizeof(s_callbacks));
-    s_next_id = 1;
+    g_log_queue = xQueueCreate(LOG_QUEUE_DEPTH, sizeof(log_entry_t *));
+    if (!g_log_queue) {
+        return ESP_ERR_NO_MEM;
+    }
 
-    // Store the original vprintf function (default outputs to UART/console)
+    atomic_store_explicit(&g_active, false, memory_order_release);
+
     g_original_vprintf = esp_log_set_vprintf(log_router_vprintf);
+    g_initialized = true;
 
-    s_initialized = true;
     ESP_LOGI(TAG, "Log router initialized");
-
     return ESP_OK;
 }
 
-esp_err_t log_router_register_callback(log_output_callback_t callback, void *ctx, int *callback_id) {
-    if (!s_initialized) {
+esp_err_t log_router_start(QueueHandle_t *queue) {
+    if (!g_initialized) {
         return ESP_ERR_INVALID_STATE;
     }
-
-    if (!callback) {
+    if (!queue) {
         return ESP_ERR_INVALID_ARG;
     }
 
-    for (int i = 0; i < MAX_LOG_CALLBACKS; i++) {
-        if (!s_callbacks[i].active) {
-            s_callbacks[i].id = s_next_id++;
-            s_callbacks[i].callback = callback;
-            s_callbacks[i].ctx = ctx;
-            s_callbacks[i].active = true;
+    *queue = g_log_queue;
+    // ensures g_log_queue is visible to any core that observes g_active == true
+    atomic_store_explicit(&g_active, true, memory_order_release);
 
-            if (callback_id) {
-                *callback_id = s_callbacks[i].id;
-            }
-
-            ESP_LOGD(TAG, "Callback registered with ID %d", s_callbacks[i].id);
-            return ESP_OK;
-        }
-    }
-
-    ESP_LOGE(TAG, "Maximum number of callbacks reached (%d)", MAX_LOG_CALLBACKS);
-    return ESP_ERR_NO_MEM;
+    ESP_LOGI(TAG, "Log forwarding started");
+    return ESP_OK;
 }
 
-esp_err_t log_router_unregister_callback(int callback_id) {
-    if (!s_initialized) {
+esp_err_t log_router_stop(void) {
+    if (!g_initialized) {
         return ESP_ERR_INVALID_STATE;
     }
 
-    for (int i = 0; i < MAX_LOG_CALLBACKS; i++) {
-        if (s_callbacks[i].active && s_callbacks[i].id == callback_id) {
-            s_callbacks[i].active = false;
-            s_callbacks[i].callback = NULL;
-            s_callbacks[i].ctx = NULL;
+    // Flip the active flag first so no new real entries are enqueued after this point.
+    atomic_store_explicit(&g_active, false, memory_order_release);
 
-            ESP_LOGD(TAG, "Callback %d unregistered", callback_id);
-            return ESP_OK;
+    // Post a sentinel to unblock the consumer if it is waiting in xQueueReceive.
+    // Allocated on the heap like real entries so the consumer can free() it uniformly.
+    log_entry_t *sentinel = (log_entry_t *)malloc(sizeof(log_entry_t));
+    if (sentinel) {
+        memset(sentinel, 0, sizeof(log_entry_t));
+        sentinel->level = LOG_ENTRY_SENTINEL;
+        if (xQueueSend(g_log_queue, &sentinel, pdMS_TO_TICKS(100)) != pdTRUE) {
+            free(sentinel);  // queue full — task will drain and eventually idle-exit
+            ESP_LOGW(TAG, "Failed to enqueue sentinel, task will drain on next message");
         }
     }
 
-    return ESP_ERR_NOT_FOUND;
+    ESP_LOGI(TAG, "Log forwarding stopped");
+    return ESP_OK;
 }
