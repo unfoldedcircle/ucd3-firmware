@@ -34,6 +34,13 @@ static const int AUTH_TIMER_CHECK_PERIOD_MS = 5000;
 // Limited because of silently dropping queue work: https://github.com/espressif/esp-idf/issues/8440
 static const int MAX_WS_CLOSE_COUNT = 2;
 
+// Maximum number of WebSocket client log stream subscriptions
+static const int MAX_WS_LOG_SUBS = 2;
+// Throttle log message sending to avoid dropping WebSocket messages (or other responses).
+// Note: with default IDF CONFIG_LWIP_UDP_RECVMBOX_SIZE=6, the delay should be set to 250 ms
+// 100ms seems to be ok for IDF CONFIG_LWIP_UDP_RECVMBOX_SIZE=12
+static const int WS_LOG_DELAY_MS = 100;
+
 // Feature flag: do not send a WebSocket response for ir_send when an IR sequence is extended.
 static const int API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE = BIT0;
 // Feature flag: `ir_send` command supports the `hold` parameter to send ir command for x milliseconds.
@@ -217,16 +224,16 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
       auth_timer_(nullptr),
       serial_event_mutex_(xSemaphoreCreateMutex()),
       log_subscribers_mutex_(xSemaphoreCreateMutex()),
-      log_callback_id_(-1) {
+      log_sender_task_handle_(nullptr),
+      log_queue_(nullptr) {
     assert(config_);
     assert(web_);
     assert(unauthenticated_fds_mutex_);
     assert(serial_event_mutex_);
     assert(log_subscribers_mutex_);
 
-    // Initialize log router and register callback
+    // Initialize log router
     log_router_init();
-    log_router_register_callback(logCallback, this, &log_callback_id_);
 
     web_->onWsEvent([this](httpd_req_t *req, int sockfd, WsTypeEnum type, uint8_t *payload, size_t length,
                            bool authenticated) -> esp_err_t {
@@ -286,10 +293,16 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                     xSemaphoreGive(serial_event_mutex_);
                 }
 
-                // Remove from log subscribers
+                // Remove from log subscribers and stop the router if no one remains.
                 if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(1000)) == pdTRUE) {
                     log_subscribers_.erase(sockfd);
+                    size_t remaining = log_subscribers_.size();
                     xSemaphoreGive(log_subscribers_mutex_);
+                    if (remaining == 0 && log_queue_ != nullptr) {
+                        log_router_stop();
+                        log_queue_ = nullptr;
+                        // log_sender_task_handle_ is nulled by the task itself after self-deletion
+                    }
                 }
 
                 return ESP_OK;
@@ -322,12 +335,19 @@ DockApi::~DockApi() {
 
     deinitSerialBuffers();
 
-    // Unregister log callback
-    if (log_callback_id_ >= 0) {
-        log_router_unregister_callback(log_callback_id_);
-        log_callback_id_ = -1;
+    if (log_queue_ != nullptr) {
+        log_router_stop();
+        log_queue_ = nullptr;
     }
-
+    // Give the task a moment to process the sentinel and self-delete.
+    // If it does not, force-kill — acceptable in a full teardown.
+    if (log_sender_task_handle_) {
+        vTaskDelay(pdMS_TO_TICKS(50));
+        if (log_sender_task_handle_) {  // re-check after delay
+            vTaskDelete(log_sender_task_handle_);
+            log_sender_task_handle_ = nullptr;
+        }
+    }
     vSemaphoreDelete(log_subscribers_mutex_);
 }
 
@@ -1251,39 +1271,66 @@ uint16_t DockApi::handleEnableLogEvents(int sockfd, const cJSON *root, cJSON *re
         return 400;
     }
 
-    if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(1000)) == pdTRUE) {
-        if (enable) {
-            log_subscribers_.insert(sockfd);
-            ESP_LOGI(TAG, "Client %d subscribed to log streaming (total: %d)", sockfd, log_subscribers_.size());
-        } else {
-            log_subscribers_.erase(sockfd);
-            ESP_LOGD(TAG, "Client %d unsubscribed from log streaming (total: %d)", sockfd, log_subscribers_.size());
-        }
-        xSemaphoreGive(log_subscribers_mutex_);
-    } else {
+    if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(50)) != pdTRUE) {
         ESP_LOGE(TAG, "Failed to acquire log_subscribers_mutex");
         cJSON_AddStringToObject(responseDoc, msgError, "Internal error");
         return 500;
+    }
+
+    if (enable) {
+        if (log_subscribers_.size() >= MAX_WS_LOG_SUBS) {
+            xSemaphoreGive(log_subscribers_mutex_);
+            cJSON_AddStringToObject(responseDoc, msgError, "Max subscriptions reached");
+            return 503;
+        }
+        log_subscribers_.insert(sockfd);
+        ESP_LOGI(TAG, "Client %d subscribed to log streaming (%zu/%d)", sockfd, log_subscribers_.size(),
+                 MAX_WS_LOG_SUBS);
+    } else {
+        log_subscribers_.erase(sockfd);
+        ESP_LOGD(TAG, "Client %d unsubscribed from log streaming (%zu/%d)", sockfd, log_subscribers_.size(),
+                 MAX_WS_LOG_SUBS);
+    }
+
+    size_t subscriber_count = log_subscribers_.size();
+    xSemaphoreGive(log_subscribers_mutex_);
+
+    // Start or stop the router based on whether any subscriber remains.
+    if (subscriber_count > 0 && log_queue_ == nullptr) {
+        // First subscriber: start router and create the sender task.
+        // log_router_start is idempotent; calling it again just returns the existing queue.
+        log_router_start(&log_queue_);
+        xTaskCreate(logSenderTask, "log_sender", 3072, this, tskIDLE_PRIORITY + 1, &log_sender_task_handle_);
+        assert(log_sender_task_handle_);
+    } else if (subscriber_count == 0 && log_queue_ != nullptr) {
+        log_router_stop();
+        log_queue_ = nullptr;
     }
 
     return 200;
 }
 
 void DockApi::sendLogToSubscribers(const char *tag, esp_log_level_t level, const char *message, size_t len) {
-    // best effort, we are in the logging context and should not block
-    if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(5)) != pdTRUE) {
+    // Snapshot subscribers under lock — fast, no I/O
+    int    fds[MAX_WS_LOG_SUBS];
+    size_t count = 0;
+    if (xSemaphoreTake(log_subscribers_mutex_, pdMS_TO_TICKS(5)) == pdTRUE) {
+        for (int fd : log_subscribers_) {
+            if (count < MAX_WS_LOG_SUBS) {
+                fds[count++] = fd;
+            }
+        }
+        xSemaphoreGive(log_subscribers_mutex_);  // release BEFORE building JSON
+    } else {
         return;
     }
-
-    if (log_subscribers_.empty()) {
-        xSemaphoreGive(log_subscribers_mutex_);
+    if (count == 0) {
         return;
     }
 
     // Build JSON log message using cJSON
     cJSON *event = cJSON_CreateObject();
     if (!event) {
-        xSemaphoreGive(log_subscribers_mutex_);
         return;
     }
 
@@ -1359,52 +1406,55 @@ void DockApi::sendLogToSubscribers(const char *tag, esp_log_level_t level, const
         msg_len = 500;
     }
 
-    // Create a null-terminated copy
-    // Note: No manual JSON escaping needed - cJSON handles this automatically
-    char *msg_copy = (char *)malloc(msg_len + 1);
-    if (!msg_copy) {
-        cJSON_Delete(event);
-        xSemaphoreGive(log_subscribers_mutex_);
-        return;
-    }
-    strncpy(msg_copy, text_start, msg_len);
-    msg_copy[msg_len] = '\0';
-
-    cJSON_AddStringToObject(event, "log", msg_copy);
-    free(msg_copy);
+    // Avoid using malloc for another copy
+    char saved = text_start[msg_len];
+    ((char *)text_start)[msg_len] = '\0';  // safe: text_start points into message
+    cJSON_AddStringToObject(event, "log", text_start);
+    ((char *)text_start)[msg_len] = saved;
 
     char *json_str = cJSON_PrintUnformatted(event);
     cJSON_Delete(event);
 
     if (!json_str) {
-        xSemaphoreGive(log_subscribers_mutex_);
         return;
     }
 
     // Send to all subscribers
-    for (int fd : log_subscribers_) {
+    for (size_t i = 0; i < count; i++) {
         // Important: needs to be const char* to avoid freeing the buffer in sendWsTxt!
-        web_->sendWsTxt(fd, (const char *)json_str);
+        web_->sendWsTxt(fds[i], (const char *)json_str);
+        // Quick and dirty message throttling: otherwise the internal httpd work queue starts dropping messages!
+        // Getting a "queue full" response from httpd_queue_work without blocking was only recently fixed in IDF:
+        // https://github.com/espressif/esp-idf/commit/c911c781ae94e40d0df6596a25c53025c5f98fb5
+        vTaskDelay(pdMS_TO_TICKS(WS_LOG_DELAY_MS));
     }
 
     cJSON_free(json_str);
-    xSemaphoreGive(log_subscribers_mutex_);
 }
 
-esp_err_t DockApi::logCallback(const char *tag, esp_log_level_t level, const char *message, size_t len, void *ctx) {
-    // Attention: This callback is called from the logging system, which may have very strict timing requirements.
-    // It should not perform any heavy processing or blocking operations. The message should be forwarded to subscribers
-    // as quickly as possible, and any complex processing (like JSON formatting) should ideally be deferred to the
-    // decoupled subscriber side if possible.
-    // For the moment we keep it simple and do the JSON formatting here, but if performance becomes an issue,
-    // we should consider a more asynchronous approach where we just forward the raw log message and metadata to a
-    // queue, and have a separate task processing the queue and sending events to subscribers. Note: sending the WS
-    // messages is already asynchronous in httpd with a work queue.
-    DockApi *that = static_cast<DockApi *>(ctx);
-    if (that) {
-        that->sendLogToSubscribers(tag, level, message, len);
+void DockApi::logSenderTask(void *arg) {
+    DockApi      *self = static_cast<DockApi *>(arg);
+    QueueHandle_t q = self->log_queue_;
+    log_entry_t  *entry = nullptr;
+
+    while (xQueueReceive(q, &entry, portMAX_DELAY) == pdTRUE && entry) {
+        if (entry->level == LOG_ENTRY_SENTINEL) {
+            free(entry);
+            break;  // clean exit
+        }
+        self->sendLogToSubscribers(entry->tag, static_cast<esp_log_level_t>(entry->level), entry->message, entry->len);
+        free(entry);
+        entry = nullptr;
     }
-    return ESP_OK;
+
+    // Drain any real entries that arrived between the sentinel and here.
+    // This is a best-effort flush before shutdown — ensures no entry leaks.
+    while (xQueueReceive(q, &entry, 0) == pdTRUE && entry) {
+        free(entry);
+    }
+
+    self->log_sender_task_handle_ = nullptr;
+    vTaskDelete(nullptr);
 }
 
 uint16_t DockApi::processGetPortModes(cJSON *responseDoc) {
