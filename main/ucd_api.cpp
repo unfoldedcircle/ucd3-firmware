@@ -11,8 +11,12 @@
 #include "esp_chip_info.h"
 #include "esp_event.h"
 #include "esp_log.h"
+#include "esp_netif.h"
+#include "esp_sntp.h"
 #include "esp_system.h"
 #include "esp_timer.h"
+#include "lwip/ip4_addr.h"
+#include "lwip/ip6_addr.h"
 #include "lwip/sockets.h"
 
 #include "WebServer.h"
@@ -104,7 +108,7 @@ void fill_sysinfo_to_json(cJSON *root) {
     cJSON_AddStringToObject(root, "ssid", cfg.getWifiSsid().c_str());
     cJSON_AddNumberToObject(root, "volume", cfg.getVolume());
     cJSON_AddStringToObject(root, "uptime", get_uptime().c_str());
-    cJSON_AddBoolToObject(root, "sntp", cfg.isNtpEnabled());
+    cJSON_AddBoolToObject(root, "ntp", cfg.isNtpEnabled());
     cJSON_AddStringToObject(root, "reset_reason", getResetReason());
 
     if (cfg.isNtpEnabled()) {
@@ -215,6 +219,194 @@ bool cjson_get_bool(const cJSON *root, const char *field, bool *ok = NULL) {
     return false;
 }
 
+static bool parse_ipv4_addr(const char *value, ip4_addr_t *addr) {
+    if (!value || !addr) {
+        return false;
+    }
+
+    ip4_addr_t parsed = {};
+    if (ip4addr_aton(value, &parsed) == 0) {
+        return false;
+    }
+
+    *addr = parsed;
+    return true;
+}
+
+static bool parse_required_ipv4_addr(const cJSON *root, const char *field, ip4_addr_t *addr, cJSON *responseDoc) {
+    const char *value = cjson_get_string(root, field, nullptr);
+    if (!value || strlen(value) == 0) {
+        cJSON_AddStringToObject(responseDoc, msgError, "Missing IPv4 address field");
+        return false;
+    }
+
+    if (!parse_ipv4_addr(value, addr) || addr->addr == IPADDR_ANY || addr->addr == IPADDR_NONE) {
+        cJSON_AddStringToObject(responseDoc, msgError, "Invalid IPv4 address");
+        return false;
+    }
+
+    return true;
+}
+
+static bool parse_optional_ipv4_addr(const cJSON *root, const char *field, ip4_addr_t *addr, cJSON *responseDoc) {
+    const char *value = cjson_get_string(root, field, nullptr);
+    if (!value || strlen(value) == 0) {
+        addr->addr = IPADDR_ANY;
+        return true;
+    }
+
+    if (!parse_ipv4_addr(value, addr) || addr->addr == IPADDR_NONE) {
+        cJSON_AddStringToObject(responseDoc, msgError, "Invalid IPv4 address");
+        return false;
+    }
+
+    return true;
+}
+
+static const char *ipv4_addr_to_string(const ip4_addr_t *addr, char *buf, size_t buf_len) {
+    if (!addr || !buf || buf_len == 0 || addr->addr == IPADDR_ANY || addr->addr == IPADDR_NONE) {
+        return nullptr;
+    }
+
+    return ip4addr_ntoa_r(addr, buf, buf_len);
+}
+
+static bool parse_dns_addr(const char *value, esp_ip_addr_t *addr) {
+    if (!value || !addr || strlen(value) == 0) {
+        return false;
+    }
+
+    memset(addr, 0, sizeof(*addr));
+
+    ip4_addr_t ip4 = {};
+    if (ip4addr_aton(value, &ip4) != 0 && ip4.addr != IPADDR_ANY && ip4.addr != IPADDR_NONE) {
+        addr->type = IPADDR_TYPE_V4;
+        addr->u_addr.ip4.addr = ip4.addr;
+        return true;
+    }
+
+#if CONFIG_LWIP_IPV6
+    ip6_addr_t ip6 = {};
+    if (ip6addr_aton(value, &ip6) != 0 && !ip6_addr_isany_val(ip6)) {
+        addr->type = IPADDR_TYPE_V6;
+        memcpy(&addr->u_addr.ip6, &ip6, sizeof(addr->u_addr.ip6));
+        return true;
+    }
+#endif
+
+    return false;
+}
+
+static const char *ip_addr_to_string(const esp_ip_addr_t *addr, char *buf, size_t buf_len) {
+    if (!addr || !buf || buf_len == 0) {
+        return nullptr;
+    }
+
+    switch (addr->type) {
+        case IPADDR_TYPE_V4:
+            if (addr->u_addr.ip4.addr == IPADDR_ANY || addr->u_addr.ip4.addr == IPADDR_NONE) {
+                return nullptr;
+            }
+            return ip4addr_ntoa_r((const ip4_addr_t *)&addr->u_addr.ip4, buf, buf_len);
+
+#if CONFIG_LWIP_IPV6
+        case IPADDR_TYPE_V6:
+            if (ip6_addr_isany((const ip6_addr_t *)&addr->u_addr.ip6)) {
+                return nullptr;
+            }
+            return ip6addr_ntoa_r((const ip6_addr_t *)&addr->u_addr.ip6, buf, buf_len);
+#endif
+
+        default:
+            return nullptr;
+    }
+}
+
+static bool normalize_dns_addr_string(const char *value, std::string *normalized) {
+    if (!normalized) {
+        return false;
+    }
+
+    esp_ip_addr_t addr = {};
+    if (!parse_dns_addr(value, &addr)) {
+        return false;
+    }
+
+    char        buf[48] = {};
+    const char *str = ip_addr_to_string(&addr, buf, sizeof(buf));
+    if (!str) {
+        return false;
+    }
+
+    *normalized = str;
+    return true;
+}
+
+#if CONFIG_LWIP_IPV6
+static const char *ipv6_addr_type_to_string(esp_ip6_addr_type_t type) {
+    switch (type) {
+        case ESP_IP6_ADDR_IS_UNKNOWN:
+            return "unknown";
+        case ESP_IP6_ADDR_IS_GLOBAL:
+            return "global";
+        case ESP_IP6_ADDR_IS_LINK_LOCAL:
+            return "link_local";
+        case ESP_IP6_ADDR_IS_SITE_LOCAL:
+            return "site_local";
+        case ESP_IP6_ADDR_IS_UNIQUE_LOCAL:
+            return "unique_local";
+        case ESP_IP6_ADDR_IS_IPV4_MAPPED_IPV6:
+            return "ipv4_mapped";
+        default:
+            return "unknown";
+    }
+}
+
+static void add_ipv6_addresses_to_json(cJSON *root, esp_netif_t *netif) {
+    if (!root || !netif) {
+        return;
+    }
+
+    esp_ip6_addr_t addresses[CONFIG_LWIP_IPV6_NUM_ADDRESSES] = {};
+    int            addr_count = esp_netif_get_all_ip6(netif, addresses);
+
+    if (addr_count <= 0) {
+        return;
+    }
+
+    cJSON *ipv6 = cJSON_CreateObject();
+    cJSON *array = cJSON_AddArrayToObject(ipv6, "addresses");
+
+    if (!array) {
+        cJSON_Delete(ipv6);
+        return;
+    }
+
+    for (int i = 0; i < addr_count; i++) {
+        const char *addr = ip6addr_ntoa((ip6_addr_t *)&addresses[i]);
+        if (!addr) {
+            continue;
+        }
+
+        cJSON *item = cJSON_CreateObject();
+        if (!item) {
+            continue;
+        }
+
+        cJSON_AddStringToObject(item, "address", addr);
+        cJSON_AddStringToObject(item, "type", ipv6_addr_type_to_string(esp_netif_ip6_get_addr_type(&addresses[i])));
+
+        cJSON_AddItemToArray(array, item);
+    }
+
+    if (cJSON_GetArraySize(array) > 0) {
+        cJSON_AddItemToObject(root, "ipv6", ipv6);
+    } else {
+        cJSON_Delete(ipv6);
+    }
+}
+#endif  // CONFIG_LWIP_IPV6
+
 DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
     : config_(config),
       web_(web),
@@ -239,11 +431,20 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                            bool authenticated) -> esp_err_t {
         switch (type) {
             case WS_CONNECTED: {
+#if CONFIG_LWIP_IPV6
                 struct sockaddr_in6 addr_in;
-                char                buf[20] = {0};
+#else
+                struct sockaddr_in addr_in;
+#endif
+                char buf[48] = {0};
                 if (WebServer::getRemoteIp(sockfd, &addr_in) == ESP_OK) {
                     ESP_LOGI(TAG, "[%s:%d] new WS client connection: %d",
+#if CONFIG_LWIP_IPV6
                              inet_ntoa_r(addr_in.sin6_addr.un.u32_addr[3], buf, sizeof(buf)), addr_in.sin6_port,
+#else
+                             inet_ntoa_r(((struct sockaddr_in *)&addr_in)->sin_addr, buf, sizeof(buf)),
+                             ntohs(addr_in.sin_port),
+#endif
                              sockfd);
                 }
 
@@ -661,79 +862,286 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(UC_DOCK_EVENTS, UC_ACTION_IDENTIFY, NULL, 0, pdMS_TO_TICKS(200)));
     } else if (command == "set_logging") {
         code = 501;  // not yet implemented
-    } else if (command == "set_sntp") {
-        bool ok = true;
-        if (cJSON_HasObjectItem(root, "sntp_server1") || cJSON_HasObjectItem(root, "sntp_server2")) {
-            std::string server1 = cjson_get_string(root, "sntp_server1", "");
-            std::string server2 = cjson_get_string(root, "sntp_server2", "");
+    } else if (command == "set_ntp") {
+        bool changed = false;
+        if (cJSON_HasObjectItem(root, "ntp1") || cJSON_HasObjectItem(root, "ntp2")) {
+            std::string old_server1 = config_->getNtpServer1();
+            std::string old_server2 = config_->getNtpServer2();
+            std::string server1 = cjson_get_string(root, "ntp1", "");
+            std::string server2 = cjson_get_string(root, "ntp2", "");
+            if (server1.empty() && !server2.empty()) {
+                server1 = server2;
+                server2 = "";
+            }
+            changed = (server1 != old_server1) || (server2 != old_server2);
             if (!config_->setNtpServer(server1, server2)) {
-                ok = false;
+                code = 400;
+                goto send_response;
             }
         }
-        item = cJSON_GetObjectItem(root, "sntp_enabled");
+        item = cJSON_GetObjectItem(root, "ntp_enabled");
         if (item) {
+            bool old_enabled = config_->isNtpEnabled();
             bool enabled = cJSON_IsTrue(item);
+            changed = changed || (enabled != old_enabled);
             if (!config_->enableNtp(enabled)) {
-                ok = false;
+                code = 400;
+                goto send_response;
             }
         }
-        code = ok ? 200 : 400;
+
+        if (changed) {
+            cJSON_AddBoolToObject(responseDoc, "reboot", true);
+            schedule_restart(web, 2000);
+        }
     } else if (command == "set_network") {
-        // ‼️ Work in progress: API not finalized & static ip configuration is not yet implemented!
-        bool          ok = true;
-        network_cfg_t net_cfg;
-        net_cfg.dhcp = cjson_get_bool(root, "dhcp", &ok);
-        if (ok) {
-            std::string value = cjson_get_string(root, "ip", "");
-            if (value.empty()) {
-                ok = false;
-            } else {
-                net_cfg.ip.ip.addr = ipaddr_addr(value.c_str());
-            }
-            value = cjson_get_string(root, "mask", "255.255.255.0");
-            if (value.empty()) {
-                ok = false;
-            } else {
-                net_cfg.ip.netmask.addr = ipaddr_addr(value.c_str());
-            }
-            value = cjson_get_string(root, "gw", "");
-            if (value.empty()) {
-                ok = false;
-            } else {
-                net_cfg.ip.gw.addr = ipaddr_addr(value.c_str());
+        // interface: "eth" or "wifi"
+        const char *iface_str = cjson_get_string(root, "interface", nullptr);
+        if (!iface_str) {
+            code = 400;
+            cJSON_AddStringToObject(responseDoc, msgError, "Missing interface");
+            goto send_response;
+        }
+
+        enum { IFACE_ETH, IFACE_WIFI } iface;
+        if (strcmp(iface_str, "eth") == 0) {
+            iface = IFACE_ETH;
+        } else if (strcmp(iface_str, "wifi") == 0) {
+            iface = IFACE_WIFI;
+        } else {
+            code = 400;
+            cJSON_AddStringToObject(responseDoc, msgError, "Invalid interface");
+            goto send_response;
+        }
+
+        const char *mode_str = cjson_get_string(root, "mode", nullptr);
+        if (!mode_str) {
+            code = 400;
+            cJSON_AddStringToObject(responseDoc, msgError, "Missing mode");
+            goto send_response;
+        }
+
+        bool dhcp;
+        if (strcmp(mode_str, "dhcp") == 0) {
+            dhcp = true;
+        } else if (strcmp(mode_str, "static") == 0) {
+            dhcp = false;
+        } else {
+            code = 400;
+            cJSON_AddStringToObject(responseDoc, msgError, "Invalid mode");
+            goto send_response;
+        }
+
+        network_cfg_t    netcfg = config_->getNetwork();
+        iface_net_cfg_t *cfg = (iface == IFACE_ETH) ? &netcfg.eth : &netcfg.wifi;
+        bool             changed = (cfg->dhcp != dhcp);
+
+        cfg->dhcp = dhcp;
+
+        if (!dhcp) {
+            // Static mode: ip/mask required, gw optional
+            ip4_addr_t ip = {};
+            ip4_addr_t mask = {};
+            ip4_addr_t gw = {};
+
+            if (!parse_required_ipv4_addr(root, "ip", &ip, responseDoc) ||
+                !parse_required_ipv4_addr(root, "mask", &mask, responseDoc) ||
+                !parse_optional_ipv4_addr(root, "gw", &gw, responseDoc)) {
+                code = 400;
+                goto send_response;
             }
 
-            if (ok) {
-                ok = config_->setNetwork(net_cfg);
-            }
+            changed = changed || (cfg->ip.ip.addr != ip.addr) || (cfg->ip.netmask.addr != mask.addr) ||
+                      (cfg->ip.gw.addr != gw.addr);
+            cfg->ip.ip.addr = ip.addr;
+            cfg->ip.netmask.addr = mask.addr;
+            cfg->ip.gw.addr = gw.addr;
         }
-        code = ok ? 200 : 400;
+
+        if (!config_->setNetwork(netcfg)) {
+            code = 500;
+            cJSON_AddStringToObject(responseDoc, msgError, "Failed to save network config");
+            goto send_response;
+        }
+
+        if (changed) {
+            cJSON_AddBoolToObject(responseDoc, "reboot", true);
+            schedule_restart(web, 2000);
+        }
     } else if (command == "get_network") {
-        // ‼️ Work in progress: API not finalized & static ip configuration is not yet implemented!
-        network_cfg_t net_cfg = config_->getNetwork();
+        char          ip_str[48];
+        network_cfg_t netcfg = config_->getNetwork();
 
-        cJSON_AddBoolToObject(responseDoc, "dhcp", net_cfg.dhcp);
-        if (!net_cfg.dhcp && net_cfg.ip.ip.addr && (net_cfg.ip.ip.addr != IPADDR_NONE)) {
-            cJSON_AddStringToObject(responseDoc, "ip", ip4addr_ntoa((ip4_addr_t *)&net_cfg.ip.ip));
-            cJSON_AddStringToObject(responseDoc, "mask", ip4addr_ntoa((ip4_addr_t *)&net_cfg.ip.netmask));
-            cJSON_AddStringToObject(responseDoc, "gw", ip4addr_ntoa((ip4_addr_t *)&net_cfg.ip.gw));
+        // Helper lambda to serialize one interface
+        auto add_iface = [](cJSON *root, const char *name, const iface_net_cfg_t &cfg) {
+            char   ip_str[16];
+            cJSON *obj = cJSON_CreateObject();
+            cJSON_AddItemToObject(root, name, obj);
+
+            cJSON_AddStringToObject(obj, "mode", cfg.dhcp ? "dhcp" : "static");
+
+            if (!cfg.dhcp) {
+                const char *address = ipv4_addr_to_string((const ip4_addr_t *)&cfg.ip.ip, ip_str, sizeof(ip_str));
+                if (address) {
+                    cJSON_AddStringToObject(obj, "ip", address);
+                }
+
+                address = ipv4_addr_to_string((const ip4_addr_t *)&cfg.ip.netmask, ip_str, sizeof(ip_str));
+                if (address) {
+                    cJSON_AddStringToObject(obj, "mask", address);
+                }
+
+                address = ipv4_addr_to_string((const ip4_addr_t *)&cfg.ip.gw, ip_str, sizeof(ip_str));
+                if (address) {
+                    cJSON_AddStringToObject(obj, "gw", address);
+                }
+            }
+        };
+
+        add_iface(responseDoc, "eth", netcfg.eth);
+        add_iface(responseDoc, "wifi", netcfg.wifi);
+
+        // DNS settings are global and not per-interface
+        std::string dns_server = config_->getDnsServer1();
+        if (!dns_server.empty()) {
+            cJSON_AddStringToObject(responseDoc, "dns1", dns_server.c_str());
         }
-        std::string server = config_->getDnsServer1();
+
+        dns_server = config_->getDnsServer2();
+        if (!dns_server.empty()) {
+            cJSON_AddStringToObject(responseDoc, "dns2", dns_server.c_str());
+        }
+
+        cJSON_AddBoolToObject(responseDoc, "ntp_enabled", config_->isNtpEnabled());
+        std::string server = config_->getNtpServer1();
         if (!server.empty()) {
-            cJSON_AddStringToObject(responseDoc, "dns1", server.c_str());
+            cJSON_AddStringToObject(responseDoc, "ntp1", server.c_str());
         }
-        server = config_->getDnsServer2();
+        server = config_->getNtpServer2();
         if (!server.empty()) {
-            cJSON_AddStringToObject(responseDoc, "dns2", server.c_str());
+            cJSON_AddStringToObject(responseDoc, "ntp2", server.c_str());
         }
+
+        esp_netif_t *active_netif = nullptr;
+        const char  *active_if = "none";
+
+        if (is_eth_connected()) {
+            active_netif = esp_netif_get_handle_from_ifkey("ETH_DEF");
+            active_if = "eth";
+        } else if (is_wifi_up()) {
+            active_netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+            active_if = "wifi";
+        }
+
+        cJSON *active_net = cJSON_CreateObject();
+        cJSON_AddItemToObject(responseDoc, "active", active_net);
+        cJSON_AddStringToObject(active_net, "interface", active_if);
+
+        if (active_netif) {
+            esp_netif_ip_info_t ip4;
+            if (esp_netif_get_ip_info(active_netif, &ip4) == ESP_OK && ip4.ip.addr != 0 && ip4.ip.addr != IPADDR_NONE) {
+                cJSON_AddStringToObject(active_net, "ip",
+                                        ip4addr_ntoa_r((ip4_addr_t *)&ip4.ip, ip_str, sizeof(ip_str)));
+                cJSON_AddStringToObject(active_net, "mask",
+                                        ip4addr_ntoa_r((ip4_addr_t *)&ip4.netmask, ip_str, sizeof(ip_str)));
+                cJSON_AddStringToObject(active_net, "gw",
+                                        ip4addr_ntoa_r((ip4_addr_t *)&ip4.gw, ip_str, sizeof(ip_str)));
+
+                esp_netif_dns_info_t dns;
+                if (esp_netif_get_dns_info(active_netif, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK) {
+                    const char *dns_str = ip_addr_to_string(&dns.ip, ip_str, sizeof(ip_str));
+                    if (dns_str) {
+                        cJSON_AddStringToObject(active_net, "dns1", dns_str);
+                    }
+                }
+
+                if (esp_netif_get_dns_info(active_netif, ESP_NETIF_DNS_BACKUP, &dns) == ESP_OK) {
+                    const char *dns_str = ip_addr_to_string(&dns.ip, ip_str, sizeof(ip_str));
+                    if (dns_str) {
+                        cJSON_AddStringToObject(active_net, "dns2", dns_str);
+                    }
+                }
+
+                if (esp_netif_get_dns_info(active_netif, ESP_NETIF_DNS_FALLBACK, &dns) == ESP_OK) {
+                    const char *dns_str = ip_addr_to_string(&dns.ip, ip_str, sizeof(ip_str));
+                    if (dns_str) {
+                        cJSON_AddStringToObject(active_net, "dns3", dns_str);
+                    }
+                }
+            }
+
+            if (config_->isNtpEnabled()) {
+                for (uint8_t i = 0; i < CONFIG_LWIP_SNTP_MAX_SERVERS; i++) {
+                    char key[8];
+                    snprintf(key, sizeof(key), "ntp%u", i + 1);
+                    const char *server_name = esp_sntp_getservername(i);
+                    if (server_name) {
+                        cJSON_AddStringToObject(active_net, key, server_name);
+                    } else {
+                        // IPv4 or IPv6 address
+                        char             buf[48];
+                        ip_addr_t const *ip = esp_sntp_getserver(i);
+                        if (ip) {
+                            server_name = ipaddr_ntoa_r(ip, buf, sizeof(buf));
+                            if (server_name != NULL) {
+                                cJSON_AddStringToObject(active_net, key, server_name);
+                            }
+                        }
+                    }
+                }
+            }
+
+#if CONFIG_LWIP_IPV6
+            add_ipv6_addresses_to_json(active_net, active_netif);
+#endif
+        }
+
         code = 200;
     } else if (command == "set_dns") {
-        // ‼️ Work in progress: API not finalized & static ip configuration is not yet implemented!
-        bool ok = true;
-        if (cJSON_HasObjectItem(root, "dns1") || cJSON_HasObjectItem(root, "dns2")) {
-            std::string server1 = cjson_get_string(root, "dns1", "");
-            std::string server2 = cjson_get_string(root, "dns2", "");
-            ok = config_->setDnsServer(server1, server2);
+        bool        ok = true;
+        bool        removed_dns = false;
+        std::string dns1 = config_->getDnsServer1();
+        std::string dns2 = config_->getDnsServer2();
+
+        if (cJSON_HasObjectItem(root, "dns1")) {
+            const char *server = cjson_get_string(root, "dns1", "");
+            if (strlen(server) == 0) {
+                removed_dns = !dns1.empty();
+                dns1.clear();
+            } else if (!normalize_dns_addr_string(server, &dns1)) {
+                code = 400;
+#if CONFIG_LWIP_IPV6
+                cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns1 address");
+#else
+                cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns1 address or IPv6 DNS not supported");
+#endif
+                goto send_response;
+            }
+        }
+
+        if (cJSON_HasObjectItem(root, "dns2")) {
+            const char *server = cjson_get_string(root, "dns2", "");
+            if (strlen(server) == 0) {
+                removed_dns = removed_dns || !dns2.empty();
+                dns2.clear();
+            } else if (!normalize_dns_addr_string(server, &dns2)) {
+                code = 400;
+#if CONFIG_LWIP_IPV6
+                cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns2 address");
+#else
+                cJSON_AddStringToObject(responseDoc, msgError, "Invalid dns2 address or IPv6 DNS not supported");
+#endif
+                goto send_response;
+            }
+        }
+
+        ok = config_->setDnsServer(dns1, dns2);
+        if (ok) {
+            apply_custom_dns();
+            if (removed_dns) {
+                cJSON_AddBoolToObject(responseDoc, "reboot", true);
+                schedule_restart(web, 2000);
+            }
         }
         code = ok ? 200 : 400;
     } else if (command == "get_port_modes") {

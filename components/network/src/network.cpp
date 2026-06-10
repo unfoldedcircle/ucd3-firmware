@@ -16,6 +16,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
+#include "lwip/inet.h"
+#include "lwip/ip4_addr.h"
+#include "lwip/ip6_addr.h"
 
 #include "NetworkSm.h"
 #include "config.h"
@@ -28,7 +31,8 @@
 
 static const char *const TAG = "NET";
 
-static bool enable_sntp = true;
+static bool sntp_enabled = false;      // set by network_start()
+static bool sntp_initialized = false;  // one-shot start guard
 
 EventGroupHandle_t eth_event_group = nullptr;
 static const int   ETH_LINK_UP_BIT = BIT0;
@@ -41,11 +45,40 @@ static NetworkSm networkSm;
 
 static void network_task(void *pvParameters);
 static void queue_sm_event(NetworkSm::EventId event);
+static void apply_custom_dns_if_any(esp_netif_t *netif);
 
-esp_err_t network_start() {
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Manually declare the private ESP-IDF function signature
+void esp_netif_sntp_renew_servers(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
+
+#ifdef __cplusplus
+}
+#endif
+
+#if CONFIG_LWIP_IPV6
+static void create_ipv6_linklocal(esp_netif_t *netif, const char *if_name) {
+    if (!netif) {
+        ESP_LOGW(TAG, "Cannot create IPv6 link-local address for %s: netif is NULL", if_name);
+        return;
+    }
+
+    esp_err_t err = esp_netif_create_ip6_linklocal(netif);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "Creating IPv6 link-local address for %s", if_name);
+    } else if (err != ESP_ERR_INVALID_STATE) {
+        ESP_LOGW(TAG, "Failed to create IPv6 link-local address for %s: %s", if_name, esp_err_to_name(err));
+    }
+}
+#endif
+
+esp_err_t network_start(bool enable_sntp) {
     if (network_queue) {
         return ESP_ERR_INVALID_STATE;
     }
+    sntp_enabled = enable_sntp;
 
     eth_event_group = xEventGroupCreate();
     xEventGroupClearBits(eth_event_group, ETH_LINK_UP_BIT | ETH_GOT_IP_BIT);
@@ -288,6 +321,11 @@ void eth_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,
             esp_eth_ioctl(eth_handle, ETH_CMD_G_MAC_ADDR, mac_addr);
             ESP_LOGI(TAG, "Ethernet Link Up, HW Addr %02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1],
                      mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+
+#if CONFIG_LWIP_IPV6
+            create_ipv6_linklocal(esp_netif_get_handle_from_ifkey("ETH_DEF"), "ETH");
+#endif
+
             wifi_disconnect();
             set_eth_led_brightness(Config::instance().getEthLedBrightness());
             if (eth_event_group) {
@@ -334,56 +372,141 @@ void network_ip_event_handler(void *arg, esp_event_base_t event_base, int32_t ev
 
             event_id == IP_EVENT_ETH_GOT_IP ? trigger_eth_got_ip_event() : trigger_wifi_got_ip_event();
 
-            if (eth_event_group) {
+            if (event->esp_netif) {
+                apply_custom_dns_if_any(event->esp_netif);
+            }
+
+            if (eth_event_group && event_id == IP_EVENT_ETH_GOT_IP) {
                 xEventGroupSetBits(eth_event_group, ETH_GOT_IP_BIT);
             }
 
-            // FIXME put in state machine!
-            if (enable_sntp) {
-                // TODO are further disconnect & connect network events handled internally by SNTP?
-                enable_sntp = false;
-                esp_netif_sntp_start();
+            if (sntp_enabled && !sntp_initialized) {
+                sntp_initialized = true;
+                ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_sntp_start());
+                // esp_netif_sntp_start() calls sntp_stop()+sntp_init() without
+                // re-applying server names. Force a renew immediately so that the
+                // strdup'd names in s_storage are pushed back into lwIP via
+                // sntp_setservername() before the first poll fires.
+                esp_netif_sntp_renew_servers(NULL, IP_EVENT, event_id, event_data);
+                ESP_LOGI(TAG, "SNTP started on first IP event (%s). Renew: %ds",
+                         event_id == IP_EVENT_ETH_GOT_IP ? "ETH" : "WiFi", CONFIG_LWIP_SNTP_UPDATE_DELAY / 1000);
             }
-
-            break;
-        }
+        } break;
         case IP_EVENT_STA_LOST_IP:
             ESP_LOGI(TAG, "IP_EVENT_STA_LOST_IP");
             break;
         case IP_EVENT_AP_STAIPASSIGNED:
             ESP_LOGI(TAG, "IP_EVENT_AP_STAIPASSIGNED");
             break;
-        case IP_EVENT_GOT_IP6:
-            ESP_LOGI(TAG, "IP_EVENT_GOT_IP6");
+#if CONFIG_LWIP_IPV6
+        case IP_EVENT_GOT_IP6: {
+            ip_event_got_ip6_t *event = (ip_event_got_ip6_t *)event_data;
+            const char         *if_key = "unknown";
+
+            if (event && event->esp_netif) {
+                const char *key = esp_netif_get_ifkey(event->esp_netif);
+                if (key) {
+                    if_key = key;
+                }
+            }
+
+            ESP_LOGI(TAG, "Got IPv6 address on interface %s: %s", if_key,
+                     ip6addr_ntoa((ip6_addr_t *)&event->ip6_info.ip));
             break;
+        }
+#endif
         default:
             break;
     }
 }
 
 void on_got_time(struct timeval *tv) {
-    struct tm *timeinfo = localtime(&tv->tv_sec);
+    struct tm timeinfo;
+    localtime_r(&tv->tv_sec, &timeinfo);
 
     char buffer[50];
-    strftime(buffer, sizeof(buffer), "%c", timeinfo);
-    auto server = esp_sntp_getservername(0) ? esp_sntp_getservername(0) : ipaddr_ntoa(esp_sntp_getserver(0));
-    ESP_LOGI(TAG, "SNTP update %s: %s", server ? server : "", buffer);
+    strftime(buffer, sizeof(buffer), "%c", &timeinfo);
+    ESP_LOGI(TAG, "SNTP update: %s", buffer);
 }
 
-/// @brief Initialize SNTP, use DHCP provided NTP server (option 042) with pool.ntp.org as fallback.
-/// @details This requires at least 2 SNTP servers (CONFIG_LWIP_SNTP_MAX_SERVERS=2) and CONFIG_LWIP_DHCP_GET_NTP_SRV=y
-/// @see
-/// https://docs.espressif.com/projects/esp-idf/en/v5.3.1/esp32s3/api-reference/network/esp_netif.html#use-both-static-and-dynamic-servers
-/// @return ESP_OK or ESP_FAIL
+/// @brief Initialize SNTP.
+///
+/// Server selection logic:
+///   - No custom servers configured: DHCP option 42 at slot 0, "pool.ntp.org" fallback at slot 1.
+///     Requires CONFIG_LWIP_SNTP_MAX_SERVERS >= 2.
+///   - One custom server configured: slot 0 = server1. DHCP and fallback disabled.
+///   - Two custom servers configured: slot 0 = server1, slot 1 = server2. DHCP and fallback disabled.
+///     Requires CONFIG_LWIP_SNTP_MAX_SERVERS >= 2.
+///
+/// @return ESP_OK or error code
 esp_err_t init_sntp() {
-    esp_sntp_config_t sntp_config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
+    if (!sntp_enabled) {
+        return ESP_OK;
+    }
+
+    // IMPORTANT: esp_sntp_config_t.servers[] holds const char* pointers.
+    // `esp_netif_sntp_init()` calls strdup() internally to copy the names into its own storage (but only if
+    // `sntp_config.renew_servers_after_new_IP = true;` is set!), so the strings only need to be valid for the duration
+    // of this call — NOT for the lifetime of the SNTP service.  The std::string locals below are therefore safe.
+    Config           &cfg = Config::instance();
+    const std::string ntp1 = cfg.getNtpServer1();
+    const std::string ntp2 = cfg.getNtpServer2();
+    const bool        use_custom = !ntp1.empty();
+
+    esp_sntp_config_t sntp_config;
+
+    if (use_custom) {
+        // Custom server(s): no DHCP, no pool.ntp.org fallback.
+        if (!ntp2.empty()) {
+#if CONFIG_LWIP_SNTP_MAX_SERVERS >= 2
+            sntp_config = (esp_sntp_config_t)ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(
+                2, ESP_SNTP_SERVER_LIST(ntp1.c_str(), ntp2.c_str()));
+            ESP_LOGI(TAG, "SNTP: custom servers %s, %s", ntp1.c_str(), ntp2.c_str());
+#else
+            // Only one slot available — use server1, warn about server2.
+            sntp_config =
+                (esp_sntp_config_t)ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(1, ESP_SNTP_SERVER_LIST(ntp1.c_str()));
+            ESP_LOGW(TAG, "Second NTP server '%s' ignored: CONFIG_LWIP_SNTP_MAX_SERVERS < 2", ntp2.c_str());
+            ESP_LOGI(TAG, "SNTP: custom server %s", ntp1.c_str());
+#endif
+        } else {
+            sntp_config =
+                (esp_sntp_config_t)ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(1, ESP_SNTP_SERVER_LIST(ntp1.c_str()));
+            ESP_LOGI(TAG, "SNTP: custom server %s", ntp1.c_str());
+        }
+        sntp_config.server_from_dhcp = false;
+        sntp_config.index_of_first_server = 0;
+    } else {
+        // No custom servers: DHCP (slot 0) + pool.ntp.org fallback (slot 1).
+        sntp_config =
+            (esp_sntp_config_t)ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(1, ESP_SNTP_SERVER_LIST("pool.ntp.org"));
+        sntp_config.server_from_dhcp = true;
+        sntp_config.index_of_first_server = 1;  // reserve slot 0 for DHCP
+        ESP_LOGI(TAG, "SNTP: DHCP, pool.ntp.org fallback");
+    }
+
+    // always required: otherwise esp_netif_sntp_init does NOT make copies of our custom servers during initialization!
+    sntp_config.renew_servers_after_new_IP = true;
     sntp_config.start = false;
     sntp_config.sync_cb = on_got_time;
-    sntp_config.server_from_dhcp = true;
-    sntp_config.renew_servers_after_new_IP = true;
-    sntp_config.index_of_first_server = 1;
-    sntp_config.ip_event_to_renew = IP_EVENT_STA_GOT_IP;  // TODO OR-mask? what about IP_EVENT_ETH_GOT_IP?
-    return esp_netif_sntp_init(&sntp_config);
+    // ip_event_to_renew when using DHCP. Ethernet has priority; second handler below covers WiFi.
+    sntp_config.ip_event_to_renew = IP_EVENT_ETH_GOT_IP;
+
+    esp_err_t ret = esp_netif_sntp_init(&sntp_config);
+    if (ret != ESP_OK) {
+        return ret;
+    }
+
+    // Second renew handler for the WiFi path (IP_EVENT_ETH_GOT_IP is covered by ip_event_to_renew above).
+    // Only needed for the DHCP path, but harmless on the custom-server path since renew_servers is a no-op when the
+    // static list hasn't changed.
+    if (!use_custom) {
+        ret = esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, esp_netif_sntp_renew_servers, NULL);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to register SNTP WiFi renew handler: %s", esp_err_to_name(ret));
+        }
+    }
+    return ret;
 }
 
 bool is_eth_link_up() {
@@ -453,18 +576,120 @@ esp_err_t network_get_ip_info_for_netif(esp_netif_t *netif, esp_netif_ip_info_t 
     return err;
 }
 
-static esp_err_t set_dns_server(esp_netif_t *netif, uint32_t addr, esp_netif_dns_type_t type) {
-    if (addr && (addr != IPADDR_NONE)) {
-        esp_netif_dns_info_t dns;
-        dns.ip.u_addr.ip4.addr = addr;
-        dns.ip.type = IPADDR_TYPE_V4;
-        return esp_netif_set_dns_info(netif, type, &dns);
+static bool parse_dns_addr(const std::string &value, esp_ip_addr_t *addr) {
+    if (value.empty() || !addr) {
+        return false;
     }
 
-    return ESP_OK;
+    memset(addr, 0, sizeof(*addr));
+
+    ip4_addr_t ip4 = {};
+    if (ip4addr_aton(value.c_str(), &ip4) != 0 && ip4.addr != IPADDR_ANY && ip4.addr != IPADDR_NONE) {
+        addr->type = IPADDR_TYPE_V4;
+        addr->u_addr.ip4.addr = ip4.addr;
+        return true;
+    }
+
+#if CONFIG_LWIP_IPV6
+    ip6_addr_t ip6 = {};
+    if (ip6addr_aton(value.c_str(), &ip6) != 0 && !ip6_addr_isany_val(ip6)) {
+        addr->type = IPADDR_TYPE_V6;
+        memcpy(&addr->u_addr.ip6, &ip6, sizeof(addr->u_addr.ip6));
+        return true;
+    }
+#endif
+
+    return false;
 }
 
-esp_err_t set_static_ip(esp_netif_t *netif, esp_netif_ip_info_t ip, uint32_t dns1, uint32_t dns2) {
+static const char *dns_addr_to_string(const esp_ip_addr_t *addr, char *buf, size_t buf_len) {
+    if (!addr || !buf || buf_len == 0) {
+        return nullptr;
+    }
+
+    switch (addr->type) {
+        case IPADDR_TYPE_V4:
+            if (addr->u_addr.ip4.addr == IPADDR_ANY || addr->u_addr.ip4.addr == IPADDR_NONE) {
+                return nullptr;
+            }
+            return ip4addr_ntoa_r((const ip4_addr_t *)&addr->u_addr.ip4, buf, buf_len);
+
+#if CONFIG_LWIP_IPV6
+        case IPADDR_TYPE_V6:
+            if (ip6_addr_isany((const ip6_addr_t *)&addr->u_addr.ip6)) {
+                return nullptr;
+            }
+            return ip6addr_ntoa_r((const ip6_addr_t *)&addr->u_addr.ip6, buf, buf_len);
+#endif
+
+        default:
+            return nullptr;
+    }
+}
+
+static esp_err_t set_dns_server(esp_netif_t *netif, const std::string &server, esp_netif_dns_type_t type) {
+    if (server.empty()) {
+        return ESP_OK;
+    }
+
+    esp_netif_dns_info_t dns = {};
+    if (!parse_dns_addr(server, &dns.ip)) {
+        ESP_LOGW(TAG, "Ignoring invalid DNS server address: %s", server.c_str());
+        return ESP_OK;
+    }
+
+    char        addr_str[48] = {};
+    const char *formatted = dns_addr_to_string(&dns.ip, addr_str, sizeof(addr_str));
+    ESP_LOGI(TAG, "Setting DNS server: %s", formatted ? formatted : server.c_str());
+
+    return esp_netif_set_dns_info(netif, type, &dns);
+}
+
+void apply_custom_dns() {
+    esp_netif_t *netif = nullptr;
+    esp_netif_t *eth_netif = esp_netif_get_handle_from_ifkey("ETH_DEF");
+    esp_netif_t *wifi_netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+
+    if (is_eth_connected() && network_is_interface_connected(eth_netif)) {
+        netif = eth_netif;
+    } else if (network_is_interface_connected(wifi_netif)) {
+        netif = wifi_netif;
+    }
+
+    if (netif) {
+        apply_custom_dns_if_any(netif);
+    } else {
+        ESP_LOGW(TAG, "No active network interface found to apply custom DNS settings");
+    }
+}
+
+static void apply_custom_dns_if_any(esp_netif_t *netif) {
+    if (!netif) {
+        ESP_LOGW(TAG, "apply_custom_dns_if_any: netif is NULL");
+        return;
+    }
+
+    Config &cfg = Config::instance();
+
+    std::string dns1 = cfg.getDnsServer1();
+    std::string dns2 = cfg.getDnsServer2();
+
+    if (!dns1.empty()) {
+        esp_err_t err = set_dns_server(netif, dns1, ESP_NETIF_DNS_MAIN);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to set main DNS server: %s", esp_err_to_name(err));
+        }
+    }
+
+    if (!dns2.empty()) {
+        esp_err_t err = set_dns_server(netif, dns2, ESP_NETIF_DNS_BACKUP);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to set backup DNS server: %s", esp_err_to_name(err));
+        }
+    }
+}
+
+esp_err_t set_static_ip(esp_netif_t *netif, esp_netif_ip_info_t ip) {
     esp_err_t ret = ESP_OK;
 
     ret = esp_netif_dhcpc_stop(netif);
@@ -475,8 +700,51 @@ esp_err_t set_static_ip(esp_netif_t *netif, esp_netif_ip_info_t ip, uint32_t dns
 
     ESP_RETURN_ON_ERROR(esp_netif_set_ip_info(netif, &ip), TAG, "Failed to set ip info");
 
-    ESP_RETURN_ON_ERROR(set_dns_server(netif, dns1, ESP_NETIF_DNS_MAIN), TAG, "Failed to set DNS server");
-    ESP_RETURN_ON_ERROR(set_dns_server(netif, dns2, ESP_NETIF_DNS_BACKUP), TAG, "Failed to set backup DNS server");
+    apply_custom_dns_if_any(netif);
 
     return ESP_OK;
+}
+
+esp_err_t apply_eth_ipv4_config(esp_netif_t *netif) {
+    if (!netif) {
+        ESP_LOGE(TAG, "apply_eth_ipv4_config: null netif");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    network_cfg_t    nc = Config::instance().getNetwork();
+    iface_net_cfg_t *eth = &nc.eth;
+
+    if (eth->dhcp) {
+        ESP_LOGI(TAG, "ETH using DHCP");
+        network_start_stop_dhcp_client(netif, true);
+
+        // Initial attempt; DHCP may overwrite this, so re-apply after GOT_IP too.
+        apply_custom_dns_if_any(netif);
+        return ESP_OK;
+    }
+
+    ESP_LOGI(TAG, "ETH using static IPv4");
+    return set_static_ip(netif, eth->ip);
+}
+
+esp_err_t apply_wifi_ipv4_config(esp_netif_t *netif) {
+    if (!netif) {
+        ESP_LOGE(TAG, "apply_wifi_ipv4_config: null netif");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    network_cfg_t    nc = Config::instance().getNetwork();
+    iface_net_cfg_t *wifi = &nc.wifi;
+
+    if (wifi->dhcp) {
+        ESP_LOGI(TAG, "WiFi using DHCP");
+        network_start_stop_dhcp_client(netif, true);
+
+        // Initial attempt; DHCP may overwrite this, so re-apply after GOT_IP too.
+        apply_custom_dns_if_any(netif);
+        return ESP_OK;
+    }
+
+    ESP_LOGI(TAG, "WiFi using static IPv4");
+    return set_static_ip(netif, wifi->ip);
 }

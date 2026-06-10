@@ -110,12 +110,11 @@ void NetworkBase::initNetwork() {
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &network_ip_event_handler, NULL));
 
-    if (Config::instance().isNtpEnabled()) {
-        auto ret = init_sntp();
-        // don't abort, SNTP is not required for the dock to function
-        if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to initialize SNTP (%d): %s", ret, esp_err_to_name(ret));
-        }
+    // always initialize; SNTP start is gated by sntp_enabled in network.cpp
+    auto ret = init_sntp();
+    // don't abort, SNTP is not required for the dock to function
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize SNTP (%d): %s", ret, esp_err_to_name(ret));
     }
 
     init_improv();
@@ -140,6 +139,9 @@ void NetworkBase::initEthernet() {
     // Attach Ethernet driver to TCP/IP stack
     ESP_GOTO_ON_ERROR(esp_netif_attach(eth_netif_, eth_netif_glues), err, TAG,
                       "Failed to attach eth driver to tcp/ip stack");
+
+    ESP_LOGI(TAG, "Applying IPv4 config for ETH");
+    ESP_GOTO_ON_ERROR(apply_eth_ipv4_config(eth_netif_), err, TAG, "Failed to apply ETH IPv4 config");
 
     // Register user defined event handers
     ESP_GOTO_ON_ERROR(esp_event_handler_register(ETH_EVENT, ESP_EVENT_ANY_ID, &eth_event_handler, NULL), err, TAG,
@@ -215,6 +217,7 @@ void NetworkBase::setTimer(uint32_t timeout_ms, const char *tag) {
         state_timer_ = xTimerCreate("network", pdMS_TO_TICKS(timeout_ms), pdFALSE, timer_tag_, network_timer_cb);
     } else {
         ESP_LOGI(TAG, "Changing '%s' timer-period to %lums.", timer_tag_, timeout_ms);
+        vTimerSetTimerID(state_timer_, timer_tag_);
         xTimerChangePeriod(state_timer_, pdMS_TO_TICKS(timeout_ms), portMAX_DELAY);
     }
     xTimerStart(state_timer_, portMAX_DELAY);
@@ -364,6 +367,9 @@ void NetworkBase::statusUpdate(update_reason_code_t update_reason_code) {
     // send custom system event (used by display state-machine)
     esp_netif_ip_info_t      ip_info;
     uc_event_network_state_t net_state;
+    Config                  &config = Config::instance();
+    network_cfg_t            netcfg = config.getNetwork();
+
     memset(&net_state, 0, sizeof(net_state));
     net_state.connection = WIFI;
     net_state.eth_link = is_eth_link_up();
@@ -387,7 +393,6 @@ void NetworkBase::statusUpdate(update_reason_code_t update_reason_code) {
         case UPDATE_LOST_CONNECTION: {
             event_id = UC_EVENT_DISCONNECTED;
             // use configured SSID
-            Config     &config = Config::instance();
             std::string ssid = config.getWifiSsid();
             strncpy(reinterpret_cast<char *>(net_state.ssid), ssid.c_str(), sizeof(net_state.ssid));
             break;
@@ -399,7 +404,6 @@ void NetworkBase::statusUpdate(update_reason_code_t update_reason_code) {
             event_id = UC_EVENT_DISCONNECTED;
             // Using the confiugred SSID might not be the expected information if a user wanted to connect to a new AP!
             // Since the UI screens are not yet finalized, this is good enough for now :-)
-            Config     &config = Config::instance();
             std::string ssid = config.getWifiSsid();
             strncpy(reinterpret_cast<char *>(net_state.ssid), ssid.c_str(), sizeof(net_state.ssid));
             break;
@@ -441,13 +445,31 @@ void NetworkBase::statusUpdate(update_reason_code_t update_reason_code) {
 
     assert(event_id);
 
+    switch (net_state.connection) {
+        case WIFI:
+            net_state.dhcp = netcfg.wifi.dhcp;
+            break;
+        case ETHERNET:
+            net_state.dhcp = netcfg.eth.dhcp;
+            break;
+    }
+
     ESP_ERROR_CHECK_WITHOUT_ABORT(
         esp_event_post(UC_DOCK_EVENTS, event_id, &net_state, sizeof(net_state), pdMS_TO_TICKS(1000)));
 }
 
 void NetworkBase::startWifiDhcpClient() {
     ESP_LOGI(TAG, "startWifiDhcpClient");
-    network_start_stop_dhcp_client(wifi_netif_, true);
+
+    if (!wifi_netif_) {
+        ESP_LOGW(TAG, "No WiFi netif, cannot configure IPv4");
+        return;
+    }
+
+    esp_err_t ret = apply_wifi_ipv4_config(wifi_netif_);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to apply WiFi IPv4 config: %s", esp_err_to_name(ret));
+    }
 }
 
 void host_task(void *param) {
@@ -501,6 +523,7 @@ void NetworkBase::setImprovProvisioning() {
     net_state.connection = WIFI;
     net_state.eth_link = is_eth_link_up();
     net_state.ip.type = ESP_IPADDR_TYPE_ANY;
+    net_state.dhcp = true;  // Improv provisioning always uses DHCP
 
     if (event_parameters_.ssid) {
         strncpy(reinterpret_cast<char *>(net_state.ssid), event_parameters_.ssid, sizeof(net_state.ssid));

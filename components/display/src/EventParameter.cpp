@@ -71,7 +71,7 @@ EventParameter::EventParameter(ui_event_queue_message* event) : icon_(UI_ICON_NO
                     snprintf(buf, sizeof(buf), IPV6STR, IPV62STR(event_net_state->ip.u_addr.ip6));
                 }
                 icon_ = event_net_state->connection == ETHERNET ? UI_ICON_ETHERNET : UI_ICON_WIFI;
-                title_ = "DHCP";
+                title_ = event_net_state->dhcp ? "DHCP" : "STATIC";
                 message_ = buf;
                 value_ = event_net_state->connection;
             }

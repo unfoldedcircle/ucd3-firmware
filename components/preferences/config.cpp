@@ -229,7 +229,7 @@ bool Config::isNtpEnabled() {
 }
 
 bool Config::setNtpServer(const std::string& server1, const std::string& server2) {
-    if (server1.length() > 32 || server2.length() > 32) {
+    if (server1.length() > 47 || server2.length() > 47) {
         ESP_LOGW(m_ctx, "Ignoring ntp server: name too long");
         return false;
     }
@@ -244,7 +244,7 @@ bool Config::setNtpServer(const std::string& server1, const std::string& server2
 }
 
 std::string Config::getNtpServer1() {
-    return getStringSetting(m_prefGeneral, "ntp_server1", "pool.ntp.org");
+    return getStringSetting(m_prefGeneral, "ntp_server1", "");
 }
 
 std::string Config::getNtpServer2() {
@@ -255,31 +255,38 @@ bool Config::setNetwork(network_cfg_t cfg) {
     if (!m_preferences.begin(m_prefGeneral, false)) {
         return false;
     }
-    m_preferences.putBool("ip_dhcp", cfg.dhcp);
-    m_preferences.putUInt("ip_addr", cfg.ip.ip.addr);
-    m_preferences.putUInt("ip_mask", cfg.ip.netmask.addr);
-    m_preferences.putUInt("ip_gw", cfg.ip.gw.addr);
+    m_preferences.putBool("eth_dhcp", cfg.eth.dhcp);
+    m_preferences.putUInt("eth_ip", cfg.eth.ip.ip.addr);
+    m_preferences.putUInt("eth_mask", cfg.eth.ip.netmask.addr);
+    m_preferences.putUInt("eth_gw", cfg.eth.ip.gw.addr);
+
+    m_preferences.putBool("wifi_dhcp", cfg.wifi.dhcp);
+    m_preferences.putUInt("wifi_ip", cfg.wifi.ip.ip.addr);
+    m_preferences.putUInt("wifi_mask", cfg.wifi.ip.netmask.addr);
+    m_preferences.putUInt("wifi_gw", cfg.wifi.ip.gw.addr);
 
     m_preferences.end();
     return true;
 }
 
 network_cfg_t Config::getNetwork() {
-    esp_netif_ip_info_t ip;
-    memset(&ip, 0, sizeof(esp_netif_ip_info_t));
-    ip.ip.addr = getUIntSetting(m_prefGeneral, "ip_addr", 0);
-    ip.netmask.addr = getUIntSetting(m_prefGeneral, "ip_mask", 0);
-    ip.gw.addr = getUIntSetting(m_prefGeneral, "ip_gw", 0);
+    network_cfg_t cfg = {};
 
-    network_cfg_t cfg;
-    cfg.dhcp = getBoolSetting(m_prefGeneral, "ip_dhcp", true);
-    cfg.ip = ip;
+    cfg.eth.dhcp = getBoolSetting(m_prefGeneral, "eth_dhcp", true);
+    cfg.eth.ip.ip.addr = getUIntSetting(m_prefGeneral, "eth_ip", 0);
+    cfg.eth.ip.netmask.addr = getUIntSetting(m_prefGeneral, "eth_mask", 0);
+    cfg.eth.ip.gw.addr = getUIntSetting(m_prefGeneral, "eth_gw", 0);
+
+    cfg.wifi.dhcp = getBoolSetting(m_prefGeneral, "wifi_dhcp", true);
+    cfg.wifi.ip.ip.addr = getUIntSetting(m_prefGeneral, "wifi_ip", 0);
+    cfg.wifi.ip.netmask.addr = getUIntSetting(m_prefGeneral, "wifi_mask", 0);
+    cfg.wifi.ip.gw.addr = getUIntSetting(m_prefGeneral, "wifi_gw", 0);
 
     return cfg;
 }
 
 bool Config::setDnsServer(const std::string& server1, const std::string& server2) {
-    if (server1.length() > 32 || server2.length() > 32) {
+    if (server1.length() > 47 || server2.length() > 47) {
         ESP_LOGW(m_ctx, "Ignoring dns server: name too long");
         return false;
     }

@@ -137,8 +137,8 @@ class Config {
     network_cfg_t getNetwork();
 
     /// @brief Set static DNS server addresses
-    /// @param server1 main DNS. Max length is 32 characters.
-    /// @param server2 backup DNS. Max length is 32 characters.
+    /// @param server1 main DNS. Max length is 47 characters.
+    /// @param server2 backup DNS. Max length is 47 characters.
     /// @return true if server addresses could be stored
     bool setDnsServer(const std::string& server1, const std::string& server2);
     /// @brief Get main DNS server address.

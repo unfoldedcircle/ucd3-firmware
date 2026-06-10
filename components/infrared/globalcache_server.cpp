@@ -191,12 +191,12 @@ void GlobalCacheServer::tcp_server_task(void *param) {
         // Convert ip address to string
 #ifdef USE_IPV4
         if (source_addr.ss_family == PF_INET) {
-            inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr, addr_str, sizeof(addr_str) - 1);
+            inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr, addr_str, sizeof(addr_str));
         }
 #endif
 #ifdef USE_IPV6
         if (source_addr.ss_family == PF_INET6) {
-            inet6_ntoa_r(((struct sockaddr_in6 *)&source_addr)->sin6_addr, addr_str, sizeof(addr_str) - 1);
+            inet6_ntoa_r(((struct sockaddr_in6 *)&source_addr)->sin6_addr, addr_str, sizeof(addr_str));
         }
 #endif
         ESP_LOGI(TAG_GC, "Socket accepted client: %s", addr_str);

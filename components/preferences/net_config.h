@@ -13,8 +13,13 @@ extern "C" {
 #endif
 
 typedef struct {
-    bool                dhcp;
-    esp_netif_ip_info_t ip;
+    bool                dhcp;  // true = DHCP, false = static
+    esp_netif_ip_info_t ip;    // numeric IPv4 ip/netmask/gw
+} iface_net_cfg_t;
+
+typedef struct {
+    iface_net_cfg_t eth;   // Ethernet config
+    iface_net_cfg_t wifi;  // WiFi STA config
 } network_cfg_t;
 
 #ifdef __cplusplus

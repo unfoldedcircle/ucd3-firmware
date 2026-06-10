@@ -35,7 +35,7 @@ Example request from the Core-API to send an IR code on external port 2:
   "int_side": false,
   "int_top": false,
   "ext1": false,
-  "ext2": true,
+  "ext2": true
 }
 ```
 
@@ -99,7 +99,7 @@ Example request from the Core-API to send a Sony TV volume up command for 2 seco
   "int_side": false,
   "int_top": false,
   "ext1": false,
-  "ext2": true,
+  "ext2": true
 }
 ```
 
@@ -154,9 +154,9 @@ For `mode: RS232`, the UART settings can be configured with additional fields:
   "command": "set_port_mode",
   "port": 1,
   "mode": "RS232",
-  "baud_rate": 19200
-  "data_bits": 7
-  "parity": "even"
+  "baud_rate": 19200,
+  "data_bits": 7,
+  "parity": "even",
   "stop_bits": "1.5"
 }
 ```
@@ -279,5 +279,112 @@ Enable TCP serial server:
   "type": "dock",
   "command": "set_serial_tcp",
   "enable": true
+}
+```
+
+## Static Network Configuration
+
+### Set DNS servers
+
+```json
+{
+    "type": "dock",
+    "id": 123,
+    "command": "set_dns",
+    "dns1": "1.1.1.1",
+    "dns2": "8.8.8.8"
+}
+```
+
+- DNS is a global configuration, not per interface.
+- `dns1` and `dns2` must be IP address literals.
+- IPv6 DNS servers are accepted only if the firmware is built with IPv6 support.
+- Omit a `dns#` field to keep the current value unchanged.
+- Set a `dns#` field to an empty string to clear that DNS server.
+- Manually configured DNS servers take priority over DHCP assigned servers.
+- New DNS settings are applied immediately.
+- Removing a DNS setting requires a reboot to clear the currently active DNS server.
+
+### Set NTP servers
+
+```json
+{
+    "type": "dock",
+    "id": 123,
+    "command": "set_ntp",
+    "ntp_enabled": true,
+    "ntp1": "192.168.1.1",
+    "ntp2": "pool.ntp.org"
+}
+```
+
+### Set a static IPv4 configuration
+
+```json
+{
+    "type": "dock",
+    "id": 123,
+    "command": "set_network",
+    "interface": "eth",
+    "mode": "static",
+    "ip": "192.168.16.88",
+    "mask": "255.255.255.0",
+    "gw": "192.168.16.1"
+}
+```
+
+- Configuration is per `interface`: `eth` or `wifi`
+- `mode`: `static` or `dhcp`
+- `gw` is optional
+
+### Get network configuration
+
+Request:
+```json
+{
+    "type": "dock",
+    "id": 123,
+    "command": "get_network"
+}
+```
+
+Response:
+```json
+{
+    "req_id": 123,
+    "type": "dock",
+    "msg": "get_network",
+    "eth": {
+        "mode": "static",
+        "ip": "192.168.16.88",
+        "mask": "255.255.255.0",
+        "gw": "192.168.16.1"
+    },
+    "wifi": {
+        "mode": "dhcp"
+    },
+    "dns1": "8.8.8.8",
+    "ntp_enabled": true,
+    "ntp1": "pool.ntp.org",
+    "active": {
+        "interface": "eth",
+        "ip": "192.168.16.88",
+        "mask": "255.255.255.0",
+        "gw": "192.168.16.1",
+        "dns1": "8.8.8.8",
+        "ipv6": {
+            "addresses": [
+                {
+                    "address": "FE80::9270:69FF:FE8D:3063",
+                    "type": "link_local"
+                },
+                {
+                    "address": "FDE4:BE4C:EBA9:D140:9270:69FF:FE8D:3063",
+                    "type": "unique_local"
+                }
+            ]
+        }
+    },
+    "code": 200
 }
 ```

@@ -105,6 +105,7 @@ typedef enum {
 typedef struct {
     network_kind_t connection;
     bool           eth_link;
+    bool           dhcp;
     // SSID of AP
     uint8_t ssid[33];
     // Signal strength of AP. Set to 0x00 if ethernet is connected.
