@@ -480,7 +480,7 @@ esp_err_t init_sntp() {
         ESP_LOGI(TAG, "SNTP: DHCP, pool.ntp.org fallback");
     }
 
-    // always required: otherwise lwIP does NOT make copies of our custom servers during initialization!
+    // always required: otherwise esp_netif_sntp_init does NOT make copies of our custom servers during initialization!
     sntp_config.renew_servers_after_new_IP = true;
     sntp_config.start = false;
     sntp_config.sync_cb = on_got_time;

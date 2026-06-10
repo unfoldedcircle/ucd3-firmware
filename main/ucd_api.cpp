@@ -101,7 +101,7 @@ void fill_sysinfo_to_json(cJSON *root) {
     cJSON_AddStringToObject(root, "ssid", cfg.getWifiSsid().c_str());
     cJSON_AddNumberToObject(root, "volume", cfg.getVolume());
     cJSON_AddStringToObject(root, "uptime", get_uptime().c_str());
-    cJSON_AddBoolToObject(root, "sntp", cfg.isNtpEnabled());
+    cJSON_AddBoolToObject(root, "ntp", cfg.isNtpEnabled());
     cJSON_AddStringToObject(root, "reset_reason", getResetReason());
 
     if (cfg.isNtpEnabled()) {
@@ -872,8 +872,6 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
             schedule_restart(web, 2000);
         }
     } else if (command == "set_network") {
-        bool ok = true;
-
         // interface: "eth" or "wifi"
         const char *iface_str = cjson_get_string(root, "interface", nullptr);
         if (!iface_str) {
@@ -1045,25 +1043,6 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                     const char *dns_str = ip_addr_to_string(&dns.ip, ip_str, sizeof(ip_str));
                     if (dns_str) {
                         cJSON_AddStringToObject(active_net, "dns3", dns_str);
-                    }
-                }
-            }
-
-            if (config_->isNtpEnabled()) {
-                for (uint8_t i = 0; i < CONFIG_LWIP_SNTP_MAX_SERVERS; i++) {
-                    char key[8];
-                    snprintf(key, sizeof(key), "ntp%u", i + 1);
-                    const char *server_name = esp_sntp_getservername(i);
-                    if (server_name) {
-                        cJSON_AddStringToObject(active_net, key, server_name);
-                    } else {
-                        // IPv4 or IPv6 address
-                        char             buf[48];
-                        ip_addr_t const *ip = esp_sntp_getserver(i);
-                        server_name = ipaddr_ntoa_r(ip, buf, sizeof(buf));
-                        if (server_name != NULL) {
-                            cJSON_AddStringToObject(active_net, key, server_name);
-                        }
                     }
                 }
             }
