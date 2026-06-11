@@ -18,9 +18,10 @@ and if it isn't already tracked, [create a new issue](https://github.com/unfolde
 
 We love contributions from everyone.
 
-⚠️ If you plan to make functional changes or add new features, we kindly ask you, that you please reach out to us first.  
-The preferred way for firmware changes is to open a feature request or enhancement with your proposed changes, rather than
-directly submitting a pull request, which we'll probably have to decline.
+⚠️ If you plan to make functional changes or add new features, we kindly ask that you please reach out to us first.  
+The preferred way for firmware changes is to open a feature request or enhancement with your proposed changes.  
+This helps ensure your time and effort is well-invested, as unsolicited pull requests for functional changes may not be
+accepted.
 
 Since this software is being used on the Dock 3 devices, we have to make sure it remains
 compatible with the [Dock-API](https://github.com/unfoldedcircle/core-api/tree/main/dock-api) and runs smoothly.
@@ -50,9 +51,8 @@ With that out of the way, here's the process of creating a pull request and maki
 
 6. Submit a pull request.
 
-At this point we will review the PR and give constructive feedback.  
-This is a time for discussion and improvements, and making the necessary changes will be required before we can
-merge the contribution.
+At this point we will review the PR and give constructive feedback.
+This is the time for discussion and improvement. Please make any necessary changes before we can merge the contribution.
 
 ### Pull Request Best Practices
 
@@ -63,8 +63,8 @@ To ensure efficient review and maintain code quality, please follow these guidel
   separate pull requests.
 
 - **Clean commit history**: Before submitting, rebase or squash your commits to create a clean, logical history. Each
-  commit should represent a meaningful, atomic change with a clear commit message. Avoid merge commits in your PR
-  branch.
+  commit should represent a meaningful, atomic change with a clear commit message. If your branch gets behind the main
+  branch, please rebase instead of merging to avoid merge commits in your PR branch.
 
 - **Test before submitting**: Only open a pull request once you have thoroughly tested your changes locally. Ensure all
   [unit tests](test/README.md) pass and lints are clean (`./code_style.sh`). **Pull requests with failing automated
