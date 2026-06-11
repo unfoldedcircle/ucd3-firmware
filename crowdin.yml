@@ -1,0 +1,12 @@
+commit_message: "fix: New %language% translations from Crowdin [ci skip]"
+append_commit_message: false
+"pull_request_assignees": [
+  "lutzh86",
+  "martonborzak",
+  "zehnm"
+]
+
+files:
+  - source: /webroot/lang/en.json
+    translation: /webroot/lang/%two_letters_code%.json
+    type: json

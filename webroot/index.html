@@ -1,68 +1,725 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>		
-		<meta charset="utf-8">
-		<link rel="stylesheet" href="ucd.css">
-		<title>Remote 3 - Smart Charging Dock</title>
-	</head>
-	<body>	 
-		<div class="wrapper">
-			<div class="header">
-				<img width="60px" src="logo.svg" alt="UC logo">
-				<h1>Remote 3 - Smart Charging Dock</h1>
-			</div>
-			<div class="line-break"></div>
-			<ul id="contentList"></ul>
-			<p style="width: 100%; text-align: center;">
-				For more information and support, visit <a href="https://support.unfoldedcircle.com">support.unfoldedcircle.com</a>
-			</p>
-		</div>
-		<script id="rowTemplate" type="text/template">
-			<li>
-				<div class="title">{{title}}</div>
-				<div class="content">{{content}}</div>
-			</li>
-		</script>
-		<script>
-			const container = document.getElementById('contentList');
-			const row = document.getElementById('rowTemplate').innerHTML;
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UC Dock 3</title>
+  <link rel="stylesheet" href="app.css">
+  <script defer src="app.js"></script>
+  <script defer src="lang.js"></script>
+</head>
+<body>
+  <div class="wrapper">
+    <header class="header">
+      <img width="60" src="/logo.svg" alt="UC logo">
+      <h1>Unfolded Circle Smart Charging Dock</h1>
+      <div id="conn-status">
+        <span class="status-dot err"></span>
+        <span id="conn-text" data-i18n="st_disconnected">Disconnected</span>
+        <button id="btn-login-link" class="btn-link hidden" data-i18n="btn_login">Login</button>
+        <button id="btn-logout" class="btn-link hidden" data-i18n="btn_logout">Logout</button>
+      </div>
+    </header>
 
-			function getRow(template, title, content) {
-				if (content) {
-					return template.replace('{{title}}', title).replace('{{content}}', content)
-				} else {
-					return ''
-				}
-			}
-			function fetchInfo() {
-				const {location} = window
+    <nav id="main-nav">
+      <a href="#" data-page="status" class="active" data-i18n="nav_status">Status</a>
+      <a href="#" data-page="general" data-i18n="nav_general">General</a>
+      <a href="#" data-page="network" data-i18n="nav_network">Network</a>
+      <a href="#" data-page="ir" data-i18n="nav_ir">IR</a>
+      <a href="#" data-page="ports" data-i18n="nav_ports">Ports</a>
+      <a href="#" data-page="logs" data-i18n="nav_logs">Logs</a>
+      <a href="#" data-page="ota" data-i18n="nav_ota">OTA</a>
+      <a href="#" data-page="expert" data-i18n="nav_expert">Expert</a>
+    </nav>
 
-				fetch(`${location.protocol}//${location.host}/api/pub/info`)
-				.then(response => response.json())
-				.then(info => {
-					container.innerHTML = 
-					getRow(row, 'Name', info.name) +
-					getRow(row, 'Hostname', info.hostname) +
-					getRow(row, 'Version', info.version) +
-					getRow(row, 'Serial', info.serial) +
-					getRow(row, 'Model', info.model) +
-					getRow(row, 'Revision', info.revision) +
-					getRow(row, 'Free heap', info.free_heap) +
-					getRow(row, 'Reset reason', info.reset_reason) +
-					getRow(row, 'Uptime', info.uptime) +
-					getRow(row, 'Time', (() => {
-						const timeValue = info.time;
-						const date = timeValue ? new Date(timeValue) : null;
-						return date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : '';
-					})())
-				})
-				.catch(err => {
-					console.error(err)
-					container.innerHTML = '<li>Failed to fetch dock information.</li>'
-				})
-			}
+    <main id="content">
 
-			fetchInfo();
-		</script>
-	</body>
+      <!-- ============ Status ============ -->
+      <section id="page-status">
+        <p class="note note-info" data-i18n-html="note_status_info">💡 This is the Dock's advanced management UI. For normal configuration, use the Web-Configurator on your Remote device – open the Remote's address in your browser instead.</p>
+        <ul id="status-list">
+          <li><span class="title" data-i18n="lbl_name">Name</span><span class="content" id="s-name">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_hostname">Hostname</span><span class="content" id="s-hostname">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_model">Model</span><span class="content" id="s-model">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_revision">Revision</span><span class="content" id="s-revision">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_version">Version</span><span class="content" id="s-version">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_serial">Serial</span><span class="content" id="s-serial">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_ethernet">Ethernet</span><span class="content" id="s-ethernet">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_wifi">WiFi</span><span class="content" id="s-wifi">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_uptime">Uptime</span><span class="content" id="s-uptime">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_time">Time</span><span class="content" id="s-time">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_free_heap">Free heap</span><span class="content" id="s-heap">&mdash;</span></li>
+          <li><span class="title" data-i18n="lbl_reset_reason">Reset reason</span><span class="content" id="s-reset">&mdash;</span></li>
+        </ul>
+      </section>
+
+      <!-- ============ General ============ -->
+      <section id="page-general" class="hidden">
+        <div class="card">
+          <div class="form-row form-inline">
+            <label for="cfg-name" data-i18n="hdr_device_name">Device Name</label>
+            <input type="text" id="cfg-name" maxlength="40" data-i18n-ph="ph_friendly_name" placeholder="Friendly name">
+            <button id="btn-save-name" data-i18n="btn_save">Save</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 data-i18n="hdr_led_brightness">LED Brightness</h2>
+          <div class="form-row">
+            <label for="cfg-led" data-i18n="lbl_status_led">Status LED</label>
+            <div class="range-row">
+              <input type="range" id="cfg-led" min="0" max="100">
+              <span id="cfg-led-val">0%</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="cfg-eth-led" data-i18n="lbl_eth_led">Ethernet LED</label>
+            <div class="range-row">
+              <input type="range" id="cfg-eth-led" min="0" max="100">
+              <span id="cfg-eth-led-val">0%</span>
+            </div>
+          </div>
+          <!-- <div class="form-row">
+            <label for="cfg-volume">Speaker Volume</label>
+            <div class="range-row">
+              <input type="range" id="cfg-volume" min="0" max="100">
+              <span id="cfg-volume-val">0</span>
+            </div>
+          </div> -->
+          <button id="btn-save-brightness" data-i18n="btn_apply">Apply</button>
+        </div>
+
+        <div class="card">
+          <h2 data-i18n="hdr_access_token">Access Token</h2>
+          <div class="form-row form-inline">
+            <input type="password" id="cfg-token" minlength="4" maxlength="40" data-i18n-ph="ph_token" placeholder="Access Token">
+            <button id="btn-save-token" data-i18n="btn_change">Change</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 data-i18n="hdr_actions">Actions</h2>
+          <div class="btn-group">
+            <button id="btn-identify" data-i18n="btn_identify">Identify</button>
+            <button id="btn-reboot" class="btn-warn" data-i18n="btn_reboot">Reboot</button>
+            <button id="btn-reset" class="btn-danger" data-i18n="btn_reset">Factory Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Network ============ -->
+      <section id="page-network" class="hidden">
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_conn_status">Connection Status</span>
+            <button class="info-trigger" aria-label="Connection status info" popovertarget="conn-status-info">i</button>
+          </h2>
+          <div id="conn-status-info" class="info-popover" popover role="dialog" data-i18n="note_eth_priority">
+            Ethernet has priority over WiFi.
+          </div>
+          <ul id="net-status-list">
+            <li><span class="title" data-i18n="lbl_ethernet">Ethernet</span><span class="content" id="net-eth">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_wifi">WiFi</span><span class="content" id="net-wifi">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_ssid">SSID</span><span class="content" id="net-ssid">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_ip_address">IP Address</span><span class="content" id="net-ip">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_netmask">Netmask</span><span class="content" id="net-mask">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_gateway">Gateway</span><span class="content" id="net-gw">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_dns_servers">DNS Servers</span><span class="content" id="net-dns">&mdash;</span></li>
+            <li><span class="title" data-i18n="lbl_ipv6_addresses">IPv6 Addresses</span><span class="content" id="net-ipv6">&mdash;</span></li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_eth_config">Ethernet Configuration</span>
+            <button class="info-trigger" aria-label="Ethernet Configuration info" popovertarget="eth-cfg-info">i</button>
+          </h2>
+          <div id="eth-cfg-info" class="info-popover" popover role="dialog">
+            <p data-i18n="info_net_cfg_ipv4">Only IPv4 is supported for static network configuration.</p>
+            <p data-i18n="info_net_cfg_restart">The dock will restart after applying network changes.</p>
+          </div>
+          <div class="form-row form-inline">
+            <label for="cfg-eth-mode" data-i18n="lbl_mode">Mode</label>
+            <select id="cfg-eth-mode">
+              <option value="dhcp" data-i18n="lbl_dhcp">DHCP</option>
+              <option value="static" data-i18n="lbl_static">Static</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="cfg-eth-ip" data-i18n="lbl_ip_address">IP Address</label>
+            <input type="text" id="cfg-eth-ip" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-eth-mask" data-i18n="lbl_netmask">Subnet mask</label>
+            <input type="text" id="cfg-eth-mask" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-eth-gw" data-i18n="lbl_gateway">Gateway</label>
+            <input type="text" id="cfg-eth-gw" maxlength="15">
+          </div>
+          <button id="btn-save-eth" data-i18n="btn_apply">Apply</button>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_wifi_net">WiFi Network</span>
+            <button class="info-trigger" aria-label="WiFi Network info" popovertarget="wifi-net-info">i</button>
+          </h2>
+          <div id="wifi-net-info" class="info-popover" popover role="dialog">
+            <p data-i18n="info_net_cfg_restart">The dock will restart after applying network changes.</p>
+          </div>
+          <div class="form-row">
+            <label for="cfg-ssid" data-i18n="lbl_ssid">SSID</label>
+            <input type="text" id="cfg-ssid" maxlength="32">
+              <!-- <button id="btn-scan" disabled>Scan</button> -->
+          </div>
+          <div class="form-row">
+            <label for="cfg-wifi-pw" data-i18n="lbl_password">Password</label>
+            <div class="input-reveal">
+              <input type="password" id="cfg-wifi-pw" maxlength="63">
+              <button type="button" id="btn-reveal-wifi" data-i18n="btn_show">Show</button>
+            </div>
+          </div>
+          <button id="btn-save-wifi" data-i18n="btn_apply">Apply</button>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_wifi_config">WiFi Configuration</span>
+            <button class="info-trigger" aria-label="WiFi Configuration info" popovertarget="wifi-cfg-info">i</button>
+          </h2>
+          <div id="wifi-cfg-info" class="info-popover" popover role="dialog">
+            <p data-i18n="info_net_cfg_ipv4">Only IPv4 is supported for static network configuration.</p>
+            <p data-i18n="info_net_cfg_restart">The dock will restart after applying network changes.</p>
+          </div>
+          <div class="form-row form-inline">
+            <label for="cfg-wifi-mode" data-i18n="lbl_mode">Mode</label>
+            <select id="cfg-wifi-mode">
+              <option value="dhcp" data-i18n="lbl_dhcp">DHCP</option>
+              <option value="static" data-i18n="lbl_static">Static</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="cfg-wifi-ip" data-i18n="lbl_ip_address">IP Address</label>
+            <input type="text" id="cfg-wifi-ip" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-wifi-mask" data-i18n="lbl_netmask">Subnet mask</label>
+            <input type="text" id="cfg-wifi-mask" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-wifi-gw" data-i18n="lbl_gateway">Gateway</label>
+            <input type="text" id="cfg-wifi-gw" maxlength="15">
+          </div>
+          <button id="btn-save-wifi-net" data-i18n="btn_apply">Apply</button>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_dns_config">DNS Configuration</span>
+            <button class="info-trigger" aria-label="DNS Configuration info" popovertarget="dns-cfg-info">i</button>
+          </h2>
+          <div id="dns-cfg-info" class="info-popover" popover role="dialog">
+            <p data-i18n="info_dns_global">DNS settings are global and apply to both Ethernet and WiFi.</p>
+            <p data-i18n="info_dns_priority">DNS settings take priority over DHCP-assigned DNS servers. Leave empty to clear.</p>
+            <p data-i18n="info_net_cfg_restart">The dock will restart after applying network changes.</p>
+          </div>
+          <div class="form-row">
+            <label for="cfg-dns1" data-i18n="lbl_dns_server_1">DNS Server 1</label>
+            <input type="text" id="cfg-dns1" maxlength="15">
+          </div>
+          <div class="form-row">
+            <label for="cfg-dns2" data-i18n="lbl_dns_server_2">DNS Server 2</label>
+            <input type="text" id="cfg-dns2" maxlength="15">
+          </div>
+          <button id="btn-save-dns" data-i18n="btn_apply">Apply</button>
+        </div>
+      </section>
+
+      <!-- ============ IR ============ -->
+      <section id="page-ir" class="hidden">
+        <div class="card">
+          <h2 data-i18n="hdr_send_ir">Send IR</h2>
+          <div class="form-row">
+            <label for="ir-code" data-i18n="lbl_ir_code">IR Code</label>
+            <textarea id="ir-code" rows="4" data-i18n-ph="ph_ir_code" placeholder="e.g. 4;0x10;12;0 or PRONTO hex"></textarea>
+          </div>
+          <div class="form-row form-inline">
+            <label for="ir-format" data-i18n="lbl_format">Format</label>
+            <select id="ir-format" class="input-format">
+              <option value="pronto">PRONTO</option>
+              <option value="hex">HEX</option>
+            </select>
+            <div class="form-inline form-group">
+              <label for="ir-repeat" data-i18n="lbl_repeat">Repeat</label>
+              <button class="info-trigger" aria-label="Repeat info" popovertarget="ir-repeat-info">i</button>
+              <input type="number" id="ir-repeat" min="0" max="20" value="0" class="input-repeat">
+            </div>
+            <div id="ir-repeat-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_repeat">
+              Repeat count (1–20), overriding any repeat value in the code.<p><strong>HEX:</strong> Overrides the repeat field; protocol-specific repeat behavior is handled automatically.</p><p><strong>PRONTO:</strong> Repeats the 2nd burst pair sequence; ignored if the code has no repeat sequence.</p>
+            </div>
+            <div class="form-inline form-group">
+              <label for="ir-hold" data-i18n="lbl_hold">Hold (ms)</label>
+              <button class="info-trigger" aria-label="Hold info" popovertarget="ir-hold-info">i</button>
+              <input type="number" id="ir-hold" min="0" max="9999" value="0" class="input-hold">
+            </div>
+            <div id="ir-hold-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_hold">
+              Minimum duration in ms to send the IR code, simulating a long button press.<p><strong>Overrides repeat</strong> if set.</p><p>The signal always completes its final IR message, so the actual send time may be slightly longer.</p>
+            </div>
+          </div>
+          <div class="form-row">
+            <fieldset class="checkbox-group">
+              <legend data-i18n="lbl_output">Output</legend>
+              <label class="cb-label"><input type="checkbox" id="ir-int-side" checked> <span data-i18n="lbl_internal">Internal</span></label>
+              <label class="cb-label" id="ir-ext1-label"><input type="checkbox" id="ir-ext1"> Port 1</label>
+              <label class="cb-label" id="ir-ext2-label"><input type="checkbox" id="ir-ext2"> Port 2</label>
+            </fieldset>
+          </div>
+          <div class="form-row">
+            <fieldset class="checkbox-group">
+              <legend data-i18n="lbl_ir_repeat_mode">IR repeat</legend>
+              <label class="cb-label">
+                <input type="checkbox" id="ir-repeat-mode">
+                <span data-i18n="lbl_ir_active">Active</span>
+                <button class="info-trigger" aria-label="IR repeat info" popovertarget="ir-repeat-mode-info">i</button>
+              </label>
+              <div class="form-inline form-group ir-interval-group">
+                <label for="ir-interval" class="ir-interval-label" data-i18n="lbl_interval">Interval (ms)</label>
+                <button class="info-trigger" aria-label="Periodic send info" popovertarget="ir-interval-info">i</button>
+                <input type="number" id="ir-interval" min="100" max="1000" value="300" class="input-interval" disabled>
+              </div>
+              <div id="ir-repeat-mode-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_repeat_mode">
+                Activate IR repeat mode. Press and hold the Start Repeat button to continuously send the IR code.<p>Requires <strong>Repeat</strong> value > 0 with a matching repeat interval to renew the IR signal.</p>
+              </div>
+              <div id="ir-interval-info" class="info-popover" popover role="dialog" data-i18n="info_ir_interval">
+                Interval in ms to repeatedly send the IR code while the Send button is held.
+              </div>
+            </fieldset>
+          </div>
+          <div class="form-row">
+            <button id="btn-ir-send" data-i18n="btn_send" disabled>Send</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_learn_ir">Learn IR</span>
+            <button class="info-trigger" aria-label="IR learning info" popovertarget="ir-learn-info">i</button>
+          </h2>
+          <div id="ir-learn-info" class="info-popover" popover role="dialog">
+            <p data-i18n="info_ir_learn_text">The infrared receiver is at the top of the dock.</p>
+            <p><a href="https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188" target="_blank" data-i18n="info_ir_protocols">Supported infrared protocols</a></p>
+          </div>
+          <div class="btn-group">
+            <button id="btn-ir-learn" data-i18n="btn_start_learning">Start Learning</button>
+            <button id="btn-ir-clear" data-i18n="btn_clear">Clear</button>
+          </div>
+          <div class="console">
+            <pre id="ir-learn-output"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Ports ============ -->
+      <section id="page-ports" class="hidden">
+        <p class="note note-warning" data-i18n-html="note_ports_hotplug">⚠️ <strong>Hot-plugging is not supported</strong> and may cause brownouts depending on the port configuration. Always connect accessories before powering on the device.</p>
+
+        <!-- Port 1 -->
+        <div class="card" id="port-1-card">
+          <h2>
+            <span data-i18n="hdr_ext_port">External Port</span> 1
+            <button class="info-trigger" aria-label="Port location and pinout" popovertarget="port-info">i</button>
+          </h2>
+          <div id="port-info" class="info-popover" popover role="dialog">
+            <p data-i18n-html="info_port_location">From the back, left to right: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.</p>
+            <p><a href="https://support.unfoldedcircle.com/hc/en-us/articles/20028572717084" target="_blank" data-i18n="info_port_pinout">3.5 mm jack pinout</a></p>
+          </div>
+          <div class="form-row form-inline">
+            <label for="port1-mode" data-i18n="lbl_mode">Mode</label>
+            <button class="info-trigger" aria-label="Mode selection info" popovertarget="port-mode-info">i</button>
+            <select id="port1-mode">
+              <option value="AUTO">AUTO</option>
+              <option value="NONE">NONE</option>
+              <option value="IR_BLASTER">IR Blaster</option>
+              <option value="IR_EMITTER_MONO_PLUG">IR Emitter (Mono)</option>
+              <option value="IR_EMITTER_STEREO_PLUG">IR Emitter (Stereo)</option>
+              <option value="TRIGGER_5V">Trigger 5V</option>
+              <option value="RS232">RS232</option>
+            </select>
+            <button id="btn-port1-mode" data-i18n="btn_apply">Apply</button>
+          </div>
+          <div id="port-mode-info" class="info-popover" popover role="dialog" data-i18n-html="note_ports_auto_mode">
+            For stable operation, use a static configuration.
+          </div>
+          <div class="form-row" id="port1-active-row">
+            <span class="label-inline" data-i18n="lbl_active">Active:</span>
+            <button class="info-trigger" aria-label="Active status info" popovertarget="port-active-info">i</button>
+            <span id="port1-active">&mdash;</span>
+          </div>
+          <div id="port-active-info" class="info-popover" popover role="dialog" data-i18n-html="info_port_active">
+            Detected peripheral if in AUTO mode.
+          </div>
+
+          <!-- Trigger controls -->
+          <div id="port1-trigger" class="hidden">
+            <h3 data-i18n="hdr_trigger">Trigger Control</h3>
+            <div class="form-row trigger-controls">
+              <button id="btn-port1-trig-on">ON</button>
+              <button id="btn-port1-trig-off">OFF</button>
+              <div class="form-inline form-group">
+                <label for="port1-impulse" data-i18n="lbl_impulse">Impulse (ms)</label>
+                <input type="number" id="port1-impulse" min="1" value="500" class="input-impulse">
+                <button id="btn-port1-impulse" data-i18n="btn_send">Send</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RS232 settings -->
+          <div id="port1-rs232" class="hidden">
+            <h3 data-i18n="hdr_uart">UART Configuration</h3>
+            <div class="form-row">
+              <label for="port1-baud" data-i18n="lbl_baud_rate">Baud Rate</label>
+              <select id="port1-baud">
+                <option value="300">300</option>
+                <option value="1200">1200</option>
+                <option value="2400">2400</option>
+                <option value="4800">4800</option>
+                <option value="9600" selected>9600</option>
+                <option value="19200">19200</option>
+                <option value="38400">38400</option>
+                <option value="57600">57600</option>
+                <option value="115200">115200</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port1-databits" data-i18n="lbl_data_bits">Data Bits</label>
+              <select id="port1-databits">
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8" selected>8</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port1-stopbits" data-i18n="lbl_stop_bits">Stop Bits</label>
+              <select id="port1-stopbits">
+                <option value="1" selected>1</option>
+                <option value="1.5">1.5</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port1-parity" data-i18n="lbl_parity">Parity</label>
+              <select id="port1-parity">
+                <option value="none" selected>None</option>
+                <option value="even">Even</option>
+                <option value="odd">Odd</option>
+              </select>
+            </div>
+            <button id="btn-port1-uart" data-i18n="btn_apply_uart">Apply UART</button>
+
+            <h3 data-i18n="hdr_serial_console">Serial Console</h3>
+            <div class="form-row">
+              <div class="form-inline form-group">
+                <label for="port1-buffering" data-i18n="lbl_buffering">Buffering</label>
+                <button class="info-trigger" aria-label="Buffering info" popovertarget="port-buffering-info">i</button>
+                <select id="port1-buffering" class="input-sm-select">
+                  <option value="chunk">Chunk</option>
+                  <option value="line">Line</option>
+                </select>
+              </div>
+              <div id="port-buffering-info" class="info-popover" popover role="dialog" data-i18n-html="info_buffering">
+                <strong>Chunk</strong>: data is forwarded in chunks after a short timeout.<br><strong>Line</strong>: data is forwarded line by line; the end of the line is indicated by the terminating character.
+              </div>
+              <div class="form-inline form-group">
+                <label for="port1-terminator" data-i18n="lbl_terminator">Terminator</label>
+                <button class="info-trigger" aria-label="Terminator info" popovertarget="port-terminator-info">i</button>
+                <input type="text" id="port1-terminator" value="0x0D" class="input-terminator" placeholder="0x0D">
+              </div>
+              <div id="port-terminator-info" class="info-popover" popover role="dialog" data-i18n-html="info_terminator">
+                Line end terminating character in hex notation.<br/>Line feed: 0x0A, Carriage return: 0x0D
+              </div>
+              <div class="form-inline form-group">
+                <label for="port1-timeout" data-i18n="lbl_line_timeout">Line timeout</label>
+                <button class="info-trigger" aria-label="Line timeout info" popovertarget="port-timeout-info">i</button>
+                <input type="number" id="port1-timeout" min="0" max="65535" value="100" class="input-timeout">
+                <span class="unit-label" data-i18n="lbl_ms_no_timeout">ms (0 = no timeout)</span>
+              </div>
+              <div id="port-timeout-info" class="info-popover" popover role="dialog" data-i18n-html="info_line_timeout">
+                Timeout in ms for forwarding received data if no terminating character is detected.
+              </div>
+            </div>
+            <div class="form-row console-controls">
+              <button id="btn-port1-serial-cfg" data-i18n="btn_apply_buffering">Apply Buffering</button>
+              <button id="btn-port1-console" data-i18n="btn_enable_console">Enable Console</button>
+              <button id="btn-port1-clear" data-i18n="btn_clear">Clear</button>
+            </div>
+            <div class="console console-resize">
+              <pre id="port1-output"></pre>
+            </div>
+            <div class="form-row form-inline console-send">
+              <input type="text" id="port1-input" data-i18n-ph="ph_send_command" placeholder="Send command">
+              <button id="btn-port1-send" data-i18n="btn_send">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Port 2 -->
+        <div class="card" id="port-2-card">
+          <h2>
+            <span data-i18n="hdr_ext_port">External Port</span> 2
+            <button class="info-trigger" aria-label="Port location and pinout" popovertarget="port-info">i</button>
+          </h2>
+          <div class="form-row form-inline">
+            <label for="port2-mode" data-i18n="lbl_mode">Mode</label>
+            <button class="info-trigger" aria-label="Mode selection info" popovertarget="port-mode-info">i</button>
+            <select id="port2-mode">
+              <option value="AUTO">AUTO</option>
+              <option value="NONE">NONE</option>
+              <option value="IR_BLASTER">IR Blaster</option>
+              <option value="IR_EMITTER_MONO_PLUG">IR Emitter (Mono)</option>
+              <option value="IR_EMITTER_STEREO_PLUG">IR Emitter (Stereo)</option>
+              <option value="TRIGGER_5V">Trigger 5V</option>
+              <option value="RS232">RS232</option>
+            </select>
+            <button id="btn-port2-mode" data-i18n="btn_apply">Apply</button>
+          </div>
+          <div class="form-row" id="port2-active-row">
+            <span class="label-inline" data-i18n="lbl_active">Active:</span>
+            <button class="info-trigger" aria-label="Active status info" popovertarget="port-active-info">i</button>
+            <span id="port2-active">&mdash;</span>
+          </div>
+
+          <!-- Trigger controls -->
+          <div id="port2-trigger" class="hidden">
+            <h3 data-i18n="hdr_trigger">Trigger Control</h3>
+            <div class="form-row trigger-controls">
+              <button id="btn-port2-trig-on">ON</button>
+              <button id="btn-port2-trig-off">OFF</button>
+              <div class="form-inline form-group">
+                <label for="port2-impulse" data-i18n="lbl_impulse">Impulse (ms)</label>
+                <input type="number" id="port2-impulse" min="1" value="500" class="input-impulse">
+                <button id="btn-port2-impulse" data-i18n="btn_send">Send</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RS232 settings -->
+          <div id="port2-rs232" class="hidden">
+            <h3 data-i18n="hdr_uart">UART Configuration</h3>
+            <div class="form-row">
+              <label for="port2-baud" data-i18n="lbl_baud_rate">Baud Rate</label>
+              <select id="port2-baud">
+                <option value="300">300</option>
+                <option value="1200">1200</option>
+                <option value="2400">2400</option>
+                <option value="4800">4800</option>
+                <option value="9600" selected>9600</option>
+                <option value="19200">19200</option>
+                <option value="38400">38400</option>
+                <option value="57600">57600</option>
+                <option value="115200">115200</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port2-databits" data-i18n="lbl_data_bits">Data Bits</label>
+              <select id="port2-databits">
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8" selected>8</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port2-stopbits" data-i18n="lbl_stop_bits">Stop Bits</label>
+              <select id="port2-stopbits">
+                <option value="1" selected>1</option>
+                <option value="1.5">1.5</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="port2-parity" data-i18n="lbl_parity">Parity</label>
+              <select id="port2-parity">
+                <option value="none" selected>None</option>
+                <option value="even">Even</option>
+                <option value="odd">Odd</option>
+              </select>
+            </div>
+            <button id="btn-port2-uart" data-i18n="btn_apply_uart">Apply UART</button>
+
+            <h3 data-i18n="hdr_serial_console">Serial Console</h3>
+            <div class="form-row">
+              <div class="form-inline form-group">
+                <label for="port2-buffering" data-i18n="lbl_buffering">Buffering</label>
+                <button class="info-trigger" aria-label="Buffering info" popovertarget="port-buffering-info">i</button>
+                <select id="port2-buffering" class="input-sm-select">
+                  <option value="chunk">Chunk</option>
+                  <option value="line">Line</option>
+                </select>
+              </div>
+              <div class="form-inline form-group">
+                <label for="port2-terminator" data-i18n="lbl_terminator">Terminator</label>
+                <button class="info-trigger" aria-label="Terminator info" popovertarget="port-terminator-info">i</button>
+                <input type="text" id="port2-terminator" value="0x0D" class="input-terminator" placeholder="0x0D">
+              </div>
+              <div class="form-inline form-group">
+                <label for="port2-timeout" data-i18n="lbl_line_timeout">Line timeout</label>
+                <button class="info-trigger" aria-label="Line timeout info" popovertarget="port-timeout-info">i</button>
+                <input type="number" id="port2-timeout" min="0" max="65535" value="100" class="input-timeout">
+                <span class="unit-label" data-i18n="lbl_ms_no_timeout">ms (0 = no timeout)</span>
+              </div>
+            </div>
+            <div class="form-row console-controls">
+              <button id="btn-port2-serial-cfg" data-i18n="btn_apply_buffering">Apply Buffering</button>
+              <button id="btn-port2-console" data-i18n="btn_enable_console">Enable Console</button>
+              <button id="btn-port2-clear" data-i18n="btn_clear">Clear</button>
+            </div>
+            <div class="console console-resize">
+              <pre id="port2-output"></pre>
+            </div>
+            <div class="form-row form-inline console-send">
+              <input type="text" id="port2-input" data-i18n-ph="ph_send_command" placeholder="Send command">
+              <button id="btn-port2-send" data-i18n="btn_send">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Logs ============ -->
+      <section id="page-logs" class="hidden">
+        <div class="card">
+          <h2 data-i18n="hdr_syslog">System Log</h2>
+          <div class="form-row console-controls">
+            <div class="console-buttons">
+              <button id="btn-log-stream" data-i18n="btn_start_streaming">Start Streaming</button>
+              <button id="btn-log-clear" data-i18n="btn_clear">Clear</button>
+            </div>
+            <div class="console-filter">
+              <label for="log-filter" data-i18n="lbl_filter">Filter</label>
+              <select id="log-filter">
+                <option value="E">ERROR</option>
+                <option value="W">WARN</option>
+                <option value="I" selected>INFO</option>
+                <option value="D">DEBUG</option>
+              </select>
+            </div>
+          </div>
+          <div class="console console-log">
+            <pre id="log-output"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ OTA ============ -->
+      <section id="page-ota" class="hidden">
+        <div class="card">
+          <h2>
+            <span data-i18n="hdr_fw_update">Firmware Update</span>
+            <button class="info-trigger" aria-label="OTA info" popovertarget="ota-info">i</button>
+          </h2>
+          <div id="ota-info" class="info-popover" popover role="dialog">
+            <p data-i18n-html="info_ota_webconfig">For regular updates, use the <strong>Web-Configurator</strong> on your Remote device instead. It will notify you when an official update is available and guide you through the process safely.</p>
+          </div>
+          <p class="note note-warning">
+            <strong data-i18n="note_ota_header">⚠️ Manual firmware updates are for advanced users only.</strong>
+            <span data-i18n="note_ota_text1">This page allows you to upload and apply pre-release or development firmware from the</span>
+            <a href="https://github.com/unfoldedcircle/ucd3-firmware/releases" target="_blank" data-i18n="note_ota_github_link">official GitHub releases page</a>.
+            <span data-i18n="note_ota_text2">Proceed with caution, as installing unstable firmware may soft-brick your device and require a</span>
+            <a href="https://github.com/unfoldedcircle/ucd3-firmware/blob/main/doc/flash-esptool.md" target="_blank" data-i18n="note_ota_recovery_link">recovery flash via USB-C serial</a>.<br/>
+          </p>
+          <p><span data-i18n="lbl_current_version">Current version:</span> <span id="ota-version">&mdash;</span></p>
+          <div class="form-row">
+            <label for="ota-file" data-i18n="lbl_firmware_file">Firmware file (.bin)</label>
+            <input type="file" id="ota-file" accept=".bin">
+          </div>
+          <button id="btn-upload" data-i18n="btn_upload">Upload</button>
+          <progress id="ota-progress" class="hidden" max="100" value="0"></progress>
+          <p id="ota-status"></p>
+          <p class="note note-warning" data-i18n-html="note_no_disconnect">⚠️ <strong>Do not disconnect the dock during update.</strong></p>
+        </div>
+      </section>
+
+      <!-- ============ Expert ============ -->
+      <section id="page-expert" class="hidden">
+        <div class="card">
+          <h2 data-i18n="hdr_expert">Expert</h2>
+          <p class="note note-warning" data-i18n-html="note_expert_warning">🧪 <strong>Experimental Features</strong> – The settings below are early-access or development features not yet available in the standard product. They are disabled by default and intended for testing purposes only. Proceed with caution. We appreciate feedback but can't provide support.</p>
+
+          <div class="form-row">
+            <label class="cb-label">
+              <input type="checkbox" id="exp-rs232-tcp">
+              <span data-i18n="lbl_rs232_tcp">RS232 TCP server (ports 4999, 5000)</span>
+            </label>
+          </div>
+          <div class="form-row hidden" id="exp-poe-row">
+            <label class="cb-label">
+              <input type="checkbox" id="exp-poe-voltage">
+              <span data-i18n="lbl_poe_voltage">Increased PoE voltage (rev6 only)</span> *
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="cb-label">
+              <input type="checkbox" id="exp-itach-emulation">
+              <span data-i18n="lbl_itach_emulation">iTach emulation</span> *
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="cb-label">
+              <input type="checkbox" id="exp-amxb-beacon">
+              <span data-i18n="lbl_amxb_beacon">AMXB discovery beacon</span> *
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="cb-label">
+              <input type="checkbox" id="exp-ntp-enabled">
+              <span data-i18n="lbl_ntp_enabled">Enable NTP</span> *
+            </label>
+          </div>
+          <div class="form-row">
+            <label for="exp-ntp1" data-i18n="lbl_ntp_server_1">NTP Server 1</label>
+            <input type="text" id="exp-ntp1" maxlength="64">
+          </div>
+          <div class="form-row">
+            <label for="exp-ntp2" data-i18n="lbl_ntp_server_2">NTP Server 2</label>
+            <input type="text" id="exp-ntp2" maxlength="64">
+          </div>
+
+          <div class="form-row" style="margin-top: 16px;">
+            <button id="btn-expert-apply" data-i18n="btn_apply">Apply</button>
+          </div>
+          <p class="note" data-i18n="lbl_reboot_required">* reboot required</p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <select id="lang-select" aria-label="Language"></select>
+      <span class="footer-sep">|</span>
+      <select id="theme-select" aria-label="Theme">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
+      <span class="footer-sep">|</span>
+      <a href="https://support.unfoldedcircle.com">Support</a>
+      <span class="footer-sep">|</span>
+      <a href="https://unfoldedcircle.com">Unfolded Circle ApS © 2026</a>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <div id="login-overlay" class="overlay hidden">
+    <div class="login-box">
+      <img width="40" src="/logo.svg" alt="UC logo">
+      <h2 data-i18n="hdr_auth">Authentication</h2>
+      <p class="note note-info note-info-compact" data-i18n-html="note_status_close">💡 Remember to log out or close this tab when finished – The Dock supports only a limited number of simultaneous clients.</p>
+      <label for="login-pw" class="sr-only" data-i18n="ph_token">Access Token</label>
+      <input type="password" id="login-pw" data-i18n-ph="ph_token" placeholder="Access Token" autocomplete="current-password">
+      <button id="login-btn" data-i18n="btn_login">Login</button>
+      <p id="login-err" class="err hidden"></p>
+    </div>
+  </div>
+</body>
 </html>

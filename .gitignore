@@ -22,6 +22,8 @@ tmp
 *.bin
 
 *.pem
-/issues
 /release
-_issues
+/_issues
+
+# generated at build time, not needed in repo
+/webroot/lang.js

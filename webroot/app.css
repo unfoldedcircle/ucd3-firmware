@@ -1,0 +1,1093 @@
+/* === Theme Variables === */
+:root {
+  --bg-color: rgb(20, 20, 20);
+  --text-color: rgb(234, 244, 245);
+  --link-color: rgb(88, 88, 88);
+  --card-bg: black;
+  --nav-bg: black;
+  --nav-text: rgb(120, 120, 120);
+  --nav-text-hover: rgb(180, 180, 180);
+  --nav-text-active: rgb(234, 244, 245);
+  --nav-border: transparent;
+  --border-color: rgb(60, 60, 60);
+  --border-light: rgba(84, 84, 84, 0.48);
+  --border-faint: rgba(84, 84, 84, 0.24);
+  --input-bg: rgb(30, 30, 30);
+  --input-text: rgb(234, 244, 245);
+  --input-border: rgb(60, 60, 60);
+  --input-focus-border: rgb(120, 120, 120);
+  --label-color: rgb(140, 140, 140);
+  --title-color: rgb(88, 88, 88);
+  --content-text: rgb(234, 244, 245);
+  --h3-color: rgb(160, 160, 160);
+  --note-color: rgb(120, 120, 120);
+  --btn-bg: rgb(50, 50, 50);
+  --btn-text: rgb(234, 244, 245);
+  --btn-border: rgb(80, 80, 80);
+  --btn-hover-bg: rgb(70, 70, 70);
+  --btn-active-bg: rgb(40, 40, 40);
+  --btn-warn-border: rgb(180, 130, 0);
+  --btn-warn-hover-bg: rgb(60, 50, 20);
+  --btn-danger-bg: rgb(180, 50, 50);
+  --btn-danger-border: rgb(180, 50, 50);
+  --btn-danger-hover-bg: rgb(200, 70, 70);
+  --btn-link-color: rgb(120, 120, 120);
+  --btn-link-hover-color: rgb(180, 180, 180);
+  --console-bg: rgb(10, 10, 10);
+  --console-border: rgb(40, 40, 40);
+  --console-text: rgb(200, 200, 200);
+  --progress-bg: rgb(30, 30, 30);
+  --progress-fill: rgb(80, 140, 80);
+  --toast-ok-bg: rgb(30, 60, 30);
+  --toast-ok-border: #4a4;
+  --toast-ok-text: rgb(180, 230, 180);
+  --toast-err-bg: rgb(60, 30, 30);
+  --toast-err-border: #a44;
+  --toast-err-text: rgb(230, 180, 180);
+  --overlay-bg: rgba(0, 0, 0, 0.85);
+  --login-box-bg: rgb(30, 30, 30);
+  --login-box-border: rgb(60, 60, 60);
+  --login-err-color: #a44;
+  --footer-sep-color: rgb(60, 60, 60);
+  --footer-select-bg: rgb(30, 30, 30);
+  --footer-select-border: rgb(60, 60, 60);
+  --footer-select-text: rgb(200, 200, 200);
+  --footer-link-color: rgb(88, 88, 88);
+  --status-dot-ok: #4a4;
+  --status-dot-err: #a44;
+  --status-dot-warn: #aa4;
+  --conn-status-text: rgb(140, 140, 140);
+  --range-text: rgb(160, 160, 160);
+  --checkbox-text: rgb(234, 244, 245);
+  --checkbox-disabled: rgb(80, 80, 80);
+  --accent-color: rgb(234, 244, 245);
+  --login-box-text: rgb(234, 244, 245);
+  --h1-text: rgb(234, 244, 245);
+  --h2-text: rgb(234, 244, 245);
+}
+
+[data-theme="light"] {
+  --bg-color: rgb(245, 245, 245);
+  --text-color: rgb(20, 20, 20);
+  --link-color: rgb(100, 100, 100);
+  --card-bg: rgb(255, 255, 255);
+  --nav-bg: rgb(230, 230, 230);
+  --nav-text: rgb(80, 80, 80);
+  --nav-text-hover: rgb(40, 40, 40);
+  --nav-text-active: rgb(0, 0, 0);
+  --nav-border: transparent;
+  --border-color: rgb(200, 200, 200);
+  --border-light: rgba(180, 180, 180, 0.6);
+  --border-faint: rgba(180, 180, 180, 0.3);
+  --input-bg: rgb(255, 255, 255);
+  --input-text: rgb(20, 20, 20);
+  --input-border: rgb(200, 200, 200);
+  --input-focus-border: rgb(100, 100, 100);
+  --label-color: rgb(80, 80, 80);
+  --title-color: rgb(100, 100, 100);
+  --content-text: rgb(20, 20, 20);
+  --h3-color: rgb(90, 90, 90);
+  --note-color: rgb(110, 110, 110);
+  --btn-bg: rgb(220, 220, 220);
+  --btn-text: rgb(20, 20, 20);
+  --btn-border: rgb(180, 180, 180);
+  --btn-hover-bg: rgb(200, 200, 200);
+  --btn-active-bg: rgb(190, 190, 190);
+  --btn-warn-border: rgb(180, 130, 0);
+  --btn-warn-hover-bg: rgb(240, 220, 180);
+  --btn-danger-bg: rgb(220, 80, 80);
+  --btn-danger-border: rgb(180, 50, 50);
+  --btn-danger-hover-bg: rgb(240, 100, 100);
+  --btn-link-color: rgb(100, 100, 100);
+  --btn-link-hover-color: rgb(40, 40, 40);
+  --console-bg: rgb(240, 240, 240);
+  --console-border: rgb(200, 200, 200);
+  --console-text: rgb(40, 40, 40);
+  --progress-bg: rgb(220, 220, 220);
+  --progress-fill: rgb(60, 140, 60);
+  --toast-ok-bg: rgb(220, 240, 220);
+  --toast-ok-border: #393;
+  --toast-ok-text: rgb(20, 80, 20);
+  --toast-err-bg: rgb(240, 220, 220);
+  --toast-err-border: #933;
+  --toast-err-text: rgb(80, 20, 20);
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  --login-box-bg: rgb(255, 255, 255);
+  --login-box-border: rgb(200, 200, 200);
+  --login-err-color: #c33;
+  --footer-sep-color: rgb(200, 200, 200);
+  --footer-select-bg: rgb(255, 255, 255);
+  --footer-select-border: rgb(200, 200, 200);
+  --footer-select-text: rgb(40, 40, 40);
+  --footer-link-color: rgb(100, 100, 100);
+  --status-dot-ok: #393;
+  --status-dot-err: #933;
+  --status-dot-warn: #993;
+  --conn-status-text: rgb(90, 90, 90);
+  --range-text: rgb(90, 90, 90);
+  --checkbox-text: rgb(20, 20, 20);
+  --checkbox-disabled: rgb(160, 160, 160);
+  --accent-color: rgb(60, 120, 200);
+  --login-box-text: rgb(20, 20, 20);
+  --h1-text: rgb(20, 20, 20);
+  --h2-text: rgb(20, 20, 20);
+}
+
+/* === Base === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-color);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+}
+
+html {
+  overflow-x: auto;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* === Layout === */
+.wrapper {
+  max-width: 700px;
+  min-width: 300px;
+  margin: 0 auto;
+  padding: 0 16px 24px 16px;
+}
+
+.header {
+  text-align: center;
+  margin: 20px 0 16px 0;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 300;
+  margin: 8px 0 4px 0;
+  color: var(--h1-text);
+}
+
+h2 {
+  font-size: 16px;
+  font-weight: 400;
+  margin: 0 0 12px 0;
+  color: var(--h2-text);
+}
+
+h3 {
+  font-size: 14px;
+  font-weight: 400;
+  margin: 16px 0 8px 0;
+  color: var(--h3-color);
+  border-top: 1px solid var(--border-light);
+  padding-top: 12px;
+}
+
+/* === Navigation === */
+nav {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--nav-bg);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+
+nav::-webkit-scrollbar {
+  display: none;
+}
+
+nav a {
+  padding: 10px 16px;
+  color: var(--nav-text);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid var(--nav-border);
+  font-size: 14px;
+}
+
+nav a:hover {
+  color: var(--nav-text-hover);
+  text-decoration: none;
+}
+
+nav a.active {
+  color: var(--nav-text-active);
+  border-bottom-color: var(--nav-text-active);
+}
+
+/* === Cards === */
+.card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.card-info {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+/* === Status list === */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#status-list,
+#net-status-list {
+  margin: 0;
+  padding: 0;
+}
+
+#status-list li,
+#net-status-list li {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0;
+  margin: 0;
+}
+
+#status-list li:last-child,
+#net-status-list li:last-child {
+  border-bottom: 0;
+}
+
+#status-list .title,
+#net-status-list .title {
+  min-width: auto;
+  max-width: none;
+  padding: 8px 10px;
+  color: var(--title-color);
+  font-size: 14px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+}
+
+#status-list .content,
+#net-status-list .content {
+  border-left: 1px solid var(--border-light);
+  padding: 8px 10px;
+  font-size: 14px;
+  word-break: break-word;
+  color: var(--content-text);
+  background: var(--card-bg);
+  min-width: 0;
+}
+
+/* === Forms === */
+label {
+  display: block;
+  color: var(--label-color);
+  font-size: 13px;
+  margin: 10px 0 4px 0;
+}
+
+.label-inline {
+  color: var(--label-color);
+  font-size: 13px;
+  margin-right: 8px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  color: var(--input-text);
+  font-size: 14px;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+input[type="file"] {
+  font-size: 14px;
+  color: var(--input-text);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent-color);
+}
+
+input:disabled,
+select:disabled {
+  opacity: 0.4;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+}
+
+.input-sm {
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.input-sm-select {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.input-terminator {
+  width: 50px !important;
+  flex-shrink: 0;
+}
+
+.input-timeout {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.input-format {
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.input-repeat {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.input-hold {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.input-interval {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.input-interval:disabled {
+  opacity: 0.4;
+}
+
+.btn-send-active {
+  background: var(--btn-warn-hover-bg);
+  border-color: var(--btn-warn-border);
+}
+
+.ir-interval-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ir-interval-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--label-color);
+  flex-shrink: 0;
+}
+
+/* === Form layouts === */
+.form-row {
+  margin-bottom: 10px;
+}
+
+.form-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-inline.form-group {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  margin-right: 8px;
+  margin-bottom: 4px;
+}
+
+.form-inline label {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.form-inline input[type="text"],
+.form-inline input[type="password"],
+.form-inline input[type="number"],
+.form-inline select {
+  width: auto;
+  flex: 1;
+}
+
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.range-row input[type="range"] {
+  flex: 1;
+}
+
+.range-row span {
+  min-width: 30px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--range-text);
+}
+
+.input-reveal {
+  display: flex;
+  gap: 8px;
+}
+
+.input-reveal input {
+  flex: 1;
+}
+
+/* === Buttons === */
+button {
+  padding: 6px 16px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--btn-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+button:hover {
+  background: var(--btn-hover-bg);
+}
+
+button:active {
+  background: var(--btn-active-bg);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-warn {
+  border-color: var(--btn-warn-border);
+}
+
+.btn-warn:hover {
+  background: var(--btn-warn-hover-bg);
+}
+
+.btn-danger {
+  background: var(--btn-danger-bg);
+  border-color: var(--btn-danger-border);
+}
+
+.btn-danger:hover {
+  background: var(--btn-danger-hover-bg);
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--btn-link-color);
+  padding: 0 0 0 12px;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  color: var(--btn-link-hover-color);
+  background: none;
+}
+
+/* === Connection Status Indicator === */
+#conn-status {
+  font-size: 13px;
+  color: var(--conn-status-text);
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.status-dot.ok {
+  background: var(--status-dot-ok);
+}
+
+.status-dot.err {
+  background: var(--status-dot-err);
+}
+
+.status-dot.warn {
+  background: var(--status-dot-warn);
+}
+
+/* === Console === */
+.console {
+  background: var(--console-bg);
+  border: 1px solid var(--console-border);
+  border-radius: 4px;
+  padding: 8px;
+  margin: 8px 0;
+  height: calc(4 * 1.4em + 16px);
+  overflow-y: auto;
+}
+
+.console-resize {
+  resize: vertical;
+  min-height: calc(4 * 1.4em + 16px);
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.console-log {
+  resize: vertical;
+  min-height: calc(8 * 1.4em + 16px);
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.console pre {
+  margin: 0;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre;
+  word-break: normal;
+  color: var(--console-text);
+}
+
+.console-send {
+  display: flex;
+  gap: 8px;
+}
+
+.console-send input {
+  flex: 1;
+  min-width: 0;
+}
+
+.console-send button {
+  flex-shrink: 0;
+}
+
+.console-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.console-controls button {
+  flex-shrink: 0;
+}
+
+.console-filter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.console-filter label {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.console-filter select {
+  width: auto;
+  flex-shrink: 0;
+}
+
+/* === Progress === */
+progress {
+  width: 100%;
+  height: 20px;
+  margin-top: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+progress::-webkit-progress-bar {
+  background: var(--progress-bg);
+  border-radius: 4px;
+}
+
+progress::-webkit-progress-value {
+  background: var(--progress-fill);
+  border-radius: 4px;
+}
+
+progress::-moz-progress-bar {
+  background: var(--progress-fill);
+  border-radius: 4px;
+}
+
+/* === Toast Notification === */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  z-index: 200;
+  max-width: 90%;
+  text-align: center;
+}
+
+.toast-ok {
+  background: var(--toast-ok-bg);
+  border: 1px solid var(--toast-ok-border);
+  color: var(--toast-ok-text);
+}
+
+.toast-err {
+  background: var(--toast-err-bg);
+  border: 1px solid var(--toast-err-border);
+  color: var(--toast-err-text);
+}
+
+/* === Login Overlay === */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.login-box {
+  background: var(--login-box-bg);
+  border: 1px solid var(--login-box-border);
+  border-radius: 8px;
+  padding: 24px;
+  width: 280px;
+  text-align: center;
+  color: var(--login-box-text);
+}
+
+.login-box img {
+  margin-bottom: 8px;
+}
+
+.login-box h2 {
+  margin-bottom: 16px;
+}
+
+.login-box input {
+  margin-bottom: 12px;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 8px;
+}
+
+.login-box .err {
+  color: var(--login-err-color);
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+/* === Notes === */
+.note {
+  font-size: 12px;
+  color: var(--note-color);
+  margin-top: 8px;
+}
+
+.note-info {
+  background: rgb(50, 100, 150);
+  border: 1px solid rgb(80, 140, 200);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-top: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgb(255, 255, 255);
+}
+
+[data-theme="light"] .note-info {
+  background: rgb(70, 120, 170);
+  border-color: rgb(100, 160, 220);
+}
+
+.note-warning {
+  background: rgb(180, 50, 50);
+  border: 1px solid rgb(220, 80, 80);
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(255, 255, 255);
+}
+
+[data-theme="light"] .note-warning {
+  background: rgb(200, 60, 60);
+  border-color: rgb(230, 90, 90);
+}
+
+.note-warning strong,
+.note-info strong {
+  font-weight: 600;
+}
+
+.note-warning a,
+.note-info a {
+  color: rgb(200, 230, 255);
+  text-decoration: underline;
+}
+
+.note-warning a:hover,
+.note-info a:hover {
+  text-decoration: none;
+}
+
+[data-theme="light"] .note-warning a,
+[data-theme="light"] .note-info a {
+  color: rgb(255, 240, 200);
+}
+
+.unit-label {
+  color: var(--label-color);
+  font-size: 13px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.info-boxes {
+  margin-bottom: 12px;
+}
+
+.info-boxes .note-info {
+  margin-bottom: 4px;
+}
+
+.info-boxes .note-info:last-child {
+  margin-bottom: 0;
+}
+
+.note-info-compact {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.input-impulse {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.input-ip {
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.trigger-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.trigger-controls .form-group {
+  margin-left: auto;
+}
+
+.trigger-controls button {
+  flex-shrink: 0;
+}
+
+/* === Info Popover === */
+.info-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--label-color);
+  line-height: 1;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.info-trigger:hover {
+  background: var(--label-color);
+  color: var(--bg-color);
+}
+
+.info-trigger::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+popover.info-popover {
+  display: none;
+}
+
+popover.info-popover:popover-open {
+  display: block;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 320px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  margin: 8px;
+  inset: auto;
+}
+
+.info-popover a {
+  color: var(--link-color);
+  text-decoration: underline;
+}
+
+.info-popover a:hover {
+  text-decoration: none;
+}
+
+[data-theme="light"] popover.info-popover:popover-open {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* === Footer === */
+footer {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-faint);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+footer select {
+  background: var(--footer-select-bg);
+  border: 1px solid var(--footer-select-border);
+  border-radius: 4px;
+  color: var(--footer-select-text);
+  font-size: 12px;
+  padding: 2px 4px;
+  width: auto;
+}
+
+.footer-sep {
+  color: var(--footer-sep-color);
+}
+
+/* === Textarea === */
+textarea {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  color: var(--input-text);
+  font-family: monospace;
+  font-size: 13px;
+  padding: 8px;
+  width: 100%;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+}
+
+/* === Checkbox group === */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 12px;
+  margin: 0;
+}
+
+.checkbox-group legend {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--h3-color);
+  padding: 0 4px;
+  margin: 0;
+}
+
+.cb-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--checkbox-text);
+  font-size: 13px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.cb-label.disabled {
+  color: var(--checkbox-disabled);
+  cursor: default;
+}
+
+.cb-label input[type="checkbox"] {
+  accent-color: var(--accent-color);
+  width: 16px;
+  height: 16px;
+}
+
+/* === Utility === */
+.hidden {
+  display: none;
+}
+
+/* === Dev Mode Indicator === */
+body.dev-mode::before {
+  content: 'DEV';
+  position: fixed;
+  top: 0;
+  right: 0;
+  background: red;
+  color: white;
+  padding: 4px 8px;
+  font-size: 14px;
+  z-index: 9999;
+  border-bottom-left-radius: 4px;
+}
+
+/* === Responsive === */
+@media (max-width: 600px) {
+  .wrapper {
+    padding: 0 8px 16px 8px;
+  }
+
+  .header {
+    margin: 12px 0 12px 0;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  nav a {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  #status-list li,
+  #net-status-list li {
+    grid-template-columns: 140px 1fr;
+  }
+
+  #status-list .title,
+  #net-status-list .title {
+    font-size: 13px;
+  }
+
+  #status-list .content,
+  #net-status-list .content {
+    font-size: 13px;
+  }
+
+  .form-inline {
+    flex-wrap: wrap;
+  }
+
+  .form-inline.form-group {
+    display: inline-flex;
+    width: auto;
+  }
+
+  .btn-group {
+    justify-content: stretch;
+  }
+
+  .btn-group button {
+    flex: 1;
+  }
+
+  .console-controls {
+    flex-wrap: wrap;
+  }
+
+  .console-controls button {
+    flex: 1 1 45%;
+    min-width: 120px;
+  }
+
+  .console-controls label,
+  .console-controls select {
+    width: auto;
+    flex-shrink: 0;
+  }
+
+  .console-filter {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .trigger-controls {
+    flex-wrap: wrap;
+  }
+
+  .trigger-controls .form-group {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .trigger-controls button {
+    flex-shrink: 0;
+  }
+}

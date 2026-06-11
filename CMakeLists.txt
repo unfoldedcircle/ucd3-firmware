@@ -96,6 +96,14 @@ add_compile_options(
 
 project(ucd3-firmware)
 
+# Generate lang.js before FrogFS build
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_custom_target(generate_lang ALL
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/build_lang.py
+    COMMENT "Generating lang.js from language files"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
 target_add_frogfs(${PROJECT_NAME}.elf)
 
 include(CheckGit.cmake)
