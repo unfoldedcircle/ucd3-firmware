@@ -8,6 +8,8 @@ filter:
     - discard
   "**/lang":
     - discard
+  "**/*.md":
+    - discard
 
   "webroot/app.js":
     - uglify-js

@@ -413,19 +413,19 @@ files:
 
 | Languages | lang.js raw | lang.js gzip |
 |-----------|-------------|--------------|
-| 11        | ~80 KB      | ~20 KB       |
-| 27        | ~155 KB     | ~40 KB       |
+| 11        | ~104 KB     | ~29 KB       |
+| 27        | ~200 KB     | ~60 KB       |
 
 ### Total Flash Usage (all web files, gzipped)
 
 | File                   | gzip size |
 |------------------------|-----------|
-| index.html             | ~4 KB     |
-| app.css                | ~3 KB     |
-| app.js                 | ~6 KB     |
-| lang.js (11 languages) | ~20 KB    |
+| index.html             | ~6.1 KB   |
+| app.css                | ~3.4 KB   |
+| app.js                 | ~9.1 KB   |
+| lang.js (11 languages) | ~29 KB    |
 | logo.svg               | ~0.4 KB   |
-| Total                  | ~33.4 KB  |
+| Total                  | ~48 KB    |
 
 ## CSS Architecture
 
@@ -706,10 +706,7 @@ python3 tools/build_lang.py
 
 ## Planned Features
 
-- **Static Network Configuration**: IP/Gateway/DNS/DHCP settings (API not yet available)
 - **WiFi Scan**: Scan for available networks (API not yet available)
 - **Volume Control**: Speaker volume slider (Dock 3 only, API available but speaker is not yet used)
 - **Expert Page Extensions**:
-    - revision 6: Alternative PoE voltage (API not yet available)
-    - NTP enable/disable
     - TBD: RS232 buffer size configuration
