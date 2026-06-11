@@ -1,4 +1,4 @@
-## Next Release
+## Release 0.10.0 - 2026-06-11
 ### Added
 - Embedded web management UI ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
 - Static network configuration ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).

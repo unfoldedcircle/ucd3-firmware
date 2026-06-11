@@ -1,4 +1,4 @@
-## Nächste Version
+## Release 0.10.0 - 2026-06-11
 ### Neue Funktionen
 - Integrierte Web-Management-Benutzeroberfläche ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
 - Statische Netzwerkkonfiguration ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).

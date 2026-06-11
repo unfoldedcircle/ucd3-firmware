@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## Release 0.10.0 - 2026-06-11
+
 ### Added
 - Embedded web management UI ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
 - Static network configuration ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).
@@ -36,8 +40,7 @@ _Changes in the next release_
 - Update managed components ([#74](https://github.com/unfoldedcircle/ucd3-firmware/pull/74)).
 - Do not block timer tasks ([#70](https://github.com/unfoldedcircle/ucd3-firmware/pull/70)).
 - Unify firmware revisions 4 and 6 ([#66](https://github.com/unfoldedcircle/ucd3-firmware/pull/66)).
-
----
+- Update guidelines and add AGENTS.md ([#83](https://github.com/unfoldedcircle/ucd3-firmware/pull/83)).
 
 ## Release 0.9.1 - 2026-05-18
 ### Fixed
