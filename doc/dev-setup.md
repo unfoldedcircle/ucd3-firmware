@@ -1,6 +1,6 @@
 # Developer Setup
 
-- [Espressif IDF 5.3.1](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html)
+- [Espressif IDF 5.4.1](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html)
 - [Visual Studio Code](https://code.visualstudio.com/) with [ESP-IDF extension](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension)
 - [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
 
