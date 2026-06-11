@@ -1,6 +1,6 @@
 # Code Guidelines
 
-Writing C++ code is prefered but not mandatory. Use C or C++ where it makes sense.
+Writing C++ code is preferred but not mandatory. Use C or C++ where it makes sense.
 
 Use [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) for writing C++ code with the following
 exceptions:
@@ -16,6 +16,13 @@ The most important aspect is to use consistency, not following the coding guidel
   Either suggest a refactoring or adding a new exception to the code guidelines :-)
 
 ❗️ Do not use C++ exception handling. Not because of the Google C++ style guide, but because it is [disabled by default in IDF](https://docs.espressif.com/projects/esp-idf/en/v5.3.1/esp32s3/api-guides/cplusplus.html#exception-handling).
+
+- Keep source files under 1500 lines where practical; split files by responsibility when they grow beyond that.
+- Avoid magic numbers and magic strings. Use named constants, enums, macros, Kconfig options, or shared config keys.
+- Avoid circular dependencies between components and modules.
+- Check return values with `ESP_GOTO_ON_FALSE_MSG`, `ESP_RETURN_ON_ERROR`, `ESP_ERROR_CHECK_WITHOUT_ABORT`, etc.
+- Handle allocation failures and clean up partially initialized resources.
+- Beware of race conditions and shared state: ESP32-S3 is a dual-core MCU with tasks running in parallel. Use mutexes or semaphores.
 
 ## 3rd Party Libraries
 
@@ -49,7 +56,7 @@ Excluded libs:
 
 - [components/IRremoteESP8266/](../components/IRremoteESP8266/): 3rd party code
 
-### Visual Studio Code Integration
+### Visual Studio Code Integration
 
 Install the [Clang-Format Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format).
 

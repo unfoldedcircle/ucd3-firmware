@@ -36,10 +36,11 @@ espsecure.py generate_signing_key --version 2 --scheme rsa3072 ucd3_firmware_sig
 Or disable image signing: remove all `CONFIG_SECURE_*` options in `sdkconfig.defaults`.  
 See [doc/ota.md](doc/ota.md) for more information.
 
-Build:
+Build, using the appropriate `sdkconfig.rev4` or `sdkconfig.rev6`:
 ```shell
-IDF_TARGET=esp32s3 idf.py build
+IDF_TARGET=esp32s3 idf.py SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.rev#" build
 ```
+For a clean build: delete the generated `sdkconfig` file and the `build` folder in the root directory.
 
 ## Update Firmware
 
