@@ -1,3 +1,17 @@
+## Next Release
+### Added
+- Embedded web management UI ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
+- Static network configuration ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).
+- Serial bridge (TCP/RS232) support ([#72](https://github.com/unfoldedcircle/ucd3-firmware/pull/72)).
+- New log router for improved diagnostics ([#77](https://github.com/unfoldedcircle/ucd3-firmware/pull/77)).
+- Improved web server performance and caching ([#75](https://github.com/unfoldedcircle/ucd3-firmware/pull/75), [#73](https://github.com/unfoldedcircle/ucd3-firmware/pull/73)).
+
+### Fixed
+- General fixes and runtime improvements.
+
+### Changed
+- Unify firmware revisions 4 and 6 ([#66](https://github.com/unfoldedcircle/ucd3-firmware/pull/66)).
+
 ## Release 0.9.1 - 2026-05-18
 ### Fixed
 - Allow IR codes with a data value of 0, such as the digit "0" on Philips TVs that use the RC6 protocol ([bug-tracker#721](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/721)).
@@ -6,7 +20,7 @@
 ### Fixed
 - Various stability improvements and automatically releasing stuck client connections.
 
-### Changed
+### Changed
 - Automatically close the least active client connection if no connections are available anymroe ([#58](https://github.com/unfoldedcircle/ucd3-firmware/pull/58)).
 - Disconnect unauthenticated clients after 30s ([#59](https://github.com/unfoldedcircle/ucd3-firmware/pull/59)).
 - Increased max client connections from 7 to 18 ([#60](https://github.com/unfoldedcircle/ucd3-firmware/pull/60)).

@@ -1,3 +1,17 @@
+## Nächste Version
+### Neue Funktionen
+- Integrierte Web-Management-Benutzeroberfläche ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
+- Statische Netzwerkkonfiguration ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).
+- Unterstützung für Serielle Bridge (TCP/RS232) ([#72](https://github.com/unfoldedcircle/ucd3-firmware/pull/72)).
+- Neuer Log-Router für verbesserte Diagnose ([#77](https://github.com/unfoldedcircle/ucd3-firmware/pull/77)).
+- Verbesserte Webserver-Performance und Caching ([#75](https://github.com/unfoldedcircle/ucd3-firmware/pull/75), [#73](https://github.com/unfoldedcircle/ucd3-firmware/pull/73)).
+
+### Fehlerbehebungen
+- Allgemeine Fehlerbehebungen und Laufzeitverbesserungen.
+
+### Geändert
+- Vereinheitlichung der Firmware-Revisionen 4 und 6 ([#66](https://github.com/unfoldedcircle/ucd3-firmware/pull/66)).
+
 ## Release 0.9.1 - 2026-05-18
 ### Fehlerbehebungen
 - IR-Codes mit dem Datenwert 0 zulassen, z. B. die Ziffer "0" bei Philips-Fernsehern, die das RC6-Protokoll verwenden ([bug-tracker#721](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/721)).

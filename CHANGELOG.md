@@ -9,7 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
-### Changed
+### Added
+- Embedded web management UI ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
+- Static network configuration ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).
+- PoE voltage mode configuration for rev6 ([#79](https://github.com/unfoldedcircle/ucd3-firmware/pull/79)).
+- Log router with WebSocket streaming support ([#77](https://github.com/unfoldedcircle/ucd3-firmware/pull/77)).
+- TCP/RS232 serial bridge with WebSocket API ([#72](https://github.com/unfoldedcircle/ucd3-firmware/pull/72)).
+- Use gzip encoding for web server file serving ([#75](https://github.com/unfoldedcircle/ucd3-firmware/pull/75)).
+- ETag support ([#73](https://github.com/unfoldedcircle/ucd3-firmware/pull/73)).
+- Status web page: redirect paths without a trailing slash ([#71](https://github.com/unfoldedcircle/ucd3-firmware/pull/71)).
+
+### Fixed
+- Set correct mode in port_mode event message.
+- IR hold time requires repeat parameter to be set.
+- Add missing `get_serial_tcp` WS message.
+- ExternalPort UART re-initialization ([#69](https://github.com/unfoldedcircle/ucd3-firmware/pull/69)).
+- Align ADC calibration scheme usage.
+- Proper InfraredService singleton creation.
+- Add cast to iot_button_set_param to prevent compiler warning.
+
+### Changed
+- Update documentation, add README links in components.
+- Replace sync log-router callbacks with queue and sender task ([#82](https://github.com/unfoldedcircle/ucd3-firmware/pull/82)).
+- Add error logging in Preferences.
+- Network state machine event handling improvements ([#68](https://github.com/unfoldedcircle/ucd3-firmware/pull/68)).
+- Update managed components ([#74](https://github.com/unfoldedcircle/ucd3-firmware/pull/74)).
+- Do not block timer tasks ([#70](https://github.com/unfoldedcircle/ucd3-firmware/pull/70)).
 - Unify firmware revisions 4 and 6 ([#66](https://github.com/unfoldedcircle/ucd3-firmware/pull/66)).
 
 ---
@@ -26,7 +51,7 @@ _Changes in the next release_
 - Memory leak in WebSocket send, buffer under-read in file ext check ([#55](https://github.com/unfoldedcircle/ucd3-firmware/pull/55)).
 - Semaphore and socket leak in GlobalCache server ([#56](https://github.com/unfoldedcircle/ucd3-firmware/pull/56)).
 
-### Changed
+### Changed
 - Update GitHub actions, clean up ([#57](https://github.com/unfoldedcircle/ucd3-firmware/pull/57)).
 - Enable TCP keep alive and connection lru purge ([#58](https://github.com/unfoldedcircle/ucd3-firmware/pull/58)).
 - Disconnect unauthenticated WS clients after 30s ([#59](https://github.com/unfoldedcircle/ucd3-firmware/pull/59)).
