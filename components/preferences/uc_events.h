@@ -114,6 +114,12 @@ typedef struct {
     esp_ip_addr_t ip;
 } uc_event_network_state_t;
 
+/// @brief Event structure for UC_EVENT_IR_LEARNING_START
+typedef struct {
+    /// IR format, corresponds to `IRFormat` enum
+    uint8_t irFormat;
+} uc_event_ir_start_t;
+
 typedef struct {
     /// UC error code
     uc_errors_t error;

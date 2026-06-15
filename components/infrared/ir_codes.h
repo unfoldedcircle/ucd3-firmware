@@ -20,6 +20,7 @@ enum class IRFormat {
     UNFOLDED_CIRCLE = 1,
     PRONTO = 2,
     GLOBAL_CACHE = 3,
+    RAW = 4,
 };
 
 struct GpioPinMask {

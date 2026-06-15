@@ -68,7 +68,7 @@ class InfraredService {
 
     void stopSend();
 
-    void startIrLearn();
+    void startIrLearn(IRFormat irFormat = IRFormat::UNFOLDED_CIRCLE);
     void stopIrLearn();
     bool isIrLearning();
 
