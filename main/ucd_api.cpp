@@ -1455,6 +1455,8 @@ uint16_t DockApi::processGetSerialConfig(const cJSON *root, cJSON *responseDoc) 
     cJSON_AddNumberToObject(responseDoc, "buffer_size", pbuf.buffer_size);
     cJSON_AddNumberToObject(responseDoc, "timeout_ms", pbuf.timeout_ms);
 
+    addUartNode(port, responseDoc);
+
     return 200;
 }
 
@@ -1912,21 +1914,25 @@ void DockApi::fillPortMode(const std::shared_ptr<ExternalPort> &extPort, cJSON *
     }
 
     if (active_mode == RS232) {
-        std::string uart_cfg = config_->getExternalPortUart(port);
+        addUartNode(port, responseDoc);
+    }
+}
 
-        auto cfg = UartConfig::fromString(uart_cfg.c_str());
-        if (cfg == nullptr) {
-            cfg = UartConfig::defaultCfg();
-            ESP_LOGW(TAG, "Invalid UART configuration for port %d: '%s'. Using default", port, uart_cfg.c_str());
-        }
+void DockApi::addUartNode(uint8_t port, cJSON *responseDoc) {
+    std::string uart_cfg = config_->getExternalPortUart(port);
 
-        cJSON *uart = cJSON_AddObjectToObject(responseDoc, "uart");
-        if (uart) {
-            cJSON_AddNumberToObject(uart, "baud_rate", cfg->baud_rate);
-            cJSON_AddNumberToObject(uart, "data_bits", cfg->dataBits());
-            cJSON_AddStringToObject(uart, "parity", cfg->parityAsString());
-            cJSON_AddStringToObject(uart, "stop_bits", cfg->stopBitsAsString());
-        }
+    auto cfg = UartConfig::fromString(uart_cfg.c_str());
+    if (cfg == nullptr) {
+        cfg = UartConfig::defaultCfg();
+        ESP_LOGW(TAG, "Invalid UART configuration for port %d: '%s'. Using default", port, uart_cfg.c_str());
+    }
+
+    cJSON *uart = cJSON_AddObjectToObject(responseDoc, "uart");
+    if (uart) {
+        cJSON_AddNumberToObject(uart, "baud_rate", cfg->baud_rate);
+        cJSON_AddNumberToObject(uart, "data_bits", cfg->dataBits());
+        cJSON_AddStringToObject(uart, "parity", cfg->parityAsString());
+        cJSON_AddStringToObject(uart, "stop_bits", cfg->stopBitsAsString());
     }
 }
 
@@ -1966,7 +1972,9 @@ uint16_t DockApi::processSetPortMode(const cJSON *root) {
         if (ports_[port]->setUartConfig(std::move(uart_cfg)) != ESP_OK) {
             return 400;
         }
-        config_->setExternalPortUart(port, uart_str.c_str());
+        if (!config_->setExternalPortUart(port, uart_str.c_str())) {
+            return 500;
+        }
     }
 
     esp_err_t ret = ports_[port]->changeMode(mode);
