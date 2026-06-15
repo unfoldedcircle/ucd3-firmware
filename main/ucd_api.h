@@ -57,6 +57,7 @@ class DockApi {
     uint16_t processGetPortModes(cJSON* responseDoc);
     uint16_t processGetPortMode(const cJSON* root, cJSON* responseDoc);
     void     fillPortMode(const std::shared_ptr<ExternalPort>& extPort, cJSON* responseDoc);
+    void     addUartNode(uint8_t port, cJSON* responseDoc);
     uint16_t processSetPortMode(const cJSON* root);
     uint16_t processGetPortTrigger(const cJSON* root, cJSON* responseDoc);
     uint16_t processSetPortTrigger(const cJSON* root);

@@ -115,6 +115,7 @@ class ExternalPort {
     void        setTx(bool high);
     esp_err_t   measureGnd(int *voltage);
     esp_err_t   initUart();
+    esp_err_t   changeUartCfg();
     void        deinitUart();
     esp_err_t   measureVcc(int *voltage);
     void        applyVector(int g, int e, int t, bool is_mono);
@@ -139,7 +140,7 @@ class ExternalPort {
     esp_timer_handle_t          trigger_timer_;
     SemaphoreHandle_t           port_lock_;
     std::shared_ptr<AdcReader>  vcc_reader_;
-    // TODO do we need an event queue?
+
     QueueHandle_t uart_event_queue_;
     bool          uart_driver_installed_;
 };

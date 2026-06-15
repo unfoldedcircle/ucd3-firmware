@@ -374,6 +374,30 @@ const WS = {
     this.pending = {};
     this.stopStatusRefresh();
     this.stopInactivityTimer();
+    this.resetClientState();
+  },
+
+  resetClientState: function () {
+    // Reset RS232 console state for both ports
+    if (Pages.Ports) {
+      Pages.Ports.serialEnabled[1] = false;
+      Pages.Ports.serialEnabled[2] = false;
+      for (let n = 1; n <= 2; n++) {
+        const btn = document.getElementById("btn-port" + n + "-console");
+        if (btn) {
+          btn.textContent = I18N.t("btn_enable_console");
+        }
+      }
+    }
+    // Reset log streaming state
+    if (Pages.Logs) {
+      Pages.Logs.streaming = false;
+      const logBtn = document.getElementById("btn-log-stream");
+      if (logBtn) {
+        logBtn.textContent = I18N.t("btn_start_streaming");
+        logBtn.classList.remove("btn-warn");
+      }
+    }
   },
 
   on: function (msg, handler) {
@@ -1688,10 +1712,14 @@ Pages.Ports = {
   loadSerialConfig: function (port) {
     WS.request("get_serial_config", {port: port}).then(function (cfg) {
       const p = port;
-      if (cfg.baud_rate !== undefined) document.getElementById("port" + p + "-baud").value = cfg.baud_rate;
-      if (cfg.data_bits !== undefined) document.getElementById("port" + p + "-databits").value = cfg.data_bits;
-      if (cfg.stop_bits !== undefined) document.getElementById("port" + p + "-stopbits").value = cfg.stop_bits;
-      if (cfg.parity) document.getElementById("port" + p + "-parity").value = cfg.parity;
+      const uart = cfg.uart;
+      if (uart) {
+        if (uart.baud_rate !== undefined) document.getElementById("port" + p + "-baud").value = uart.baud_rate;
+        if (uart.data_bits !== undefined) document.getElementById("port" + p + "-databits").value = uart.data_bits;
+        if (uart.stop_bits !== undefined) document.getElementById("port" + p + "-stopbits").value = uart.stop_bits;
+        if (uart.parity) document.getElementById("port" + p + "-parity").value = uart.parity;
+      }
+
       if (cfg.buffering) document.getElementById("port" + p + "-buffering").value = cfg.buffering;
       if (cfg.terminator !== undefined) {
         document.getElementById("port" + p + "-terminator").value = Pages.Ports.charToHex(cfg.terminator);

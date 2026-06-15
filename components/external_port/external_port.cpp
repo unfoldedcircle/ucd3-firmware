@@ -203,6 +203,9 @@ esp_err_t ExternalPort::changeMode(ExtPortMode mode) {
         return ESP_ERR_NOT_SUPPORTED;
     }
     if (mode == mode_) {
+        if (mode_ == RS232) {
+            return changeUartCfg();
+        }
         return ESP_OK;
     }
 
@@ -335,9 +338,7 @@ esp_err_t ExternalPort::setUartConfig(std::unique_ptr<UartConfig> config) {
     }
 
     if (mode_ == RS232) {
-        ESP_LOGW(
-            tag_,
-            "Output is already configured to RS232: new UART configuration will be applied at next initialization!");
+        ESP_LOGW(tag_, "Output is already configured to RS232: new UART cfg will be applied at next init!");
     }
 
     uart_cfg_ = std::move(config);
@@ -460,7 +461,6 @@ esp_err_t ExternalPort::initUart() {
 
     uart_config_t uart_config = uart_cfg_->toConfig();
 
-    // TODO finalize init uart with queue etc
     int event_queue_size = 16;
     int intr_alloc_flags = 0;
 
@@ -490,11 +490,19 @@ err_uart_config:
     return ret;
 }
 
-void ExternalPort::deinitUart() {
-    // TODO(zehnm) stop task & event loop
-    // vTaskDelete(uart_tsk_hdl_);
-    // esp_event_loop_delete(uear_event_loop_hdl_);
+esp_err_t ExternalPort::changeUartCfg() {
+    if (uart_cfg_ == nullptr || config_.uart_port == UART_NUM_MAX) {
+        return ESP_ERR_INVALID_STATE;
+    }
 
+    ESP_LOGI(tag_, "Setting UART cfg: %s", uart_cfg_->toString().c_str());
+    uart_config_t uart_config = uart_cfg_->toConfig();
+
+    ESP_RETURN_ON_ERROR(uart_param_config(config_.uart_port, &uart_config), tag_, "config uart parameter failed");
+    return ESP_OK;
+}
+
+void ExternalPort::deinitUart() {
     if (uart_event_queue_) {
         xQueueReset(uart_event_queue_);
         uart_event_queue_ = nullptr;

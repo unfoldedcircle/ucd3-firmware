@@ -371,6 +371,12 @@ Response:
   "terminator": "\r",
   "buffer_size": 512,
   "timeout_ms": 100,
+  "uart": {
+    "baud_rate": 115200,
+    "data_bits": 8,
+    "parity": "none",
+    "stop_bits": "1"
+  }
   "code": 200
 }
 ```
