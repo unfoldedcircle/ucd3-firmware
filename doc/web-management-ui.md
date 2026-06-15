@@ -123,17 +123,16 @@ This might be changed if more pages are added.
 
 ## Pages
 
-| Page    | Auth Required | Description                                                                     |
-|---------|:-------------:|---------------------------------------------------------------------------------|
-| Status  |      No       | Read-only device info from `get_sysinfo`, auto-refresh every 60s (if logged in) |
-| General |      Yes      | Device name, LED brightness, access token, system actions                       |
-| Network |      Yes      | WiFi SSID/password configuration, connection status                             |
-| IR      |      Yes      | Send IR codes, IR learning with live output, IR repeat mode with hold-to-repeat |
-| Ports   |      Yes      | External port mode config, trigger control, RS232 console                       |
-| Logs    |      Yes      | Real-time log streaming with level filtering                                    |
-| OTA     |      Yes      | Firmware upload with progress                                                   |
-| Expert  |      Yes      | Experimental features (iTach emulation, AMXB beacon, RS232 TCP)                 |
-
+| Page    | Auth Required | Description                                                                                           |
+|---------|:-------------:|-------------------------------------------------------------------------------------------------------|
+| Status  |      No       | Read-only device info from `get_sysinfo`, auto-refresh every 60s (if logged in)                       |
+| General |      Yes      | Device name, LED brightness, access token, system actions                                             |
+| Network |      Yes      | WiFi SSID/password configuration, connection status                                                   |
+| IR      |      Yes      | Send IR codes, IR learning with live output, IR repeat mode with hold-to-repeat, RAW IR learning mode |
+| Ports   |      Yes      | External port mode config, trigger control, RS232 console                                             |
+| Logs    |      Yes      | Real-time log streaming with level filtering                                                          |
+| OTA     |      Yes      | Firmware upload with progress                                                                         |
+| Expert  |      Yes      | Experimental features (iTach emulation, AMXB beacon, RS232 TCP)                                       |
 
 ## WebSocket Communication
 
@@ -517,13 +516,20 @@ Native HTML Popover API for contextual help (no JavaScript required):
 - **Output Selection**: Internal (side), Port 1, Port 2 – checkboxes disabled based on actual port mode (`get_port_modes`)
 - **Repeat & Hold**: Configurable repeat count (0–20) and hold duration (ms)
 - **IR Repeat Mode**:
-  - Fieldset with "Active" checkbox and periodic interval input (100–1000 ms, default 300 ms)
-  - **Hold-to-repeat interaction**: Press and hold the Send button to continuously send IR codes
-  - Releases button sends `ir_stop` to dock
-  - Uses `f: 1` feature flag to suppress ack responses during periodic sending
-  - Auto-sets repeat count to 6 when enabling repeat mode with value 0
-  - Disabled during IR learning mode
+    - Fieldset with "Active" checkbox and periodic interval input (100–1000 ms, default 300 ms)
+    - **Hold-to-repeat interaction**: Press and hold the Send button to continuously send IR codes
+    - Releases button sends `ir_stop` to dock
+    - Uses `f: 1` feature flag to suppress ack responses during periodic sending
+    - Auto-sets repeat count to 6 when enabling repeat mode with value 0
+    - Disabled during IR learning mode
 - **Learn Mode**: Toggle button, events via `ir_receive`, displayed in console area
+- **RAW IR Learning Mode**:
+    - Checkbox to enable RAW timing capture (only available when learning is stopped)
+    - Raw output panel shows last received IR timing values (space-separated, 6-character field width)
+    - Panel is hidden when RAW mode is disabled
+    - Copy button copies raw timings to clipboard (clean format, single spaces)
+    - Overflow warning displayed if IR signal exceeds receive buffer
+    - Panel height: 10 lines default, vertically resizable
 - **Navigation Cleanup**: Active repeat transmission stops when navigating away from IR page
 - `int_top` field always sent as `false` (deprecated, not removed from API)
 
@@ -556,6 +562,41 @@ control.
 - State reset on error: timer cleared, `repeating` flag set to false, button visual updated
 - Navigation cleanup: `UI.showPage()` overridden to stop repeat when leaving IR page
 - Learning mode blocks repeat: Send button disabled when `ir_learning: true`
+
+### RAW IR Learning Mode
+
+The RAW IR learning mode captures and displays the raw IR timing values in addition to the decoded IR code.
+This is useful for advanced users, debugging, and compatibility with IR analysis tools.
+
+**UI Components:**
+
+- **RAW Mode Checkbox**: Enables/disables RAW timing capture (disabled during active learning)
+- **Raw Output Panel**: Displays last received raw timings only (does not append like decoded codes)
+    - 6-character field width per value (right-aligned)
+    - Automatic line wrapping based on container width
+    - 10 lines default height, vertically resizable
+- **Copy Button**: Copies raw timings to clipboard in clean format (single space-separated)
+- **Overflow Warning**: Shows when IR signal exceeds receive buffer capacity of the Dock
+
+**Multi-Client Support:**
+
+When another client enables RAW learning mode, the `ir_receive_on` event includes the `raw: true` field.
+The web app updates the RAW mode checkbox and shows the raw panel accordingly (also if the `ir_receive` event includes
+the `raw` field array).
+
+**Clipboard Format:**
+
+Copied raw timings use clean single-space separation for compatibility with IR analysis tools:
+```
+3344 -1704 388 -448 388 -448 388 -1286 388 -450 390 -1284
+```
+**Display Format:**
+
+UI display uses 6-character field width with non-breaking spaces for proper alignment and line wrapping:
+```
+  3344  -1704    388   -448    388   -448    388  -1286
+   388   -450    390  -1284    388   -448    388  -1286
+```
 
 ### Expert Page
 

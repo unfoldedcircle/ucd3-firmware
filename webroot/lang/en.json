@@ -19,6 +19,7 @@
   "hdr_wifi_config": "WiFi Configuration",
   "hdr_send_ir": "Send IR",
   "hdr_learn_ir": "Learn IR",
+  "hdr_raw_timings": "Raw Timings",
   "hdr_ext_port": "External Port",
   "hdr_trigger": "Trigger Control",
   "hdr_uart": "UART Configuration",
@@ -53,6 +54,8 @@
   "lbl_interval": "Interval (ms)",
   "lbl_ir_repeat_mode": "IR repeat",
   "lbl_ir_active": "Active",
+  "lbl_raw_mode": "Enable RAW mode",
+  "lbl_raw_overflow": "Data overflow, IR signal too long",
   "lbl_mode": "Mode",
   "lbl_active": "Active:",
   "lbl_baud_rate": "Baud Rate",
@@ -116,6 +119,7 @@
   "btn_resume": "Resume",
   "btn_start_streaming": "Start Streaming",
   "btn_stop_streaming": "Stop Streaming",
+  "btn_copy": "Copy",
 
   "info_net_cfg_ipv4": "Only IPv4 is supported for static network configuration.",
   "info_net_cfg_restart": "The dock will restart after applying network changes.",
@@ -127,6 +131,8 @@
   "info_ir_interval": "Interval in ms to repeatedly send the IR code while the Send button is held.",
   "info_ir_learn_text": "The infrared receiver is at the top of the dock.",
   "info_ir_protocols": "Supported infrared protocols",
+  "info_ir_learn_raw": "RAW mode returns the timing values in microseconds, alternating between Mark (IR on, positive number) and Space (IR off, negative number).",
+  "info_irscrutinizer": "Compatible with IrScrutinizer",
   "info_port_active": "Detected peripheral if in AUTO mode.",
   "info_port_location": "From the back, left to right: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
   "info_port_pinout": "3.5 mm jack pinout",
@@ -165,6 +171,7 @@
   "t_ir_sent": "IR code sent",
   "t_ir_learn_on": "IR learning started",
   "t_ir_learn_off": "IR learning stopped",
+  "t_copied": "Copied to clipboard",
   "t_port_mode": "Port {port} mode set to {mode}",
   "t_uart_applied": "UART configuration applied",
   "t_buffering_applied": "Buffering configuration applied",
@@ -199,5 +206,6 @@
   "e_upload_auth": "Upload authentication failed",
   "e_conn_lost": "Connection lost",
   "e_upload_failed": "Upload failed: {status}",
-  "e_invalid_ip": "Invalid IPv4 address format"
+  "e_invalid_ip": "Invalid IPv4 address format",
+  "e_no_content": "No content to copy"
 }

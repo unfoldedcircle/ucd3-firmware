@@ -1180,6 +1180,7 @@ Pages.Network = {
   }
 };
 
+
 // ============================================================
 // Page: IR
 // ============================================================
@@ -1190,6 +1191,8 @@ Pages.IR = {
   portModes: {1: null, 2: null},
   _mouseDown: false,
   _savedHoldValue: "0",
+  rawMode: false,
+  overflowWarning: false,
 
   load: function () {
     const self = this;
@@ -1234,10 +1237,26 @@ Pages.IR = {
     document.getElementById("ir-ext2-label").classList.toggle("disabled", !port2IsIr);
   },
 
+
   updateLearnButton: function () {
     const btn = document.getElementById("btn-ir-learn");
     btn.textContent = this.learning ? I18N.t("btn_stop_learning") : I18N.t("btn_start_learning");
     btn.classList.toggle("btn-warn", this.learning);
+    // Disable raw mode checkbox when learning is active
+    const rawCheckbox = document.getElementById("ir-raw-mode");
+    rawCheckbox.disabled = this.learning;
+  },
+
+  updateRawPanelVisibility: function () {
+    const rawPanel = document.getElementById("ir-raw-panel");
+    const rawCheckbox = document.getElementById("ir-raw-mode");
+    rawPanel.classList.toggle("hidden", !rawCheckbox.checked);
+  },
+
+  updateOverflowWarning: function (overflow) {
+    const warning = document.getElementById("ir-overflow-warning");
+    this.overflowWarning = overflow === true;
+    warning.classList.toggle("hidden", !this.overflowWarning);
   },
 
   updateSendButtonState: function () {
@@ -1476,6 +1495,7 @@ Pages.IR = {
     // In normal mode, single click sends once (handled by click event)
   },
 
+
   handleSendButtonUp: function (e) {
     e.preventDefault();
     this._mouseDown = false;
@@ -1488,6 +1508,58 @@ Pages.IR = {
     if (repeatMode) {
       this.stopRepeat();
     }
+  },
+
+  copyRawToClipboard: function () {
+    const self = this;
+    const output = document.getElementById("ir-raw-output");
+    if (!output || !output.textContent) {
+      Toast.show(I18N.t("e_no_content"), true);
+      return;
+    }
+
+    // Replace non-breaking spaces with regular spaces, collapse multiple spaces, trim
+    const text = output.textContent
+      .replace(/\u00A0/g, " ")
+      .replace(/  +/g, " ")
+      .trim();
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        Toast.success(I18N.t("t_copied"));
+      }).catch(function () {
+        self.fallbackCopy(text);
+      });
+    } else {
+      this.fallbackCopy(text);
+    }
+  },
+
+  fallbackCopy: function (text) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      Toast.success(I18N.t("t_copied"));
+    } catch (err) {
+      Toast.error(err);
+    }
+    document.body.removeChild(textarea);
+  },
+
+  formatRawTimings: function (rawArray) {
+    const minFieldWidth = 6;
+    const nbsp = "\u00A0"; // Non-breaking space
+    const paddedValues = rawArray.map(function (value) {
+      const str = String(value);
+      const padding = minFieldWidth - str.length;
+      return nbsp.repeat(padding) + str;
+    });
+    return paddedValues.join(" ");
   },
 
   init: function () {
@@ -1506,6 +1578,17 @@ Pages.IR = {
     // Repeat mode checkbox toggle - set repeat count if 0, disable hold time
     document.getElementById("ir-repeat-mode").addEventListener("change", function () {
       self.toggleRepeatModeFields();
+    });
+
+    // RAW mode checkbox toggle
+    document.getElementById("ir-raw-mode").addEventListener("change", function () {
+      self.rawMode = this.checked;
+      self.updateRawPanelVisibility();
+    });
+
+    // Copy raw button
+    document.getElementById("btn-ir-raw-copy").addEventListener("click", function () {
+      self.copyRawToClipboard();
     });
 
     // Send button - mouse events for desktop
@@ -1548,7 +1631,12 @@ Pages.IR = {
     // Learn IR toggle
     document.getElementById("btn-ir-learn").addEventListener("click", function () {
       const command = self.learning ? "ir_receive_off" : "ir_receive_on";
-      WS.request(command).then(function () {
+      const data = {};
+      // Only send format: "raw" when enabling learning AND raw mode is checked
+      if (!self.learning && self.rawMode) {
+        data.raw = true;
+      }
+      WS.request(command, data).then(function () {
         self.learning = !self.learning;
         self.updateLearnButton();
         self.updateSendButtonState();
@@ -1561,16 +1649,30 @@ Pages.IR = {
     // Clear learned codes
     document.getElementById("btn-ir-clear").addEventListener("click", function () {
       document.getElementById("ir-learn-output").textContent = "";
+      document.getElementById("ir-raw-output").textContent = "";
+      self.updateOverflowWarning(false);
     });
 
     // Listen for ir_receive events
     WS.on("ir_receive", function (msg) {
       const output = document.getElementById("ir-learn-output");
+      const rawOutput = document.getElementById("ir-raw-output");
       if (!output) return;
       if (output.textContent) output.textContent += "\n";
       output.textContent += msg.ir_code;
       const container = output.parentElement;
       container.scrollTop = container.scrollHeight;
+
+      // Handle raw timings if present
+      if (rawOutput && msg.raw && msg.raw.length > 0) {
+        self.rawMode = true;
+        document.getElementById("ir-raw-mode").checked = self.rawMode;
+        self.updateRawPanelVisibility();
+        rawOutput.textContent = Pages.IR.formatRawTimings(msg.raw);
+      }
+
+      // Handle overflow warning
+      Pages.IR.updateOverflowWarning(msg.overflow);
     });
 
     // Listen for ir_receive_on/off events (Dock 3)
@@ -1578,6 +1680,13 @@ Pages.IR = {
       self.learning = true;
       self.updateLearnButton();
       self.updateSendButtonState();
+      // Check if raw mode was enabled (possibly by another client)
+      if (msg.raw === true) {
+        const rawCheckbox = document.getElementById("ir-raw-mode");
+        rawCheckbox.checked = true;
+        self.rawMode = true;
+        self.updateRawPanelVisibility();
+      }
     });
 
     WS.on("ir_receive_off", function (msg) {
@@ -1595,7 +1704,6 @@ Pages.IR = {
     });
   }
 };
-
 
 // ============================================================
 // Page: Ports

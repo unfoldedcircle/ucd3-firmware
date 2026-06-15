@@ -55,6 +55,8 @@
   "lbl_ir_active": "Activo",
   "lbl_mode": "Modo",
   "lbl_active": "Activo:",
+  "lbl_raw_mode": "Activar modo RAW",
+  "lbl_raw_overflow": "Desbordamiento de datos, señal IR demasiado larga",
   "lbl_baud_rate": "Velocidad en baudios",
   "lbl_data_bits": "Bits de datos",
   "lbl_stop_bits": "Bits de parada",
@@ -116,6 +118,7 @@
   "btn_resume": "Reanudar",
   "btn_start_streaming": "Iniciar transmisión",
   "btn_stop_streaming": "Detener transmisión",
+  "btn_copy": "Copiar",
 
   "info_net_cfg_ipv4": "Solo IPv4 es compatible con la configuración de red estática.",
   "info_net_cfg_restart": "El dock se reiniciará después de aplicar los cambios de red.",
@@ -127,6 +130,8 @@
   "info_ir_interval": "Intervalo en ms para enviar repetidamente el código IR mientras se mantiene presionado el botón de enviar.",
   "info_ir_learn_text": "El receptor infrarrojo está en la parte superior del dock.",
   "info_ir_protocols": "Protocolos infrarrojos compatibles",
+  "info_ir_learn_raw": "El modo RAW devuelve los valores de temporización en microsegundos, alternando entre Mark (IR activado, número positivo) y Space (IR desactivado, número negativo).",
+  "info_irscrutinizer": "Compatible con IrScrutinizer",
   "info_port_active": "Periférico detectado en modo AUTO.",
   "info_port_location": "Desde la parte trasera, de izquierda a derecha: Ethernet — <strong>Puerto 1</strong> — <strong>Puerto 2</strong> — USB-C.",
   "info_port_pinout": "Asignación de pines jack 3.5 mm",
@@ -165,6 +170,7 @@
   "t_ir_sent": "Código IR enviado",
   "t_ir_learn_on": "Aprendizaje IR iniciado",
   "t_ir_learn_off": "Aprendizaje IR detenido",
+  "t_copied": "Copiado al portapapeles",
   "t_port_mode": "Puerto {port} configurado a {mode}",
   "t_uart_applied": "Configuración UART aplicada",
   "t_buffering_applied": "Configuración de búfer aplicada",
@@ -198,5 +204,6 @@
   "e_upload_auth": "Autenticación de subida fallida",
   "e_conn_lost": "Conexión perdida",
   "e_upload_failed": "Subida fallida: {status}",
-  "e_invalid_ip": "Formato de dirección IPv4 no válido"
+  "e_invalid_ip": "Formato de dirección IPv4 no válido",
+  "e_no_content": "No hay contenido para copiar"
 }

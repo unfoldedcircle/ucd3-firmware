@@ -55,6 +55,8 @@
   "lbl_ir_active": "Aktiv",
   "lbl_mode": "Läge",
   "lbl_active": "Aktiv:",
+  "lbl_raw_mode": "Aktivera RAW-läge",
+  "lbl_raw_overflow": "Dataöverflöde, IR-signal för lång",
   "lbl_baud_rate": "Baud-hastighet",
   "lbl_data_bits": "Databitar",
   "lbl_stop_bits": "Stoppbitar",
@@ -116,6 +118,7 @@
   "btn_resume": "Fortsätt",
   "btn_start_streaming": "Starta strömning",
   "btn_stop_streaming": "Stoppa strömning",
+  "btn_copy": "Kopiera",
 
   "info_net_cfg_ipv4": "Endast IPv4 stöds för statisk nätverkskonfiguration.",
   "info_net_cfg_restart": "Docken startas om efter att nätverksändringar har tillämpats.",
@@ -127,6 +130,8 @@
   "info_ir_interval": "Intervall i ms för att upprepade gånger skicka IR-koden medan sändarknappen hålls nedtryckt.",
   "info_ir_learn_text": "Infraröd-mottagaren är placerad högst upp på docken.",
   "info_ir_protocols": "Infraröda protokoll som stöds",
+  "info_ir_learn_raw": "RAW-läge returnerar tidsvärdena i mikrosekunder, växlande mellan Mark (IR på, positivt tal) och Space (IR av, negativt tal).",
+  "info_irscrutinizer": "Kompatibel med IrScrutinizer",
   "info_port_active": "Identifierad kringutrustning i AUTO-läge.",
   "info_port_location": "Bakifrån, vänster till höger: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
   "info_port_pinout": "3.5 mm jack pinout",
@@ -165,6 +170,7 @@
   "t_ir_sent": "IR-kod skickad",
   "t_ir_learn_on": "IR-inlärning startad",
   "t_ir_learn_off": "IR-inlärning stoppad",
+  "t_copied": "Kopierat till urklipp",
   "t_port_mode": "Port {port} läge satt till {mode}",
   "t_uart_applied": "UART-konfiguration verkställd",
   "t_buffering_applied": "Buffringskonfiguration verkställd",
@@ -198,5 +204,6 @@
   "e_upload_auth": "Uppladdningsautentisering misslyckades",
   "e_conn_lost": "Anslutning förlorad",
   "e_upload_failed": "Uppladdning misslyckades: {status}",
-  "e_invalid_ip": "Ogiltigt IPv4-adressformat"
+  "e_invalid_ip": "Ogiltigt IPv4-adressformat",
+  "e_no_content": "Inget innehåll att kopiera"
 }

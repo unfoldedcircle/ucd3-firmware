@@ -55,6 +55,8 @@
   "lbl_ir_active": "Aktiv",
   "lbl_mode": "Tilstand",
   "lbl_active": "Aktiv:",
+  "lbl_raw_mode": "Aktivér RAW-tilstand",
+  "lbl_raw_overflow": "Dataoverløb, IR-signal for langt",
   "lbl_baud_rate": "Baud-hastighed",
   "lbl_data_bits": "Databits",
   "lbl_stop_bits": "Stopbits",
@@ -116,6 +118,7 @@
   "btn_resume": "Fortsæt",
   "btn_start_streaming": "Start streaming",
   "btn_stop_streaming": "Stop streaming",
+  "btn_copy": "Kopiér",
 
   "info_net_cfg_ipv4": "Kun IPv4 understøttes til statisk netværkskonfiguration.",
   "info_net_cfg_restart": "Docken genstarter efter anvendelse af netværksændringer.",
@@ -127,6 +130,8 @@
   "info_ir_interval": "Interval i ms til gentaget udsendelse af IR-koden, mens sendeknappen holdes nede.",
   "info_ir_learn_text": "Infrarød-modtageren er placeret øverst på dock'en.",
   "info_ir_protocols": "Understøttede infrarøde protokoller",
+  "info_ir_learn_raw": "RAW-tilstand returnerer timing-værdier i mikrosekunder, skiftevis mellem Mark (IR tændt, positivt tal) og Space (IR slukket, negativt tal).",
+  "info_irscrutinizer": "Kompatibel med IrScrutinizer",
   "info_port_active": "Registreret perifert udstyr i AUTO-tilstand.",
   "info_port_location": "Set bagfra, venstre mod højre: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
   "info_port_pinout": "3.5 mm jack pinout",
@@ -165,6 +170,7 @@
   "t_ir_sent": "IR-kode sendt",
   "t_ir_learn_on": "IR-læring startet",
   "t_ir_learn_off": "IR-læring stoppet",
+  "t_copied": "Kopieret til udklipsholder",
   "t_port_mode": "Port {port} tilstand sat til {mode}",
   "t_uart_applied": "UART-konfiguration anvendt",
   "t_buffering_applied": "Buffering-konfiguration anvendt",
@@ -198,5 +204,6 @@
   "e_upload_auth": "Upload-godkendelse mislykkedes",
   "e_conn_lost": "Forbindelse mistet",
   "e_upload_failed": "Upload mislykkedes: {status}",
-  "e_invalid_ip": "Ugyldigt IPv4-adresseformat"
+  "e_invalid_ip": "Ugyldigt IPv4-adresseformat",
+  "e_no_content": "Intet indhold at kopiere"
 }

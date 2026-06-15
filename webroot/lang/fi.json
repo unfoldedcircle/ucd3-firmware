@@ -55,6 +55,8 @@
   "lbl_ir_active": "Aktiivinen",
   "lbl_mode": "Tila",
   "lbl_active": "Aktiivinen:",
+  "lbl_raw_mode": "Ota RAW-tila käyttöön",
+  "lbl_raw_overflow": "Datavuoto, IR-signaali liian pitkä",
   "lbl_baud_rate": "Baud-nopeus",
   "lbl_data_bits": "Databitit",
   "lbl_stop_bits": "Pysäytysbitit",
@@ -116,6 +118,7 @@
   "btn_resume": "Jatka",
   "btn_start_streaming": "Aloita suoratoisto",
   "btn_stop_streaming": "Pysäytä suoratoisto",
+  "btn_copy": "Kopioi",
 
   "info_net_cfg_ipv4": "Vain IPv4 on tuettu staattiseen verkkoasetukseen.",
   "info_net_cfg_restart": "Telakka käynnistyy uudelleen verkkoasetusten käytön jälkeen.",
@@ -127,6 +130,8 @@
   "info_ir_interval": "Väli ms:ssä IR-koodin toistuvaan lähettämiseen, kun lähetyspainiketta pidetään painettuna.",
   "info_ir_learn_text": "Infrapuna-vastaanotin on telakan yläosassa.",
   "info_ir_protocols": "Tuetut infrapuna-protokollat",
+  "info_ir_learn_raw": "RAW-tila palauttaa ajoitusarvot mikrosekunteina, vuorotellen Mark (IR päällä, positiivinen luku) ja Space (IR pois, negatiivinen luku).",
+  "info_irscrutinizer": "Yhteensopiva IrScrutinizerin kanssa",
   "info_port_active": "Tunnistettu oheislaite AUTO-tilassa.",
   "info_port_location": "Takaa katsottuna vasemmalta oikealle: Ethernet — <strong>Portti 1</strong> — <strong>Portti 2</strong> — USB-C.",
   "info_port_pinout": "3.5 mm jack -pinnijärjestys",
@@ -165,6 +170,7 @@
   "t_ir_sent": "IR-koodi lähetetty",
   "t_ir_learn_on": "IR-oppiminen aloitettu",
   "t_ir_learn_off": "IR-oppiminen pysäytetty",
+  "t_copied": "Kopioitu leikepöydälle",
   "t_port_mode": "Portin {port} tila asetettu: {mode}",
   "t_uart_applied": "UART-asetukset käytetty",
   "t_buffering_applied": "Puskurointiasetukset käytetty",
@@ -198,5 +204,6 @@
   "e_upload_auth": "Lähetyksen todennus epäonnistui",
   "e_conn_lost": "Yhteys katkesi",
   "e_upload_failed": "Lähetys epäonnistui: {status}",
-  "e_invalid_ip": "Virheellinen IPv4-osoitteen muoto"
+  "e_invalid_ip": "Virheellinen IPv4-osoitteen muoto",
+  "e_no_content": "Ei sisältöä kopioitavaksi"
 }

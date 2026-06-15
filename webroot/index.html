@@ -309,14 +309,32 @@
           <div id="ir-learn-info" class="info-popover" popover role="dialog">
             <p data-i18n="info_ir_learn_text">The infrared receiver is at the top of the dock.</p>
             <p><a href="https://support.unfoldedcircle.com/hc/en-us/articles/24808755980188" target="_blank" data-i18n="info_ir_protocols">Supported infrared protocols</a></p>
+            <p data-i18n="info_ir_learn_raw">RAW mode returns the timing values in microseconds, alternating between Mark (IR on, positive number) and Space (IR off, negative number).</p>
+            <p><a href="https://github.com/bengtmartensson/IrScrutinizer" target="_blank" data-i18n="info_irscrutinizer">Compatible with IrScrutinizer</a></p>
+          </div>
+          <div class="form-row">
+            <label class="cb-label">
+              <input type="checkbox" id="ir-raw-mode">
+              <span data-i18n="lbl_raw_mode">Enable RAW mode</span>
+            </label>
           </div>
           <div class="btn-group">
             <button id="btn-ir-learn" data-i18n="btn_start_learning">Start Learning</button>
             <button id="btn-ir-clear" data-i18n="btn_clear">Clear</button>
           </div>
-          <div class="console">
+          <div class="console console-resize">
             <pre id="ir-learn-output"></pre>
           </div>
+          <div id="ir-raw-panel" class="hidden">
+            <h3 data-i18n="hdr_raw_timings">Raw Timings</h3>
+            <div class="console console-resize">
+              <pre id="ir-raw-output"></pre>
+            </div>
+            <div class="form-row">
+              <button id="btn-ir-raw-copy" data-i18n="btn_copy">Copy</button>
+            </div>
+          </div>
+          <div id="ir-overflow-warning" class="note note-warning hidden" data-i18n="lbl_raw_overflow">Data overflow, IR signal too long</div>
         </div>
       </section>
 
