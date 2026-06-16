@@ -7,6 +7,7 @@
 #include <IRac.h>
 #include <IRtimer.h>
 #include <IRutils.h>
+#include <sys/param.h>  // For MIN/MAX(a, b)
 
 #include <algorithm>
 
@@ -21,6 +22,7 @@
 #include "globalcache.h"
 #include "globalcache_server.h"
 #include "ir_codes.h"
+#include "raw_timings.h"
 #include "sdkconfig.h"
 #include "uc_events.h"
 #include "util_types.h"
@@ -200,6 +202,8 @@ uint16_t InfraredService::send(int16_t clientId, uint32_t msgId, const std::stri
         irFormat = IRFormat::PRONTO;
     } else if (format == "gc") {
         irFormat = IRFormat::GLOBAL_CACHE;
+    } else if (format == "raw") {
+        irFormat = IRFormat::RAW;
     } else {
         ESP_LOGW(irLog, "Invalid format: '%s'", format.c_str());
         return 400;
@@ -557,6 +561,17 @@ void InfraredService::send_ir_f(void *param) {
                 } else {
                     ESP_LOGW(irLogSend, "failed to parse GC code");
                     rebootIfMemError(memError);
+                }
+                break;
+            }
+            case IRFormat::RAW: {
+                RawParseResult parsed = parse_raw_timings(pIrMsg->message.c_str(), pIrMsg->message.size());
+                if (parsed.error == RawParseError::OK) {
+                    irsend.sendRaw(parsed.buf, parsed.len, parsed.hz, pIrMsg->repeat);
+                    free(parsed.buf);
+                    success = true;
+                } else {
+                    ESP_LOGE(irLogSend, "Parse error %d at token %u", (int)parsed.error, parsed.error_token_index);
                 }
                 break;
             }

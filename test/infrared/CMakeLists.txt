@@ -9,6 +9,7 @@ add_executable(
   ${MOCK_SRCS}
   ../../components/infrared/ir_codes.cpp
   ../../components/infrared/globalcache.cpp
+  ../../components/infrared/raw_timings.cpp
 )
 
 target_include_directories(

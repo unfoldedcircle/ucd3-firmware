@@ -3,6 +3,7 @@ idf_component_register(
     "globalcache_server.cpp"
     "globalcache.cpp"
     "ir_codes.cpp"
+    "raw_timings.cpp"
     "service_ir.cpp"
     INCLUDE_DIRS
     "."
