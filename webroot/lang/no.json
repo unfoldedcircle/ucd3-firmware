@@ -55,6 +55,8 @@
   "lbl_ir_active": "Aktiv",
   "lbl_mode": "Modus",
   "lbl_active": "Aktiv:",
+  "lbl_raw_mode": "Aktiver RAW-modus",
+  "lbl_raw_overflow": "Dataoverflyt, IR-signal for langt",
   "lbl_baud_rate": "Baud-rate",
   "lbl_data_bits": "Databiter",
   "lbl_stop_bits": "Stoppbiter",
@@ -116,6 +118,7 @@
   "btn_resume": "Fortsett",
   "btn_start_streaming": "Start strømming",
   "btn_stop_streaming": "Stopp strømming",
+  "btn_copy": "Kopier",
 
   "info_net_cfg_ipv4": "Kun IPv4 støttes for statisk nettverkskonfigurasjon.",
   "info_net_cfg_restart": "Docken starter på nytt etter at nettverksendringer er brukt.",
@@ -127,6 +130,8 @@
   "info_ir_interval": "Intervall i ms for gjentatt sending av IR-koden mens sendeknappen holdes nede.",
   "info_ir_learn_text": "Infrarød-mottakeren er plassert øverst på docken.",
   "info_ir_protocols": "Støttede infrarøde protokoller",
+  "info_ir_learn_raw": "RAW-modus returnerer tidsverdiene i mikrosekunder, vekslende mellom Mark (IR på, positivt tall) og Space (IR av, negativt tall).",
+  "info_irscrutinizer": "Kompatibel med IrScrutinizer",
   "info_port_active": "Registrert periferienhet i AUTO-modus.",
   "info_port_location": "Fra baksiden, venstre til høyre: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
   "info_port_pinout": "3.5 mm jack pinout",
@@ -165,6 +170,7 @@
   "t_ir_sent": "IR-kode sendt",
   "t_ir_learn_on": "IR-læring startet",
   "t_ir_learn_off": "IR-læring stoppet",
+  "t_copied": "Kopiert til utklippstavlen",
   "t_port_mode": "Port {port} modus satt til {mode}",
   "t_uart_applied": "UART-konfigurasjon brukt",
   "t_buffering_applied": "Buffering-konfigurasjon brukt",
@@ -198,5 +204,6 @@
   "e_upload_auth": "Opplasting-autentisering mislyktes",
   "e_conn_lost": "Tilkobling tapt",
   "e_upload_failed": "Opplasting mislyktes: {status}",
-  "e_invalid_ip": "Ugyldig IPv4-adresseformat"
+  "e_invalid_ip": "Ugyldig IPv4-adresseformat",
+  "e_no_content": "Ingen innhold å kopiere"
 }

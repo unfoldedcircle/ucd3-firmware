@@ -54,6 +54,8 @@
   "lbl_ir_active": "Aktiv",
   "lbl_mode": "Modus",
   "lbl_active": "Aktiv:",
+  "lbl_raw_mode": "RAW-Modus aktivieren",
+  "lbl_raw_overflow": "Datenüberlauf, IR-Signal zu lang",
   "lbl_baud_rate": "Baudrate",
   "lbl_data_bits": "Datenbits",
   "lbl_stop_bits": "Stoppbits",
@@ -115,6 +117,7 @@
   "btn_resume": "Fortsetzen",
   "btn_start_streaming": "Streaming starten",
   "btn_stop_streaming": "Streaming stoppen",
+  "btn_copy": "Kopieren",
 
   "info_net_cfg_ipv4": "Nur IPv4 wird für die statische Netzwerkkonfiguration unterstützt.",
   "info_net_cfg_restart": "Das Dock wird nach der Übernahme der Netzwerkänderungen neu gestartet.",
@@ -126,6 +129,8 @@
   "info_ir_interval": "Intervall in ms zum wiederholten Senden des IR-Codes, während die Sendetaste gedrückt gehalten wird.",
   "info_ir_learn_text": "Der Infrarot-Empfänger befindet sich oben am Dock.",
   "info_ir_protocols": "Unterstützte Infrarot-Protokolle",
+  "info_ir_learn_raw": "Der RAW-Modus gibt die Timing-Werte in Mikrosekunden zurück, abwechselnd Mark (IR an, positive Zahl) und Space (IR aus, negative Zahl).",
+  "info_irscrutinizer": "Kompatibel mit IrScrutinizer",
   "info_port_active": "Erkanntes Peripheriegerät im AUTO-Modus.",
   "info_port_location": "Von hinten, links nach rechts: Ethernet — <strong>Port 1</strong> — <strong>Port 2</strong> — USB-C.",
   "info_port_pinout": "Pinbelegung des 3.5-mm-Klinkensteckers",
@@ -164,6 +169,7 @@
   "t_ir_sent": "IR-Code gesendet",
   "t_ir_learn_on": "IR-Lernen gestartet",
   "t_ir_learn_off": "IR-Lernen gestoppt",
+  "t_copied": "In Zwischenablage kopiert",
   "t_port_mode": "Anschluss {port} auf {mode} gesetzt",
   "t_uart_applied": "UART-Konfiguration übernommen",
   "t_buffering_applied": "Puffer-Konfiguration übernommen",
@@ -197,5 +203,6 @@
   "e_upload_auth": "Upload-Authentifizierung fehlgeschlagen",
   "e_conn_lost": "Verbindung verloren",
   "e_upload_failed": "Upload fehlgeschlagen: {status}",
-  "e_invalid_ip": "Ungültiges IPv4-Adressformat"
+  "e_invalid_ip": "Ungültiges IPv4-Adressformat",
+  "e_no_content": "Kein Inhalt zum Kopieren"
 }

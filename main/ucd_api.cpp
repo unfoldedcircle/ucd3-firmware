@@ -846,7 +846,9 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         sockfdSendIR_ = -1;
         code = 200;
     } else if (command == "ir_receive_on") {
-        InfraredService::getInstance().startIrLearn();
+        IRFormat irFormat = cjson_get_bool(root, "raw") ? IRFormat::RAW : IRFormat::UNFOLDED_CIRCLE;
+
+        InfraredService::getInstance().startIrLearn(irFormat);
         ESP_LOGD(TAG, "IR Receive on");
     } else if (command == "ir_receive_off") {
         InfraredService::getInstance().stopIrLearn();
@@ -2061,7 +2063,11 @@ void DockApi::dockEventHandler(void *arg, esp_event_base_t event_base, int32_t e
 
     switch (event_id) {
         case UC_EVENT_IR_LEARNING_START: {
-            std::string msg = "{\"type\":\"event\",\"msg\":\"ir_receive_on\"}";
+            uc_event_ir_start_t *start = static_cast<uc_event_ir_start_t *>(event_data);
+            bool                 raw = start && start->irFormat == static_cast<uint8_t>(IRFormat::RAW);
+
+            std::string msg = "{\"type\":\"event\",\"msg\":\"ir_receive_on\"";
+            msg += raw ? ",\"raw\":true}" : "}";
             that->web_->broadcastWsTxt(msg);
             break;
         }

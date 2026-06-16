@@ -586,6 +586,14 @@ button:disabled {
   color: var(--console-text);
 }
 
+#ir-raw-output {
+  white-space: pre-wrap;
+}
+
+#ir-raw-panel .console {
+  height: calc(10 * 1.4em + 16px);
+}
+
 .console-send {
   display: flex;
   gap: 8px;

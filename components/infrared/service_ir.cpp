@@ -29,9 +29,13 @@ const char *irLog = "IR";
 const char *irLogSend = "IRSEND";
 const char *irLogLearn = "IRLEARN";
 
+/// Learning is active
 const int IR_LEARNING_BIT = BIT0;
-const int IR_REPEAT_BIT = BIT1;
-const int IR_REPEAT_STOP_BIT = BIT2;
+/// Return raw timings for IR learning (requires IR_LEARNING_BIT)
+const int IR_LEARNING_RAW_BIT = BIT1;
+/// Repeat active IR command
+const int IR_REPEAT_BIT = BIT2;
+const int IR_REPEAT_STOP_BIT = BIT3;
 
 /// Limit maximum repeat count in continuous IR repeat mode to 20.
 const uint32_t MAX_REPEAT = 20;
@@ -114,17 +118,22 @@ void InfraredService::setIrLearnPriority(uint16_t priority) {
     }
 }
 
-void InfraredService::startIrLearn() {
+void InfraredService::startIrLearn(IRFormat irFormat) {
     // Note: UC_EVENT_IR_LEARNING_START event is sent when the learning loop starts
     if (m_eventgroup) {
-        xEventGroupSetBits(m_eventgroup, IR_LEARNING_BIT);
+        EventBits_t uxBitsToSet = IR_LEARNING_BIT;
+        if (irFormat == IRFormat::RAW) {
+            uxBitsToSet |= IR_LEARNING_RAW_BIT;
+        }
+
+        xEventGroupSetBits(m_eventgroup, uxBitsToSet);
     }
 }
 
 void InfraredService::stopIrLearn() {
     // Note: UC_EVENT_IR_LEARNING_STOP event is sent after the learning loop stops
     if (m_eventgroup) {
-        xEventGroupClearBits(m_eventgroup, IR_LEARNING_BIT);
+        xEventGroupClearBits(m_eventgroup, IR_LEARNING_BIT | IR_LEARNING_RAW_BIT);
     }
 }
 
@@ -602,6 +611,44 @@ void InfraredService::send_ir_f(void *param) {
     }
 }
 
+/// Optimized RAW serialization using string formatting instead of inefficient cJSON array handling
+static char *serialize_raw_optimized(const decode_results *results, const char *code) {
+    uint16_t count = results->rawlen - 1;
+
+    // Worst case per entry: 5 digits + comma = 6 chars. Plus envelope.
+    size_t buf_size = count * 6 + 128;
+    char  *buf = reinterpret_cast<char *>(malloc(buf_size));
+    if (buf == NULL) {
+        ESP_LOGE(irLogLearn, "Not enough memory for RAW IR learning");
+        return NULL;
+    }
+
+    int offset = snprintf(buf, buf_size,
+                          "{\"type\":\"event\",\"msg\":\"ir_receive\",\"format\":\"hex\",\"ir_code\":\"%s\","
+                          "\"overflow\":%s,\"raw\":[",
+                          code, results->overflow ? "true" : "false");
+
+    for (uint16_t i = 0; i < count; i++) {
+        uint16_t src_idx = i + 1;  // skip index 0
+        int32_t  us = static_cast<int32_t>(results->rawbuf[src_idx]) * kRawTick;
+
+        int written =
+            snprintf(buf + offset, buf_size - offset, i < count - 1 ? "%ld," : "%ld", (src_idx % 2 == 1) ? us : -us);
+        if (written < 0 || (size_t)written >= buf_size - offset) {
+            if (written > 0) {
+                offset += written;
+            }
+            break;
+        }
+        offset += written;
+    }
+
+    if (offset < buf_size) {
+        snprintf(buf + offset, buf_size - offset, "]}");
+    }
+    return buf;
+}
+
 void InfraredService::learn_ir_f(void *param) {
     if (param == nullptr) {
         ESP_LOGE(irLogLearn, "BUG: missing learn_ir_f param");
@@ -633,9 +680,13 @@ void InfraredService::learn_ir_f(void *param) {
             continue;
         }
 
+        bool raw_mode = bits & IR_LEARNING_RAW_BIT;
+
         ESP_LOGI(irLogLearn, "ir_learn task starting");
-        ESP_ERROR_CHECK_WITHOUT_ABORT(
-            esp_event_post(UC_DOCK_EVENTS, UC_EVENT_IR_LEARNING_START, NULL, 0, pdMS_TO_TICKS(500)));
+        uc_event_ir_start_t ir_start;
+        ir_start.irFormat = static_cast<int8_t>(raw_mode ? IRFormat::RAW : IRFormat::UNFOLDED_CIRCLE);
+        ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(UC_DOCK_EVENTS, UC_EVENT_IR_LEARNING_START, &ir_start,
+                                                     sizeof(ir_start), pdMS_TO_TICKS(500)));
 
         // enable IR learning
         irrecv.enableIRIn();
@@ -654,6 +705,7 @@ void InfraredService::learn_ir_f(void *param) {
                 continue;
             }
 
+            std::string   code;
             bool          failed = false;
             uc_event_ir_t event_ir;
             memset(&event_ir, 0, sizeof(event_ir));
@@ -675,46 +727,56 @@ void InfraredService::learn_ir_f(void *param) {
             if (failed) {
                 ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(UC_DOCK_EVENTS, UC_EVENT_IR_LEARNING_FAIL, &event_ir,
                                                              sizeof(event_ir), pdMS_TO_TICKS(500)));
-                continue;
+                if (!raw_mode) {
+                    continue;
+                }
+                // empty code indicates a failed learned code in raw mode
+                code = "";
+            } else {
+                code += std::to_string(results.decode_type);
+                code += ";";
+                code += resultToHexidecimal(&results);
+                code += ";";
+                code += std::to_string(results.bits);
+                code += ";";
+                // TODO(#30) adjust repeat count for known protocols, e.g. set Sony to 2?
+                code += std::to_string(results.repeat);
+
+                // TODO(#32) here we could add "protocol specific quirk handling":
+                //           e.g. filter out double Denon codes (within 200ms) and report repeat count 2 instead
+
+                ESP_LOGI(irLogLearn, "Learned: %s", code.c_str());
+                event_ir.decode_type = results.decode_type;
+                event_ir.value = results.value;
+                event_ir.address = results.address;
+                event_ir.command = results.command;
+                ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(UC_DOCK_EVENTS, UC_EVENT_IR_LEARNING_OK, &event_ir,
+                                                             sizeof(event_ir), pdMS_TO_TICKS(500)));
             }
-
-            std::string code;
-            code += std::to_string(results.decode_type);
-            code += ";";
-            code += resultToHexidecimal(&results);
-            code += ";";
-            code += std::to_string(results.bits);
-            code += ";";
-            // TODO(#30) adjust repeat count for known protocols, e.g. set Sony to 2?
-            code += std::to_string(results.repeat);
-
-            // code += ";";
-            // code += std::to_string(results.address);
-            // code += ";";
-            // code += std::to_string(results.command);
-
-            // TODO(#32) here we could add "protocol specific quirk handling":
-            //           e.g. filter out double Denon codes (within 200ms) and report repeat count 2 instead
-
-            ESP_LOGI(irLogLearn, "Learned: %s", code.c_str());
-            event_ir.decode_type = results.decode_type;
-            event_ir.value = results.value;
-            event_ir.address = results.address;
-            event_ir.command = results.command;
-            ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(UC_DOCK_EVENTS, UC_EVENT_IR_LEARNING_OK, &event_ir,
-                                                         sizeof(event_ir), pdMS_TO_TICKS(500)));
-
-            cJSON *responseDoc = cJSON_CreateObject();
-            cJSON_AddStringToObject(responseDoc, "type", "event");
-            cJSON_AddStringToObject(responseDoc, "msg", "ir_receive");
-            cJSON_AddStringToObject(responseDoc, "ir_code", code.c_str());
 
             struct IrResponse *response = new IrResponse();
             response->clientId = -1;  // broadcast
-            char *resp = cJSON_PrintUnformatted(responseDoc);
-            response->message = resp;
-            cJSON_free(resp);
-            cJSON_Delete(responseDoc);
+
+            if (raw_mode) {
+                char *resp = serialize_raw_optimized(&results, code.c_str());
+                if (resp == NULL) {
+                    delete response;
+                    continue;
+                }
+                response->message = resp;
+                free(resp);
+            } else {
+                cJSON *responseDoc = cJSON_CreateObject();
+                cJSON_AddStringToObject(responseDoc, "type", "event");
+                cJSON_AddStringToObject(responseDoc, "msg", "ir_receive");
+                cJSON_AddStringToObject(responseDoc, "format", "hex");
+                cJSON_AddStringToObject(responseDoc, "ir_code", code.c_str());
+
+                char *resp = cJSON_PrintUnformatted(responseDoc);
+                response->message = resp;
+                cJSON_free(resp);
+                cJSON_Delete(responseDoc);
+            }
 
             if (ir->m_responseCallback) {
                 ir->m_responseCallback(response);

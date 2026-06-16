@@ -113,6 +113,45 @@ Example request from the Core-API to send a Sony TV volume up command for 2 seco
   - The repeat count in `code` is ignored.
   - The protocol specific minimal repeat count is still being used. For example Sony (protocol 4), uses a minimal repeat count of 2.
 
+### RAW IR-Learning
+
+Request:
+```json
+{
+  "type": "dock",
+  "command": "ir_receive_on",
+  "raw": true
+}
+```
+
+- `"raw": true` enables returning the RAW timings. 
+
+Event message after IR learning is enabled:
+```json
+{
+  "type": "event",
+  "msg": "ir_receive_on",
+  "raw": true
+}
+```
+
+Example response:
+```json
+{
+    "type": "event",
+    "msg": "ir_receive",
+    "format": "hex",
+    "ir_code": "4;0xA10;12;0",
+    "overflow": false,
+    "raw": [3344,-1704,388,-448,388,-448,388,-1286,388,-450,390,-1284,388,-448,388,-1286,388,-450,386,-448,388,-1286,388,-448,388,-448,388,-1286,388,-1286,388,-448,388,-448,388,-448,388,-448,388,-448,388,-448,388,-1286,388,-448,388,-1286,388,-448,388,-1286,388,-448,388,-448,388,-448,388,-1286,388,-448,388,-1286,388,-448,388,-1286,388,-448,388,-448,388,-448,388,-448,388,-448,388,-1286,388,-448,388,-448,388,-448,388,-448,388,-456,380,-448,388,-448,388,-1286,388,-448,388]
+}
+```
+
+- `format` is set to the format of the `ir_code` value, similar as in the `ir_send` message. Only `hex` for now. 
+- `ir_code` is empty if the IR code could not be decoded.
+- `overflow` is set to `true` if the IR signal was too long and didn't fit into the receive buffer.
+- `raw`: optional Mark / Space values in microseconds, if requsted in `ir_receive_on`.
+
 ### External Port Operation Mode
 
 Get operation mode:

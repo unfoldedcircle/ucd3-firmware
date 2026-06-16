@@ -67,6 +67,8 @@
   "lbl_ir_active": "Actief",
   "lbl_mode": "Modus",
   "lbl_active": "Actief:",
+  "lbl_raw_mode": "RAW-modus inschakelen",
+  "lbl_raw_overflow": "Gegevensoverloop, IR-signaal te lang",
   "lbl_baud_rate": "Baudrate",
   "lbl_data_bits": "Databits",
   "lbl_stop_bits": "Stopbits",
@@ -116,6 +118,7 @@
   "btn_resume": "Hervatten",
   "btn_start_streaming": "Streaming starten",
   "btn_stop_streaming": "Streaming stoppen",
+  "btn_copy": "Kopiëren",
 
   "info_net_cfg_ipv4": "Alleen IPv4 wordt ondersteund voor statische netwerkconfiguratie.",
   "info_net_cfg_restart": "De dock wordt herstart na het toepassen van netwijzigingen.",
@@ -127,6 +130,8 @@
   "info_ir_interval": "Interval in ms om de IR-code herhaaldelijk te verzenden terwijl de verzendknop wordt ingedrukt.",
   "info_ir_learn_text": "De infrarood-ontvanger bevindt zich bovenaan het dock.",
   "info_ir_protocols": "Ondersteunde infrarood-protocollen",
+  "info_ir_learn_raw": "RAW-modus retourneert de timingwaarden in microseconden, afwisselend tussen Mark (IR aan, positief getal) en Space (IR uit, negatief getal).",
+  "info_irscrutinizer": "Compatibel met IrScrutinizer",
   "info_port_active": "Gedetecteerd randapparaat in AUTO-modus.",
   "info_port_location": "Vanaf de achterkant, van links naar rechts: Ethernet — <strong>Poort 1</strong> — <strong>Poort 2</strong> — USB-C.",
   "info_port_pinout": "3.5 mm jack pinout",
@@ -165,6 +170,7 @@
   "t_ir_sent": "IR-code verzonden",
   "t_ir_learn_on": "IR-leren gestart",
   "t_ir_learn_off": "IR-leren gestopt",
+  "t_copied": "Gekopieerd naar klembord",
   "t_port_mode": "Poort {port} ingesteld op {mode}",
   "t_uart_applied": "UART-configuratie toegepast",
   "t_buffering_applied": "Bufferingconfiguratie toegepast",
@@ -198,5 +204,6 @@
   "e_upload_auth": "Upload-authenticatie mislukt",
   "e_conn_lost": "Verbinding verloren",
   "e_upload_failed": "Upload mislukt: {status}",
-  "e_invalid_ip": "Ongeldig IPv4-adresformaat"
+  "e_invalid_ip": "Ongeldig IPv4-adresformaat",
+  "e_no_content": "Geen inhoud om te kopiëren"
 }
