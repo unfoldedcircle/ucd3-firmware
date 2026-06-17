@@ -626,41 +626,34 @@ void InfraredService::send_ir_f(void *param) {
     }
 }
 
-/// Optimized RAW serialization using string formatting instead of inefficient cJSON array handling
-static char *serialize_raw_optimized(const decode_results *results, const char *code) {
+/// Optimized RAW serialization using string formatting instead of inefficient cJSON array handling.
+/// A std::string is returned to avoid another memory allocation passing the message to the web server.
+static std::string serialize_raw_optimized(const decode_results *results, const char *code) {
     uint16_t count = results->rawlen - 1;
 
-    // Worst case per entry: 5 digits + comma = 6 chars. Plus envelope.
-    size_t buf_size = count * 6 + 128;
-    char  *buf = reinterpret_cast<char *>(malloc(buf_size));
-    if (buf == NULL) {
-        ESP_LOGE(irLogLearn, "Not enough memory for RAW IR learning");
-        return NULL;
-    }
+    // A conservative estimate would be: 8 bytes per entry (sign + 5 digits + comma/bracket).
+    // However: most IR timings use much shorter Mark & Space sequences, that's why we use 6 bytes per entry.
+    // Plus envelope (~128 chars + code length).
+    size_t      est_size = count * 6 + strlen(code) + 128;
+    std::string buf;
+    buf.reserve(est_size);
 
-    int offset = snprintf(buf, buf_size,
-                          "{\"type\":\"event\",\"msg\":\"ir_receive\",\"format\":\"hex\",\"ir_code\":\"%s\","
-                          "\"overflow\":%s,\"raw\":[",
-                          code, results->overflow ? "true" : "false");
+    buf.append("{\"type\":\"event\",\"msg\":\"ir_receive\",\"format\":\"hex\",\"ir_code\":\"");
+    buf.append(code);
+    buf.append("\",\"overflow\":");
+    buf.append(results->overflow ? "true" : "false");
+    buf.append(",\"raw\":[");
 
     for (uint16_t i = 0; i < count; i++) {
         uint16_t src_idx = i + 1;  // skip index 0
         int32_t  us = static_cast<int32_t>(results->rawbuf[src_idx]) * kRawTick;
 
-        int written =
-            snprintf(buf + offset, buf_size - offset, i < count - 1 ? "%ld," : "%ld", (src_idx % 2 == 1) ? us : -us);
-        if (written < 0 || (size_t)written >= buf_size - offset) {
-            if (written > 0) {
-                offset += written;
-            }
-            break;
-        }
-        offset += written;
+        char timing[16];
+        snprintf(timing, sizeof(timing), i < count - 1 ? "%ld," : "%ld", (src_idx % 2 == 1) ? us : -us);
+        buf.append(timing);
     }
 
-    if (offset < buf_size) {
-        snprintf(buf + offset, buf_size - offset, "]}");
-    }
+    buf.append("]}");
     return buf;
 }
 
@@ -773,13 +766,7 @@ void InfraredService::learn_ir_f(void *param) {
             response->clientId = -1;  // broadcast
 
             if (raw_mode) {
-                char *resp = serialize_raw_optimized(&results, code.c_str());
-                if (resp == NULL) {
-                    delete response;
-                    continue;
-                }
-                response->message = resp;
-                free(resp);
+                response->message = serialize_raw_optimized(&results, code.c_str());
             } else {
                 cJSON *responseDoc = cJSON_CreateObject();
                 cJSON_AddStringToObject(responseDoc, "type", "event");
