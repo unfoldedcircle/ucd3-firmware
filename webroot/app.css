@@ -387,6 +387,19 @@ select:focus {
   opacity: 0.4;
 }
 
+.input-freq {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.input-freq:disabled {
+  opacity: 0.4;
+}
+
+#ir-freq-group {
+  flex-shrink: 0;
+}
+
 .btn-send-active {
   background: var(--btn-warn-hover-bg);
   border-color: var(--btn-warn-border);
@@ -460,6 +473,34 @@ select:focus {
 
 .input-reveal input {
   flex: 1;
+}
+
+/* Keep label, info button, and input together as a unit */
+.input-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.input-group label {
+  margin: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.input-group .info-trigger {
+  flex-shrink: 0;
+  margin-left: 0;
+}
+
+.input-group input {
+  flex-shrink: 0;
+}
+
+/* Form group containing input-group should not compress */
+.form-inline.form-group {
+  flex-shrink: 0;
 }
 
 /* === Buttons === */

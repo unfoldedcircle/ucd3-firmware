@@ -1263,6 +1263,7 @@ Pages.IR = {
     const btn = document.getElementById("btn-ir-send");
     const repeatMode = document.getElementById("ir-repeat-mode").checked;
     const code = document.getElementById("ir-code").value.trim();
+    // const format = document.getElementById("ir-format").value;
 
     // Disable button if learning is active
     if (this.learning) {
@@ -1281,6 +1282,46 @@ Pages.IR = {
     // - Repeat mode checked AND repeat value > 0
     const repeatValue = parseInt(document.getElementById("ir-repeat").value) || 0;
     btn.disabled = !!(repeatMode && repeatValue <= 0);
+  },
+
+
+  updateFormatFields: function () {
+    const format = document.getElementById("ir-format").value;
+    const freqInput = document.getElementById("ir-freq");
+    const freqGroup = document.getElementById("ir-freq-group");
+
+    // Show/hide frequency field based on format
+    freqGroup.classList.toggle("hidden", format !== "raw");
+    freqInput.disabled = format !== "raw";
+
+    // Check RAW warning conditions
+    this.updateRawWarning();
+  },
+
+  updateRawWarning: function () {
+    const format = document.getElementById("ir-format").value;
+    const code = document.getElementById("ir-code").value.trim();
+    const repeat = parseInt(document.getElementById("ir-repeat").value) || 0;
+    const hold = parseInt(document.getElementById("ir-hold").value) || 0;
+    const warning = document.getElementById("ir-raw-warning");
+
+    // Only show warning for RAW format with repeat > 0 OR hold > 0
+    if (format !== "raw" || (repeat <= 0 && hold <= 0)) {
+      warning.classList.add("hidden");
+      return;
+    }
+
+    // Count values in the code (split by whitespace)
+    const cleanedCode = code.replace(/\u00A0/g, " ").replace(/  +/g, " ").trim();
+    if (!cleanedCode) {
+      warning.classList.add("hidden");
+      return;
+    }
+
+    const values = cleanedCode.split(" ");
+    const isOdd = values.length % 2 !== 0;
+
+    warning.classList.toggle("hidden", !isOdd);
   },
 
   updateRepeatModeCheckbox: function () {
@@ -1355,6 +1396,13 @@ Pages.IR = {
       ext1: document.getElementById("ir-ext1").checked,
       ext2: document.getElementById("ir-ext2").checked
     };
+
+    // Process code for RAW format
+    if (format === "raw") {
+      const freq = parseInt(document.getElementById("ir-freq").value) || 38000;
+      const cleanedCode = code.replace(/\u00A0/g, " ").replace(/  +/g, " ").trim();
+      data.code = freq + ":" + cleanedCode;
+    }
 
     // Ensure state is reset before starting
     this._resetRepeatState();
@@ -1465,6 +1513,14 @@ Pages.IR = {
       ext2: document.getElementById("ir-ext2").checked
     };
 
+    // Process code for RAW format
+    if (format === "raw") {
+      const freq = parseInt(document.getElementById("ir-freq").value) || 38000;
+      // Clean whitespace: replace multiple spaces/non-breaking spaces with single space, trim
+      const cleanedCode = code.replace(/\u00A0/g, " ").replace(/  +/g, " ").trim();
+      data.code = freq + ":" + cleanedCode;
+    }
+
     // Add repeat or hold based on values
     // hold overrides repeat if both are set
     if (hold > 0) {
@@ -1562,22 +1618,35 @@ Pages.IR = {
     return paddedValues.join(" ");
   },
 
+
   init: function () {
     const self = this;
 
-    // IR code field change - enable/disable send button
+    // IR code field change - enable/disable send button and check warning
     document.getElementById("ir-code").addEventListener("input", function () {
+      self.updateSendButtonState();
+      self.updateRawWarning();
+    });
+
+    // Format change - show/hide frequency field and check warning
+    document.getElementById("ir-format").addEventListener("change", function () {
+      self.updateFormatFields();
       self.updateSendButtonState();
     });
 
-    // Repeat value change - enables/disables repeat mode checkbox
+    // Repeat value change - enables/disables repeat mode checkbox and check warning
     document.getElementById("ir-repeat").addEventListener("input", function () {
       self.updateRepeatModeCheckbox();
+      self.updateRawWarning();
+    });
+    document.getElementById("ir-hold").addEventListener("input", function () {
+      self.updateRawWarning();
     });
 
     // Repeat mode checkbox toggle - set repeat count if 0, disable hold time
     document.getElementById("ir-repeat-mode").addEventListener("change", function () {
       self.toggleRepeatModeFields();
+      self.updateRawWarning();
     });
 
     // RAW mode checkbox toggle
@@ -1672,7 +1741,7 @@ Pages.IR = {
       }
 
       // Handle overflow warning
-      Pages.IR.updateOverflowWarning(msg.overflow);
+      self.updateOverflowWarning(msg.overflow);
     });
 
     // Listen for ir_receive_on/off events (Dock 3)
