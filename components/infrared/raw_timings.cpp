@@ -10,26 +10,32 @@
 
 static const uint16_t kDefaultFrequencyHz = 38000;
 
-/// Check if character is a whitespace separator (space, tab, NBSP).
-static inline bool is_separator(char c) {
-    if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-        return true;
+/// Check if character is a whitespace separator (space, tab, CR, LF, single-byte NBSP).
+static inline bool is_whitespace(char c) {
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n' || (uint8_t)c == 0xA0;
+}
+
+/// Check if the string at current position is a UTF-8 non-breaking space (0xC2 0xA0).
+/// Returns 2 if it is an NBSP, 0 otherwise.
+static inline size_t is_utf8_nbsp(const char *str, size_t str_len, size_t pos) {
+    if (pos + 1 < str_len && (uint8_t)str[pos] == 0xC2 && (uint8_t)str[pos + 1] == 0xA0) {
+        return 2;
     }
-    // UTF-8 non-breaking space: 0xC2 0xA0
-    // Handled below in the skip function since it's multi-byte.
-    return false;
+    return 0;
 }
 
 /// Advance index past all separator characters, including multi-byte NBSP.
 static void skip_separators(const char *str, size_t str_len, size_t &pos) {
     while (pos < str_len) {
-        if (is_separator(str[pos])) {
+        if (is_whitespace(str[pos])) {
             pos++;
-        } else if (pos + 1 < str_len && (uint8_t)str[pos] == 0xC2 && (uint8_t)str[pos + 1] == 0xA0) {
-            // UTF-8 non-breaking space
-            pos += 2;
         } else {
-            break;
+            size_t nbsp_len = is_utf8_nbsp(str, str_len, pos);
+            if (nbsp_len > 0) {
+                pos += nbsp_len;
+            } else {
+                break;
+            }
         }
     }
 }
@@ -39,8 +45,8 @@ static void skip_separators(const char *str, size_t str_len, size_t &pos) {
 static bool try_parse_frequency(const char *str, size_t str_len, size_t &pos, uint16_t &hz_out) {
     // Look for ':' before the first whitespace to determine if frequency is present.
     size_t scan = pos;
-    while (scan < str_len && !is_separator(str[scan])) {
-        if ((uint8_t)str[scan] == 0xC2 && scan + 1 < str_len && (uint8_t)str[scan + 1] == 0xA0) {
+    while (scan < str_len && !is_whitespace(str[scan])) {
+        if (is_utf8_nbsp(str, str_len, scan)) {
             break;
         }
         if (str[scan] == ':') {
@@ -88,8 +94,8 @@ RawParseResult parse_raw_timings(const char *str, size_t str_len) {
     if (!try_parse_frequency(str, str_len, pos, hz)) {
         // Check if there was an invalid frequency attempt (colon present but bad value)
         size_t scan = freq_start;
-        while (scan < str_len && !is_separator(str[scan])) {
-            if ((uint8_t)str[scan] == 0xC2 && scan + 1 < str_len && (uint8_t)str[scan + 1] == 0xA0) {
+        while (scan < str_len && !is_whitespace(str[scan])) {
+            if (is_utf8_nbsp(str, str_len, scan)) {
                 break;
             }
             if (str[scan] == ':') {
@@ -110,9 +116,9 @@ RawParseResult parse_raw_timings(const char *str, size_t str_len) {
     skip_separators(str, str_len, scan_pos);
     while (scan_pos < str_len) {
         count++;
-        while (scan_pos < str_len && !is_separator(str[scan_pos])) {
+        while (scan_pos < str_len && !is_whitespace(str[scan_pos])) {
             // Also check for multi-byte NBSP
-            if ((uint8_t)str[scan_pos] == 0xC2 && scan_pos + 1 < str_len && (uint8_t)str[scan_pos + 1] == 0xA0) {
+            if (is_utf8_nbsp(str, str_len, scan_pos)) {
                 break;
             }
             scan_pos++;

@@ -380,6 +380,15 @@ TEST_F(ParseRawTimingsTest, MultipleNonBreakingSpaces) {
 }
 
 TEST_F(ParseRawTimingsTest, NbspMixedWithRegularSpaces) {
+    std::string input = "9004 \xA0 4500";
+    result_ = parse_raw_timings(input.data(), input.size());
+    EXPECT_EQ(result_.error, RawParseError::OK);
+    ASSERT_EQ(result_.len, 2);
+    EXPECT_EQ(result_.buf[0], 9004);
+    EXPECT_EQ(result_.buf[1], 4500);
+}
+
+TEST_F(ParseRawTimingsTest, Utf8NbspMixedWithRegularSpaces) {
     std::string input = "9004 \xC2\xA0 4500";
     result_ = parse_raw_timings(input.data(), input.size());
     EXPECT_EQ(result_.error, RawParseError::OK);
@@ -463,7 +472,21 @@ TEST_F(ParseRawTimingsTest, OnlyWhitespace) {
 }
 
 TEST_F(ParseRawTimingsTest, OnlyNbsp) {
+    std::string input = "\xA0\xA0";
+    result_ = parse_raw_timings(input.data(), input.size());
+    EXPECT_EQ(result_.error, RawParseError::EMPTY_INPUT);
+    EXPECT_EQ(result_.buf, nullptr);
+}
+
+TEST_F(ParseRawTimingsTest, OnlyUtf8Nbsp) {
     std::string input = "\xC2\xA0\xC2\xA0";
+    result_ = parse_raw_timings(input.data(), input.size());
+    EXPECT_EQ(result_.error, RawParseError::EMPTY_INPUT);
+    EXPECT_EQ(result_.buf, nullptr);
+}
+
+TEST_F(ParseRawTimingsTest, OnlyMixedUtf8Nbsp) {
+    std::string input = "\xC2\xA0\xA0";
     result_ = parse_raw_timings(input.data(), input.size());
     EXPECT_EQ(result_.error, RawParseError::EMPTY_INPUT);
     EXPECT_EQ(result_.buf, nullptr);
