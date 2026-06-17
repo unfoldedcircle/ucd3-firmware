@@ -514,26 +514,26 @@ Native HTML Popover API for contextual help (no JavaScript required):
 
 - **Send IR Code**: Textarea for code input, format dropdown (hex/pronto/raw), output checkboxes
 - **Format Selection**:
-  - **PRONTO**: Pronto IR code format (hex pairs)
-  - **HEX**: Protocol-based hex format (e.g., `4;0xA10;12;0`)
-  - **RAW**: Raw timing values in microseconds with carrier frequency
+    - **PRONTO**: Pronto IR code format (hex pairs)
+    - **HEX**: Protocol-based hex format (e.g., `4;0xA10;12;0`)
+    - **RAW**: Raw timing values in microseconds with carrier frequency
 - **Frequency Input**: Carrier frequency in kHz / Hz for RAW format (default 38000, kHz < 1000; Hz >= 1000). Only enabled when RAW format is selected.
 - **Repeat & Hold**: Configurable repeat count (0–20) and hold duration (ms)
 - **IR Repeat Mode**:
-  - Fieldset with "Active" checkbox and periodic interval input (100–1000 ms, default 300 ms)
-  - **Hold-to-repeat interaction**: Press and hold the Send button to continuously send IR codes
-  - Releases button sends `ir_stop` to dock
-  - Uses `f: 1` feature flag to suppress ack responses during periodic sending
-  - Auto-sets repeat count to 6 when enabling repeat mode with value 0
-  - Disabled during IR learning mode
+    - Fieldset with "Active" checkbox and periodic interval input (100–1000 ms, default 300 ms)
+    - **Hold-to-repeat interaction**: Press and hold the Send button to continuously send IR codes
+    - Releases button sends `ir_stop` to dock
+    - Uses `f: 1` feature flag to suppress ack responses during periodic sending
+    - Auto-sets repeat count to 6 when enabling repeat mode with value 0
+    - Disabled during IR learning mode
 - **Learn Mode**: Toggle button, events via `ir_receive`, displayed in console area
 - **RAW IR Learning Mode**:
-  - Checkbox to enable RAW timing capture (only available when learning is stopped)
-  - Raw output panel shows last received IR timing values (space-separated, 6-character field width)
-  - Panel is hidden when RAW mode is disabled
-  - Copy button copies raw timings to clipboard (clean format, single spaces)
-  - Overflow warning displayed if IR signal exceeds receive buffer
-  - Panel height: 10 lines default, vertically resizable
+    - Checkbox to enable RAW timing capture (only available when learning is stopped)
+    - Raw output panel shows last received IR timing values (space-separated, 6-character field width)
+    - Panel is hidden when RAW mode is disabled
+    - Copy button copies raw timings to clipboard (clean format, single spaces)
+    - Overflow warning displayed if IR signal exceeds receive buffer
+    - Panel height: 10 lines default, vertically resizable
 - **RAW Send Warning**: Warning shown when RAW format is selected with odd number of values and repeat/hold > 0
 - **Navigation Cleanup**: Active repeat transmission stops when navigating away from IR page
 - `int_top` field always sent as `false` (deprecated, not removed from API)

@@ -173,6 +173,10 @@ Example response:
 - `code`: For RAW format, optional frequency followed by colon and space-separated timing values.
   - Prefix in timing values is optional
   - Number of timing values is limited. The maximum JSON message may not exceed 2 KB.
+  - +/- prefixes are optional. The following sequences are all the same:
+    - `3354 -1700 380 -452`
+    - `+3354 -1700 +380 -452`
+    - `3354 1700 380 452`
 - `format`: `"pronto"`, `"hex"`, or `"raw"`
 - `repeat`: Repeat count (0–20), optional
 - `hold`: Hold duration in ms (0–9999), optional

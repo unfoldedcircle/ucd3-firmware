@@ -1263,7 +1263,6 @@ Pages.IR = {
     const btn = document.getElementById("btn-ir-send");
     const repeatMode = document.getElementById("ir-repeat-mode").checked;
     const code = document.getElementById("ir-code").value.trim();
-    // const format = document.getElementById("ir-format").value;
 
     // Disable button if learning is active
     if (this.learning) {
