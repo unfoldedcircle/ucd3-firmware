@@ -512,8 +512,12 @@ Native HTML Popover API for contextual help (no JavaScript required):
 
 ### IR
 
-- **Send IR Code**: Textarea for code input, format dropdown (hex/pronto), output checkboxes
-- **Output Selection**: Internal (side), Port 1, Port 2 – checkboxes disabled based on actual port mode (`get_port_modes`)
+- **Send IR Code**: Textarea for code input, format dropdown (hex/pronto/raw), output checkboxes
+- **Format Selection**:
+    - **PRONTO**: Pronto IR code format (hex pairs)
+    - **HEX**: Protocol-based hex format (e.g., `4;0xA10;12;0`)
+    - **RAW**: Raw timing values in microseconds with carrier frequency
+- **Frequency Input**: Carrier frequency in kHz / Hz for RAW format (default 38000, kHz < 1000; Hz >= 1000). Only enabled when RAW format is selected.
 - **Repeat & Hold**: Configurable repeat count (0–20) and hold duration (ms)
 - **IR Repeat Mode**:
     - Fieldset with "Active" checkbox and periodic interval input (100–1000 ms, default 300 ms)
@@ -530,6 +534,7 @@ Native HTML Popover API for contextual help (no JavaScript required):
     - Copy button copies raw timings to clipboard (clean format, single spaces)
     - Overflow warning displayed if IR signal exceeds receive buffer
     - Panel height: 10 lines default, vertically resizable
+- **RAW Send Warning**: Warning shown when RAW format is selected with odd number of values and repeat/hold > 0
 - **Navigation Cleanup**: Active repeat transmission stops when navigating away from IR page
 - `int_top` field always sent as `false` (deprecated, not removed from API)
 
@@ -586,7 +591,9 @@ the `raw` field array).
 
 **Clipboard Format:**
 
-Copied raw timings use clean single-space separation for compatibility with IR analysis tools:
+Copied raw timings use clean single-space separation for compatibility with IR analysis tools like IRScrutinizer.
+
+Example clipboard output:
 ```
 3344 -1704 388 -448 388 -448 388 -1286 388 -450 390 -1284
 ```
@@ -597,6 +604,42 @@ UI display uses 6-character field width with non-breaking spaces for proper alig
   3344  -1704    388   -448    388   -448    388  -1286
    388   -450    390  -1284    388   -448    388  -1286
 ```
+
+### RAW IR Send Format
+
+The RAW IR send format allows transmitting IR codes as raw timing values with a specified carrier frequency.
+This is useful for custom IR signals, debugging, and compatibility with IR analysis tools like IRScrutinizer.
+
+**UI Components:**
+
+- **Format Dropdown**: Select "RAW" option to enable RAW send mode
+- **Frequency Input**: Carrier frequency (kHz < 1000; Hz >= 1000)
+  - Only enabled when RAW format is selected
+  - Common values: 36000, 38000, 40000 Hz
+- **RAW Warning**: Displays when all conditions are met:
+  - RAW format is selected
+  - IR code has an odd number of values (ends with Mark/IR on)
+  - Repeat count > 0 OR Hold duration > 0
+  - Warning text: "⚠️ Odd number of values (ends with Mark, IR on) – repeat will likely fail. Add a trailing Space to make it even. Space length is protocol-specific."
+
+**Input Format:**
+
+RAW IR codes are entered as space-separated timing values in microseconds, starting with a Mark value:
+- Alternating Mark (IR on) and Space (IR off) values.
+- Odd index (0-index): Mark
+- Even index: Space
+- Values can be entered with or without +/- prefix
+- Example: `3344 -1704 388 -448 388 -448 388 -1286`
+
+Values can be copied directly from the RAW learning panel (clean single-space format).
+
+**Technical Notes:**
+
+- RAW codes should have an even number of values (alternating Mark/Space pairs)
+- Ending with a Mark (positive value, IR on) causes repeat/hold functionality to fail
+- Add a trailing Space value (e.g., `-40000`) to make the count even
+- Space length is protocol-specific
+- Frequency must match the original IR protocol's carrier frequency for reliable transmission
 
 ### Expert Page
 

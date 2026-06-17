@@ -152,6 +152,39 @@ Example response:
 - `overflow` is set to `true` if the IR signal was too long and didn't fit into the receive buffer.
 - `raw`: optional Mark / Space values in microseconds, if requsted in `ir_receive_on`.
 
+### RAW IR-Sending
+
+```json
+{
+  "type": "dock",
+  "command": "ir_send",
+  "id": 12,
+  "code": "38000:3354 -1700 380 -452 386 -446 392 -1300 372 -450 394 -1294 374 -452 392 -1280 388 -448 388 -448 388 -1286 388 -448 388 -448 388 -1286 388 -1286 388 -448 388 -448 388 -448 388 -448 392 -446 392 -446 386 -1288 388 -450 392 -1284 384 -448 388 -1288 388 -450 388 -450 388 -450 388 -1288 388 -448 388 -1286 388 -448 388 -448 388 -454 384 -448 388 -448 388 -448 388 -448 388 -1286 388 -448 388 -1286 388 -448 388 -448 388 -448 388 -448 388 -448 388 -1286 388 -448 388 50000",
+  "format": "raw",
+  "repeat": 1,
+  "hold": 0,
+  "int_side": true,
+  "int_top": true,
+  "ext1": false,
+  "ext2": false
+}
+```
+
+- `code`: For RAW format, optional frequency followed by colon and space-separated timing values.
+  - Prefix in timing values is optional
+  - Number of timing values is limited. The maximum JSON message may not exceed 2 KB.
+  - +/- prefixes are optional. The following sequences are all the same:
+    - `3354 -1700 380 -452`
+    - `+3354 -1700 +380 -452`
+    - `3354 1700 380 452`
+- `format`: `"pronto"`, `"hex"`, or `"raw"`
+- `repeat`: Repeat count (0–20), optional
+- `hold`: Hold duration in ms (0–9999), optional
+- `int_side`: Send via internal side IR LED
+- `int_top`: Send via internal top IR LED (deprecated, always `false`)
+- `ext1`: Send via Port 1 (if configured as IR output)
+- `ext2`: Send via Port 2 (if configured as IR output)
+
 ### External Port Operation Mode
 
 Get operation mode:

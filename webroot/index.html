@@ -249,23 +249,42 @@
             <select id="ir-format" class="input-format">
               <option value="pronto">PRONTO</option>
               <option value="hex">HEX</option>
+              <option value="raw">RAW</option>
             </select>
             <div class="form-inline form-group">
-              <label for="ir-repeat" data-i18n="lbl_repeat">Repeat</label>
-              <button class="info-trigger" aria-label="Repeat info" popovertarget="ir-repeat-info">i</button>
-              <input type="number" id="ir-repeat" min="0" max="20" value="0" class="input-repeat">
+              <div class="input-group">
+                <label for="ir-repeat" data-i18n="lbl_repeat">Repeat</label>
+                <button class="info-trigger" aria-label="Repeat info" popovertarget="ir-repeat-info">i</button>
+                <input type="number" id="ir-repeat" min="0" max="20" value="0" class="input-repeat">
+              </div>
             </div>
             <div id="ir-repeat-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_repeat">
               Repeat count (1–20), overriding any repeat value in the code.<p><strong>HEX:</strong> Overrides the repeat field; protocol-specific repeat behavior is handled automatically.</p><p><strong>PRONTO:</strong> Repeats the 2nd burst pair sequence; ignored if the code has no repeat sequence.</p>
             </div>
             <div class="form-inline form-group">
-              <label for="ir-hold" data-i18n="lbl_hold">Hold (ms)</label>
-              <button class="info-trigger" aria-label="Hold info" popovertarget="ir-hold-info">i</button>
-              <input type="number" id="ir-hold" min="0" max="9999" value="0" class="input-hold">
+              <div class="input-group">
+                <label for="ir-hold" data-i18n="lbl_hold">Hold (ms)</label>
+                <button class="info-trigger" aria-label="Hold info" popovertarget="ir-hold-info">i</button>
+                <input type="number" id="ir-hold" min="0" max="9999" value="0" class="input-hold">
+              </div>
             </div>
             <div id="ir-hold-info" class="info-popover" popover role="dialog" data-i18n-html="info_ir_hold">
               Minimum duration in ms to send the IR code, simulating a long button press.<p><strong>Overrides repeat</strong> if set.</p><p>The signal always completes its final IR message, so the actual send time may be slightly longer.</p>
             </div>
+            <div class="form-inline form-group" id="ir-freq-group">
+              <div class="input-group">
+                <label for="ir-freq" data-i18n="lbl_frequency">Frequency</label>
+                <button class="info-trigger" aria-label="Frequency info" popovertarget="ir-freq-info">i</button>
+                <input type="number" id="ir-freq" min="1" max="65535" value="38000" class="input-freq" disabled>
+              </div>
+            </div>
+            <div id="ir-freq-info" class="info-popover" popover role="dialog">
+              <p data-i18n="info_ir_frequency">Carrier frequency for RAW format.</p>
+              kHz &lt; 1000; Hz &gt;= 1000
+            </div>
+          </div>
+          <div id="ir-raw-warning" class="note note-warning hidden">
+            ⚠️ Odd number of values (ends with Mark, IR on) – repeat will likely fail. Add a trailing Space to make it even. Space length is protocol-specific.
           </div>
           <div class="form-row">
             <fieldset class="checkbox-group">
