@@ -1,3 +1,13 @@
+## Release 0.10.1 - 2026-06-17
+### Added
+- Add RAW IR-learning and sending support ([#85](https://github.com/unfoldedcircle/ucd3-firmware/pull/85), [#87](https://github.com/unfoldedcircle/ucd3-firmware/pull/87)).
+
+### Fixed
+- Allow changing UART configuration without a restart. Update UART configuration in web-ui ([#84](https://github.com/unfoldedcircle/ucd3-firmware/pull/84)).
+
+### Changed
+- Web-UI: disable action buttons if WebSocket is disconnected ([#88](https://github.com/unfoldedcircle/ucd3-firmware/pull/88)).
+
 ## Release 0.10.0 - 2026-06-11
 ### Added
 - Embedded web management UI ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
