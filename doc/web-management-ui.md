@@ -143,6 +143,52 @@ This might be changed if more pages are added.
 - **Login link**: Available in header when not authenticated
 - **Logout**: Clears token, closes WebSocket, navigates to Status
 - **Inactivity timeout**: Automatically disconnects after 10 minutes of inactivity (see below)
+- **Action disabling**: All action buttons are disabled when WebSocket is not connected and authenticated
+
+### Action Disabling on Disconnect
+
+To prevent confusing timeout errors and provide clear visual feedback, all action buttons are automatically disabled when the WebSocket connection is not active.
+
+**Connection State:**
+- Actions are enabled only when `WS.authenticated === true` AND `WS.socket.readyState === 1` (OPEN)
+- Actions are disabled immediately on disconnect, authentication failure, or page load
+- Actions are re-enabled automatically when connection is restored and authentication succeeds
+
+**Disabled Actions (when disconnected):**
+
+| Page     | Disabled Buttons                                                                      |
+|----------|---------------------------------------------------------------------------------------|
+| General  | Save (name), Apply (brightness), Change (token), Identify, Reboot, Factory Reset      |
+| Network  | Apply (ethernet), Apply (WiFi network), Apply (WiFi configuration), Apply (DNS)       |
+| IR       | Send IR, Start/Stop Learning                                                          |
+| Ports    | Apply mode, Apply UART, Apply Buffering, Enable Console, Send, Trigger ON/OFF/Impulse |
+| Logs     | Start/Stop Streaming                                                                  |
+| Expert   | Apply                                                                                 |
+
+**Elements That Remain Enabled:**
+
+| Element Type           | Examples                                            | Reason                                     |
+|------------------------|-----------------------------------------------------|--------------------------------------------|
+| Form inputs            | All text fields, selects, checkboxes, range sliders | Simplifies logic, allows preparing changes |
+| Clear/Copy buttons     | IR Clear, IR Copy Raw, Port Clear, Log Clear        | Local operations, no WebSocket needed      |
+| Info popover buttons   | All `i` info triggers                               | Documentation, no WebSocket needed         |
+| Password reveal toggle | WiFi Show/Hide password                             | UI-only, no WebSocket needed               |
+| Navigation tabs        | All page navigation                                 | Triggers reconnection                      |
+| Footer controls        | Language selector, Theme selector                   | User preferences                           |
+| OTA controls           | File input, Upload button                           | Uses HTTP POST, not WebSocket              |
+
+**Visual Feedback:**
+- Disabled buttons use CSS styling: `opacity: 0.4`, `cursor: default`
+- The connection status indicator in the header shows the current state (Connected/Disconnected/Connecting)
+- No timeout errors when clicking disabled buttons (standard HTML behavior)
+
+**State Change Points:**
+- `WS.socket.onclose` → disable actions
+- `WS.onMessage` authentication success → enable actions
+- `WS.onMessage` authentication failure → disable actions
+- `WS.rejectAllPending` → disable actions
+- `UI.init()` → disable actions on page load
+- `UI.onAuthenticated()` → enable actions after auth
 
 ### Inactivity Timeout
 
@@ -254,6 +300,8 @@ Event (dock to client, unsolicited):
 - On reconnect: auto-authenticate with stored token
 - On auth failure after reconnect: show login dialog
 - All pending promises are rejected on disconnect
+- Action buttons remain disabled during reconnection
+- Navigation tabs remain functional and trigger reconnection
 
 ### Token Storage
 
@@ -735,6 +783,25 @@ Key points:
 - Do not refactor things that are not broken
 - Do not remove existing code comments unless they are invalidated by your changes
 - If you notice unrelated dead code, mention it but do not delete it
+
+### Action Button IDs
+
+When adding new action buttons that send WebSocket commands, add the button ID to the `UI.actionButtonIds` array in `app.js` to ensure it is disabled when disconnected:
+
+```javascript
+UI = {
+  actionButtonIds: [
+    // General
+    'btn-save-name', 'btn-save-brightness', 'btn-save-token',
+    'btn-identify', 'btn-reboot', 'btn-reset',
+    // ... existing IDs ...
+    // New button ID here
+  ],
+  // ...
+}
+```
+
+**Exception:** Do not add buttons that perform local operations only (clear console, copy to clipboard, etc.) or use HTTP instead of WebSocket (OTA upload).
 
 ### HTML ID Naming
 
