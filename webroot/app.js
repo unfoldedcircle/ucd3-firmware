@@ -166,6 +166,7 @@ const WS = {
   })(),
   token: null,
   authenticated: false,
+  actionsEnabled: false,
   msgId: 0,
   pending: {},
   reconnectMs: 2000,
@@ -198,6 +199,7 @@ const WS = {
     this.socket.onclose = function () {
       self.authenticated = false;
       self.rejectAllPending();
+      self.updateActionState();
       if (self.keepConnected) {
         self.scheduleReconnect();
       }
@@ -247,6 +249,7 @@ const WS = {
         this.startStatusRefresh();
         this.keepConnected = true;
         this.startInactivityTimer();
+        this.updateActionState();
       } else {
         this.token = null;
         sessionStorage.removeItem("token");
@@ -254,6 +257,7 @@ const WS = {
         UI.showLogin(I18N.t("e_invalid_token"));
         this.stopStatusRefresh();
         this.stopInactivityTimer();
+        this.updateActionState();
       }
       return;
     }
@@ -375,6 +379,7 @@ const WS = {
     this.stopStatusRefresh();
     this.stopInactivityTimer();
     this.resetClientState();
+    this.updateActionState();
   },
 
   resetClientState: function () {
@@ -507,6 +512,12 @@ const WS = {
     if (this.authenticated) {
       this.resetInactivityTimer();
     }
+  },
+
+  updateActionState: function () {
+    const enabled = this.authenticated && this.socket && this.socket.readyState === 1;
+    this.actionsEnabled = enabled;
+    UI.setActionsEnabled(enabled);
   }
 
 };
@@ -559,6 +570,27 @@ const UI = {
   pendingPage: null,
   authRequired: {general: true, network: true, ir: true, ports: true, ota: true, logs: true, expert: true},
   sysInfoCache: null,
+  actionButtonIds: [
+    // General
+    'btn-save-name', 'btn-save-brightness', 'btn-save-token',
+    'btn-identify', 'btn-reboot', 'btn-reset',
+    // Network
+    'btn-save-eth', 'btn-save-wifi', 'btn-save-wifi-net', 'btn-save-dns',
+    // IR
+    'btn-ir-send', 'btn-ir-learn',
+    // Ports
+    'btn-port1-mode', 'btn-port2-mode',
+    'btn-port1-uart', 'btn-port2-uart',
+    'btn-port1-serial-cfg', 'btn-port2-serial-cfg',
+    'btn-port1-console', 'btn-port2-console',
+    'btn-port1-send', 'btn-port2-send',
+    'btn-port1-trig-on', 'btn-port1-trig-off', 'btn-port1-impulse',
+    'btn-port2-trig-on', 'btn-port2-trig-off', 'btn-port2-impulse',
+    // Logs
+    'btn-log-stream',
+    // Expert
+    'btn-expert-apply'
+  ],
 
   init: function () {
     const self = this;
@@ -614,6 +646,9 @@ const UI = {
 
     // Set connection mode based on auth state
     WS.keepConnected = !!WS.token;
+
+    // Disable all actions until connected and authenticated
+    this.setActionsEnabled(false);
 
     // Connect WebSocket
     WS.connect();
@@ -687,6 +722,7 @@ const UI = {
     this.pendingPage = null;
     this.showPage(page);
     this.updateLogoutVisibility();
+    WS.updateActionState();
   },
 
   updateLogoutVisibility: function () {
@@ -706,6 +742,16 @@ const UI = {
     }
     text.textContent = I18N.t("st_" + (state === "connecting" ? "connecting" : (state === "ok" ? "connected" : "disconnected")));
     this.updateLogoutVisibility();
+  },
+
+  setActionsEnabled: function (enabled) {
+    const self = this;
+    this.actionButtonIds.forEach(function (id) {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.disabled = !enabled;
+      }
+    });
   },
 
   showLogin: function (errMsg) {
