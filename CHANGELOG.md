@@ -11,6 +11,14 @@ _Changes in the next release_
 
 ---
 
+## Release 0.10.2 - 2026-06-18
+
+### Fixed
+- Perform a hard reset of ethernet & lcd at startup ([#89](https://github.com/unfoldedcircle/ucd3-firmware/pull/89)).
+
+### Changed
+- Web-UI: OTA page refreshes version and auto-navigates to Status after successful update.
+
 ## Release 0.10.1 - 2026-06-17
 
 ### Added
