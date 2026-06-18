@@ -180,10 +180,9 @@ void init_gpios(void) {
     gpio_init(CHARGING_ENABLE, GPIO_MODE_INPUT_OUTPUT, GPIO_PULLUP_DISABLE);
     gpio_set_level(CHARGING_ENABLE, 0);
 
-    // set ethernet / lcd reset to defined state, otherwise W5500 ain't happy (w5500.mac: W5500 version mismatched,
-    // expected 0x04, got 0x00)
+    // Reset Ethernet & LCD (shared reset line). Enable is at end of this function.
     gpio_init(PERIPHERAL_RESET, GPIO_MODE_OUTPUT);
-    gpio_set_level(PERIPHERAL_RESET, 1);
+    gpio_set_level(PERIPHERAL_RESET, 0);
 
     // internal IR
     gpio_init(IR_RECEIVE_PIN, GPIO_MODE_INPUT);
@@ -228,6 +227,13 @@ void init_gpios(void) {
         gpio_init(poe_switch_pin, GPIO_MODE_OUTPUT);
         gpio_set_level(poe_switch_pin, 0);
     }
+
+    // Set ethernet / lcd reset to defined state after reset hold, otherwise KSZ8851 ain't happy (mismatched chip ID)
+    // Use minimal delay, another ~ 100ms is added with all preceding gpio initializations since PERIPHERAL_RESET
+    vTaskDelay(pdMS_TO_TICKS(20));
+    gpio_set_level(PERIPHERAL_RESET, 1);
+    // Usually a stabilization wait after reset should be done, allowing the KSZ8851 internal PLL to fully stabilize.
+    // We can skip this here, since it takes another ~ 200-300 ms until the ETH driver gets initialized during startup.
 }
 
 /// @brief Set the PoE voltage mode. Only applicable for hardware revisions supporting PoE voltage switching (e.g.
