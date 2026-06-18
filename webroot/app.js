@@ -403,6 +403,10 @@ const WS = {
         logBtn.classList.remove("btn-warn");
       }
     }
+    // Reset OTA update state
+    if (Pages.OTA) {
+      Pages.OTA.resetState();
+    }
   },
 
   on: function (msg, handler) {
@@ -788,7 +792,6 @@ const UI = {
   }
 };
 
-
 // ============================================================
 // Page: Status
 // ============================================================
@@ -826,6 +829,10 @@ Pages.Status = {
       // Cache the sysinfo for reuse across pages
       UI.cacheSysInfo(data);
       Pages.Status.render(data);
+      // Update OTA version if OTA page is active
+      if (UI.currentPage === "ota") {
+        Pages.OTA.updateVersion();
+      }
     }).catch(function (e) {
       Toast.error(e);
     });
@@ -2187,18 +2194,46 @@ Pages.OTA = {
   },
 
   load: function () {
-    // Try to use cached sysinfo first
-    const cached = UI.getCachedSysInfo();
-    if (cached) {
-      document.getElementById("ota-version").textContent = cached.version || "\u2014";
-      return;
-    }
-
+    // Always fetch fresh sysinfo when entering OTA page
+    const self = this;
     WS.request("get_sysinfo").then(function (data) {
+      // Cache the sysinfo for reuse across pages
+      UI.cacheSysInfo(data);
       document.getElementById("ota-version").textContent = data.version || "\u2014";
     }).catch(function (e) {
-      Toast.error(e);
+      // If request fails, try cached version
+      const cached = UI.getCachedSysInfo();
+      if (cached) {
+        document.getElementById("ota-version").textContent = cached.version || "\u2014";
+      } else {
+        Toast.error(e);
+      }
     });
+  },
+
+  resetState: function () {
+    // Clear status message
+    const statusEl = document.getElementById("ota-status");
+    if (statusEl) {
+      statusEl.textContent = "";
+    }
+    // Clear selected file
+    const fileInput = document.getElementById("ota-file");
+    if (fileInput) {
+      fileInput.value = "";
+      fileInput.disabled = false;
+    }
+    // Hide and reset progress bar
+    const progress = document.getElementById("ota-progress");
+    if (progress) {
+      progress.classList.add("hidden");
+      progress.value = 0;
+    }
+    // Re-enable upload button
+    const uploadBtn = document.getElementById("btn-upload");
+    if (uploadBtn) {
+      uploadBtn.disabled = false;
+    }
   },
 
   init: function () {
@@ -2240,6 +2275,18 @@ Pages.OTA = {
           if (xhr.status === 200) {
             statusEl.textContent = I18N.t("t_upload_success");
             Toast.success(I18N.t("t_upload_done"));
+            // Disconnect after successful update (dock will reboot)
+            // Keep credentials for easy reconnection
+            WS.keepConnected = false;
+            // Wait 2 seconds before disconnecting to show success message
+            setTimeout(function () {
+              if (WS.socket && WS.socket.readyState === 1) {
+                WS.socket.close();
+              }
+              UI.setStatus("err");
+              // Automatically switch to Status page
+              UI.showPage("status");
+            }, 2000);
           } else if (xhr.status === 401) {
             statusEl.textContent = I18N.t("e_auth_failed");
             Toast.show(I18N.t("e_upload_auth"), true);

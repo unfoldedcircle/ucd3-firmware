@@ -189,6 +189,30 @@ To prevent confusing timeout errors and provide clear visual feedback, all actio
 - `WS.rejectAllPending` → disable actions
 - `UI.init()` → disable actions on page load
 - `UI.onAuthenticated()` → enable actions after auth
+- `Pages.OTA.load()` → fetch sysinfo and update version when entering OTA page
+- `Pages.OTA.init()` upload success → disconnect after 2s, navigate to Status page
+
+**OTA Page Reset on Disconnect:**
+When the WebSocket connection is lost, the OTA page state is automatically reset:
+- Clear status message (e.g., "Update successful. Rebooting…")
+- Clear selected firmware file
+- Hide and reset progress bar to 0
+- Re-enable upload button
+
+This ensures a clean state when reconnecting, especially after a firmware update that causes the dock to reboot.
+
+**OTA Version Update on Page Load:**
+When entering the OTA page, a `get_sysinfo` request is automatically sent to fetch the current firmware version.
+This ensures the "Current version" display is always up-to-date, even after a reconnect or firmware update.
+
+**OTA Automatic Disconnect After Successful Update:**
+After a successful firmware upload (HTTP 200 response):
+- Success message "Update successful. Rebooting…" is displayed
+- 2-second delay to allow user to see the success message
+- WebSocket connection is closed (dock is rebooting)
+- Credentials (token) are preserved in sessionStorage for easy reconnection
+- UI automatically navigates to the Status page
+- User can monitor the reboot progress and reconnect after the dock restarts
 
 ### Inactivity Timeout
 
@@ -302,6 +326,11 @@ Event (dock to client, unsolicited):
 - All pending promises are rejected on disconnect
 - Action buttons remain disabled during reconnection
 - Navigation tabs remain functional and trigger reconnection
+- OTA page:
+  - Fetches sysinfo on page load to update version display
+  - Reset on disconnect (clear file, progress, status)
+  - After successful upload: 2s delay, disconnect, auto-navigate to Status page
+  - Credentials preserved for easy reconnection after reboot
 
 ### Token Storage
 
