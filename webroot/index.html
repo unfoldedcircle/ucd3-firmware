@@ -413,7 +413,7 @@
 
           <!-- RS232 settings -->
           <div id="port1-rs232" class="hidden">
-            <h3 data-i18n="hdr_uart">UART Configuration</h3>
+            <h3 data-i18n="hdr_uart">RS232 Configuration</h3>
             <div class="form-row">
               <label for="port1-baud" data-i18n="lbl_baud_rate">Baud Rate</label>
               <select id="port1-baud">
@@ -453,7 +453,7 @@
                 <option value="odd">Odd</option>
               </select>
             </div>
-            <button id="btn-port1-uart" data-i18n="btn_apply_uart">Apply UART</button>
+            <button id="btn-port1-uart" data-i18n="btn_apply_uart">Apply RS232</button>
 
             <h3 data-i18n="hdr_serial_console">Serial Console</h3>
             <div class="form-row">
@@ -465,25 +465,16 @@
                   <option value="line">Line</option>
                 </select>
               </div>
-              <div id="port-buffering-info" class="info-popover" popover role="dialog" data-i18n-html="info_buffering">
-                <strong>Chunk</strong>: data is forwarded in chunks after a short timeout.<br><strong>Line</strong>: data is forwarded line by line; the end of the line is indicated by the terminating character.
-              </div>
               <div class="form-inline form-group">
                 <label for="port1-terminator" data-i18n="lbl_terminator">Terminator</label>
                 <button class="info-trigger" aria-label="Terminator info" popovertarget="port-terminator-info">i</button>
                 <input type="text" id="port1-terminator" value="0x0D" class="input-terminator" placeholder="0x0D">
-              </div>
-              <div id="port-terminator-info" class="info-popover" popover role="dialog" data-i18n-html="info_terminator">
-                Line end terminating character in hex notation.<br/>Line feed: 0x0A, Carriage return: 0x0D
               </div>
               <div class="form-inline form-group">
                 <label for="port1-timeout" data-i18n="lbl_line_timeout">Line timeout</label>
                 <button class="info-trigger" aria-label="Line timeout info" popovertarget="port-timeout-info">i</button>
                 <input type="number" id="port1-timeout" min="0" max="65535" value="100" class="input-timeout">
                 <span class="unit-label" data-i18n="lbl_ms_no_timeout">ms (0 = no timeout)</span>
-              </div>
-              <div id="port-timeout-info" class="info-popover" popover role="dialog" data-i18n-html="info_line_timeout">
-                Timeout in ms for forwarding received data if no terminating character is detected.
               </div>
             </div>
             <div class="form-row console-controls">
@@ -496,9 +487,29 @@
             </div>
             <div class="form-row form-inline console-send">
               <input type="text" id="port1-input" data-i18n-ph="ph_send_command" placeholder="Send command">
+              <button class="info-trigger" aria-label="Hex escape info" popovertarget="port-escape-info">i</button>
               <button id="btn-port1-send" data-i18n="btn_send">Send</button>
             </div>
           </div>
+        </div>
+        <div id="port-buffering-info" class="info-popover" popover role="dialog" data-i18n-html="info_buffering">
+          <strong>Chunk</strong>: data is forwarded in chunks after a short timeout.<br><strong>Line</strong>: data is forwarded line by line; the end of the line is indicated by the terminating character.
+        </div>
+        <div id="port-terminator-info" class="info-popover" popover role="dialog" data-i18n-html="info_terminator">
+          Line end terminating character in hex notation.<br/>Line feed: 0x0A, Carriage return: 0x0D
+        </div>
+        <div id="port-timeout-info" class="info-popover" popover role="dialog" data-i18n-html="info_line_timeout">
+          Timeout in ms for forwarding received data if no terminating character is detected.
+        </div>
+        <div id="port-escape-info" class="info-popover" popover role="dialog">
+          <p data-i18n-html="info_port_esc_header">Use escape sequences to send non-printable characters:</p>
+          <ul>
+            <li><code>\xHH</code> – Hex byte (<code>\x0D</code> = CR)</li>
+            <li><code>\r</code> – Carriage return (0x0D)</li>
+            <li><code>\n</code> – Line feed (0x0A)</li>
+            <li><code>\t</code> – Tab (0x09)</li>
+            <li><code>\\</code> – Literal backslash (<code>\\x0D</code> = "\x0D")</li>
+          </ul>
         </div>
 
         <!-- Port 2 -->
@@ -543,7 +554,7 @@
 
           <!-- RS232 settings -->
           <div id="port2-rs232" class="hidden">
-            <h3 data-i18n="hdr_uart">UART Configuration</h3>
+            <h3 data-i18n="hdr_uart">RS232 Configuration</h3>
             <div class="form-row">
               <label for="port2-baud" data-i18n="lbl_baud_rate">Baud Rate</label>
               <select id="port2-baud">
@@ -583,7 +594,7 @@
                 <option value="odd">Odd</option>
               </select>
             </div>
-            <button id="btn-port2-uart" data-i18n="btn_apply_uart">Apply UART</button>
+            <button id="btn-port2-uart" data-i18n="btn_apply_uart">Apply RS232</button>
 
             <h3 data-i18n="hdr_serial_console">Serial Console</h3>
             <div class="form-row">
@@ -617,6 +628,7 @@
             </div>
             <div class="form-row form-inline console-send">
               <input type="text" id="port2-input" data-i18n-ph="ph_send_command" placeholder="Send command">
+              <button class="info-trigger" aria-label="Hex escape info" popovertarget="port-escape-info">i</button>
               <button id="btn-port2-send" data-i18n="btn_send">Send</button>
             </div>
           </div>

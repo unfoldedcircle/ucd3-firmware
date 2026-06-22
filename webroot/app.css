@@ -622,8 +622,8 @@ button:disabled {
   margin: 0;
   font-family: monospace;
   font-size: 12px;
-  white-space: pre;
-  word-break: normal;
+  white-space: pre-wrap;
+  word-break: break-word;
   color: var(--console-text);
 }
 
