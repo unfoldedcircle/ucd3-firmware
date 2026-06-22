@@ -136,3 +136,5 @@ enum decode_type_t {
     // Add new entries before this one, and update it to point to the last entry.
     kLastDecodeType = YORK,
 };
+
+const uint16_t kPanasonicBits = 48;

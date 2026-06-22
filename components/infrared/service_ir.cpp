@@ -682,7 +682,7 @@ static IrRawResponse *serialize_raw_response(const decode_results *results) {
     IrRawResponse *response = new IrRawResponse();
     // Default carrier frequency. Not possible to get modulation frequency with IRrecv and a TSOP‑style demodulator.
     // TODO use IR_RECEIVE_ANALOG and custom logic for raw learning.
-    response->frequency = 38000;
+    response->frequency = frequencyFromProtocol(results->decode_type, results->bits);
     response->timings_len = getCorrectedRawLength(results);
     response->timings_us = resultToRawArray(results);
 
