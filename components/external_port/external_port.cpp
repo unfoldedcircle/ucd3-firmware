@@ -14,6 +14,7 @@
 #include "freertos/timers.h"
 
 #include "board.h"
+#include "gpio_util.h"
 #include "mem_util.h"
 #include "sdkconfig.h"
 #include "uc_events.h"
@@ -216,13 +217,10 @@ esp_err_t ExternalPort::changeMode(ExtPortMode mode) {
         return ESP_ERR_NOT_ALLOWED;
     }
 
-    // Set to idle state, turn off output switches
-    enableGround(false);
-    enable5V(false);
-    setTx(false);
-
     if (mode_ == RS232) {
         deinitUart();
+        // back to normal operation mode
+        gpio_init(config_.gpio_5v_switch, board_switch_ext_gpio_mode(), GPIO_PULLUP_DISABLE);
     } else if (mode_ == TRIGGER_5V) {
         if (trigger_timer_) {
             esp_timer_stop(trigger_timer_);
@@ -230,6 +228,11 @@ esp_err_t ExternalPort::changeMode(ExtPortMode mode) {
             trigger_timer_ = nullptr;
         }
     }
+
+    // Set to idle state, turn off output switches
+    enableGround(false);
+    enable5V(false);
+    setTx(false);
 
     mode_ = NOT_CONFIGURED;
     uc_event_ext_port_mode_t event_port;
@@ -289,6 +292,9 @@ esp_err_t ExternalPort::changeMode(ExtPortMode mode) {
             break;
         }
         case RS232:
+            // Disable 5V switch to not influence RX level in RS232 mode
+            gpio_init(config_.gpio_5v_switch, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE);
+
             enableGround(true);
             ESP_GOTO_ON_ERROR(initUart(), err, tag_, "UART initialization failed");
             ESP_LOGI(tag_, "RS232 configured");
@@ -477,8 +483,10 @@ esp_err_t ExternalPort::initUart() {
         uart_set_pin(config_.uart_port, config_.gpio_tx, config_.gpio_rx, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE),
         err_uart_config, tag_, "config uart gpio failed");
 
-    ESP_GOTO_ON_ERROR(uart_set_line_inverse(config_.uart_port, UART_SIGNAL_TXD_INV | UART_SIGNAL_RXD_INV),
-                      err_uart_config, tag_, "uart line inverse failed");
+    // UART test mode. This does NOT produce valid signal levels with the RS232 transceiver!
+    // Attention: might produce negative voltage and > 5 V TTL levels and only works for protected UART circuits!
+    // ESP_GOTO_ON_ERROR(uart_set_line_inverse(config_.uart_port, UART_SIGNAL_TXD_INV | UART_SIGNAL_RXD_INV),
+    //                   err_uart_config, tag_, "uart line inverse failed");
 
     uart_driver_installed_ = true;
 
