@@ -1827,6 +1827,149 @@ Pages.IR = {
 };
 
 // ============================================================
+// RS232 Console Data Encoding
+// ============================================================
+
+/**
+ * Encodes non-printable characters as \xHH escape sequences
+ * and converts line breaks to actual newlines for display
+ * @param {string} data - Received data string
+ * @param {string|null} terminatorChar - Custom terminator character (Line mode only)
+ * @param {string} bufferingMode - 'line' or 'chunk'
+ * @returns {string} Encoded display string
+ */
+function encodeConsoleData(data, terminatorChar, bufferingMode) {
+  let result = '';
+  const isLineMode = bufferingMode === 'line';
+
+  for (let i = 0; i < data.length; i++) {
+    const code = data.charCodeAt(i);
+
+    // Check for CRLF first (handle as single break)
+    if (code === 0x0D && i + 1 < data.length && data.charCodeAt(i + 1) === 0x0A) {
+      result += '\n';
+      i++; // Skip the LF
+      continue;
+    }
+
+    // Check for standard line breaks (single-byte only)
+    if (code === 0x0A || code === 0x0D || code === 0x0C || code === 0x85) {
+      result += '\n';
+      continue;
+    }
+
+    // Check for custom terminator (Line mode only)
+    const isTerminator = isLineMode && terminatorChar && data[i] === terminatorChar;
+    if (isTerminator) {
+      // If printable, display it first
+      if (code >= 0x20 && code <= 0x7E) {
+        result += data[i];
+      }
+      result += '\n';
+      continue;
+    }
+
+    // Check if printable (0x20-0x7E)
+    if (code >= 0x20 && code <= 0x7E) {
+      // Escape backslash
+      if (code === 0x5C) {
+        result += '\\\\';
+      } else {
+        result += data[i];
+      }
+    } else {
+      // Encode as \xHH (including extended ASCII 0x80-0xFF)
+      result += '\\x' + code.toString(16).toUpperCase().padStart(2, '0');
+    }
+  }
+  return result;
+}
+
+/**
+ * Parses escape sequences in input string
+ * @param {string} input - User input string
+ * @returns {{success: boolean, result: string, error: {pos: number, reason: string}|null}}
+ */
+function parseInputEscapes(input) {
+  let result = '';
+  let i = 0;
+
+  while (i < input.length) {
+    if (input[i] === '\\') {
+      // Check for end of string
+      if (i + 1 >= input.length) {
+        return {
+          success: false,
+          result: '',
+          error: {pos: i, reason: I18N.t("e_incomplete_escape")}
+        };
+      }
+
+      const nextChar = input[i + 1];
+
+      // Handle \\ (literal backslash)
+      if (nextChar === '\\') {
+        result += '\\';
+        i += 2;
+        continue;
+      }
+
+      // Handle \xHH (hex byte)
+      if (nextChar === 'x' || nextChar === 'X') {
+        if (i + 3 >= input.length) {
+          return {
+            success: false,
+            result: '',
+            error: {pos: i, reason: I18N.t("e_incomplete_hex")}
+          };
+        }
+        const hex = input.substring(i + 2, i + 4);
+        if (!/^[0-9A-Fa-f]{2}$/.test(hex)) {
+          return {
+            success: false,
+            result: '',
+            error: {pos: i, reason: I18N.t("e_invalid_hex", {chars: hex})}
+          };
+        }
+        result += String.fromCharCode(parseInt(hex, 16));
+        i += 4;
+        continue;
+      }
+
+      // Handle \r, \n, \t
+      if (nextChar === 'r') {
+        result += '\r';
+        i += 2;
+        continue;
+      }
+      if (nextChar === 'n') {
+        result += '\n';
+        i += 2;
+        continue;
+      }
+      if (nextChar === 't') {
+        result += '\t';
+        i += 2;
+        continue;
+      }
+
+      // Unknown escape sequence
+      return {
+        success: false,
+        result: '',
+        error: {pos: i, reason: I18N.t("e_unknown_escape", {seq: '\\' + nextChar})}
+      };
+    }
+
+    // Regular character
+    result += input[i];
+    i++;
+  }
+
+  return {success: true, result: result, error: null};
+}
+
+// ============================================================
 // Page: Ports
 // ============================================================
 Pages.Ports = {
@@ -2021,10 +2164,18 @@ Pages.Ports = {
     let data = input.value;
     if (!data) return;
 
+    // Parse escape sequences
+    const parsed = parseInputEscapes(data);
+    if (!parsed.success) {
+      Toast.show(I18N.t("e_invalid_escape_pos", {pos: parsed.error.pos, reason: parsed.error.reason}), true);
+      return;
+    }
+    data = parsed.result;
+
     // Append terminator if buffering mode is "line"
     const buffering = document.getElementById("port" + port + "-buffering").value;
     if (buffering === "line") {
-      data += this.getTerminatorChar(port);
+      data += Pages.Ports.getTerminatorChar(port);
     }
 
     WS.request("send_serial", {port: port, data: data})
@@ -2037,7 +2188,12 @@ Pages.Ports = {
   appendConsole: function (port, data) {
     const output = document.getElementById("port" + port + "-output");
     if (!output) return;
-    output.textContent += data;
+
+    const buffering = document.getElementById("port" + port + "-buffering").value;
+    const terminatorChar = Pages.Ports.getTerminatorChar(port);
+    const encoded = encodeConsoleData(data, terminatorChar, buffering);
+
+    output.textContent += encoded;
     const container = output.parentElement;
     container.scrollTop = container.scrollHeight;
     if (output.textContent.length > 32768) {

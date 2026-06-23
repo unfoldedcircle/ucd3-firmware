@@ -28,6 +28,7 @@
 #include "frogfs/frogfs.h"
 #include "frogfs/vfs.h"
 #include "globalcache_server.h"
+#include "gpio_util.h"
 #include "ir_codes.h"
 #include "led_pattern.h"
 #include "mdns.h"
@@ -146,20 +147,6 @@ esp_err_t on_rest_sysinfo(httpd_req_t *req) {
     auto        ret = httpd_resp_sendstr(req, sys_info);
     free((void *)sys_info);
     return ret;
-}
-
-void gpio_init(gpio_num_t gpio_num, gpio_mode_t mode, gpio_pullup_t pullup = GPIO_PULLUP_ENABLE,
-               gpio_pulldown_t pulldown = GPIO_PULLDOWN_DISABLE) {
-    assert(GPIO_IS_VALID_GPIO(gpio_num));
-    gpio_config_t cfg = {
-        .pin_bit_mask = BIT64(gpio_num),
-        .mode = mode,
-        // for powersave reasons, the GPIO should not be floating, select pullup
-        .pull_up_en = pullup,
-        .pull_down_en = pulldown,
-        .intr_type = GPIO_INTR_DISABLE,
-    };
-    gpio_config(&cfg);
 }
 
 /// @brief Manually configure all GPIOs which are not initialized in a dedicated component (e.g. button) or driver (e.g.
