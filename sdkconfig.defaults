@@ -8,6 +8,11 @@ CONFIG_UCD_WEB_ENABLE_CORS=y
 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ=240
 
+# disable uart0 log output in 2nd stage bootloader
+CONFIG_BOOTLOADER_LOG_LEVEL_NONE=y
+# only use usb uart
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
 CONFIG_ESP_TASK_WDT_PANIC=y
 
 # default 2048 causes stack overflow and 3072 is still not enough. Likely because of timer usage in the state machines.

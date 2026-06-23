@@ -423,7 +423,7 @@ bool ExternalPort::isModeSupported(ExtPortMode mode) {
         case TRIGGER_5V:
             return EXTERNAL_5V_TRIGGER_SUPPORT & (1 << (port_ - 1));
         case RS232:
-            return EXTERNAL_RS232_SUPPORT & (1 << (port_ - 1));
+            return board_port_supports_rs232(port_);
         default:
             return false;
     }
