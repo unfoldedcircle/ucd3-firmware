@@ -749,13 +749,16 @@ const UI = {
   },
 
   setActionsEnabled: function (enabled) {
-    const self = this;
     this.actionButtonIds.forEach(function (id) {
       const btn = document.getElementById(id);
       if (btn) {
         btn.disabled = !enabled;
       }
     });
+
+    if (Pages.Ports) {
+      Pages.Ports.updateModeApplyStates();
+    }
   },
 
   showLogin: function (errMsg) {
@@ -1974,8 +1977,9 @@ function parseInputEscapes(input) {
 // ============================================================
 Pages.Ports = {
   serialEnabled: {1: false, 2: false},
+  supportedModes: {1: [], 2: []},
 
-  // Map mode IDs to friendly names (matching dropdown options)
+  // Map mode IDs to friendly names
   modeNames: {
     "AUTO": "AUTO",
     "NONE": "NONE",
@@ -1988,6 +1992,29 @@ Pages.Ports = {
 
   load: function () {
     const self = this;
+    const cached = UI.getCachedSysInfo();
+
+    if (cached && cached.ports) {
+      self.renderPortsFromSysInfo(cached.ports);
+      self.loadPortModes();
+      return;
+    }
+
+    WS.request("get_sysinfo").then(function (data) {
+      UI.cacheSysInfo(data);
+      if (data.ports) {
+        self.renderPortsFromSysInfo(data.ports);
+      }
+      self.loadPortModes();
+    }).catch(function (e) {
+      Toast.error(e);
+      self.renderPortsFromSysInfo([]);
+      self.loadPortModes();
+    });
+  },
+
+  loadPortModes: function () {
+    const self = this;
     WS.request("get_port_modes").then(function (data) {
       if (data.ports) {
         data.ports.forEach(function (p) {
@@ -1999,10 +2026,89 @@ Pages.Ports = {
     });
   },
 
+  renderPortsFromSysInfo: function (ports) {
+    const found = {1: false, 2: false};
+
+    if (ports && ports.length) {
+      ports.forEach(function (p) {
+        if (p.port === 1 || p.port === 2) {
+          found[p.port] = true;
+          Pages.Ports.renderPort(p);
+        }
+      });
+    }
+
+    for (let n = 1; n <= 2; n++) {
+      if (!found[n]) {
+        this.buildModeSelect(n, null, null);
+      }
+    }
+  },
+
+  buildModeSelect: function (port, supportedModes, selectedMode) {
+    const select = document.getElementById("port" + port + "-mode");
+    if (!select) return;
+
+    select.innerHTML = "";
+    this.supportedModes[port] = supportedModes || [];
+
+    if (!supportedModes || !supportedModes.length) {
+      this.updateModeApplyState(port);
+      return;
+    }
+
+    supportedModes.forEach(function (mode) {
+      const opt = document.createElement("option");
+      opt.value = mode;
+      opt.textContent = Pages.Ports.getModeFriendlyName(mode);
+      select.appendChild(opt);
+    });
+
+    if (selectedMode && supportedModes.indexOf(selectedMode) !== -1) {
+      select.value = selectedMode;
+      this.updateModeApplyState(port);
+      return;
+    }
+
+    if (selectedMode) {
+      const opt = document.createElement("option");
+      opt.value = selectedMode;
+      opt.textContent = "?";
+      select.appendChild(opt);
+      select.value = selectedMode;
+    }
+
+    this.updateModeApplyState(port);
+  },
+
+  isModeSupportedForPort: function (port, mode) {
+    const modes = this.supportedModes[port];
+    return !!(mode && modes && modes.indexOf(mode) !== -1);
+  },
+
+  updateModeApplyState: function (port) {
+    const select = document.getElementById("port" + port + "-mode");
+    const applyBtn = document.getElementById("btn-port" + port + "-mode");
+    if (!applyBtn) return;
+
+    const mode = select ? select.value : "";
+    applyBtn.disabled = !WS.actionsEnabled || !this.isModeSupportedForPort(port, mode);
+  },
+
+  updateModeApplyStates: function () {
+    this.updateModeApplyState(1);
+    this.updateModeApplyState(2);
+  },
+
   renderPort: function (portData) {
     const n = portData.port;
     const modeSelect = document.getElementById("port" + n + "-mode");
-    if (modeSelect) modeSelect.value = portData.mode;
+
+    if (portData.supported_modes) {
+      this.buildModeSelect(n, portData.supported_modes, portData.mode);
+    } else if (modeSelect && portData.mode && modeSelect.options.length > 0) {
+      modeSelect.value = portData.mode;
+    }
 
     // Show/hide Active row based on mode
     const activeRow = document.getElementById("port" + n + "-active-row");
@@ -2058,7 +2164,7 @@ Pages.Ports = {
     // Update the UI immediately based on the new mode
     const n = port;
     const modeSelect = document.getElementById("port" + n + "-mode");
-    if (modeSelect) modeSelect.value = newMode;
+    if (modeSelect && modeSelect.options.length > 0) modeSelect.value = newMode;
 
     // Show/hide Active row based on mode
     const activeRow = document.getElementById("port" + n + "-active-row");
@@ -2213,8 +2319,15 @@ Pages.Ports = {
   initPort: function (n) {
     const self = this;
 
+    document.getElementById("port" + n + "-mode").addEventListener("change", function () {
+      self.updateModeApplyState(n);
+    });
+
     document.getElementById("btn-port" + n + "-mode").addEventListener("click", function () {
-      const mode = document.getElementById("port" + n + "-mode").value;
+      const select = document.getElementById("port" + n + "-mode");
+      if (!select || !select.value || this.disabled) return;
+
+      const mode = select.value;
       const data = {port: n, mode: mode};
 
       if (mode === "RS232") {
@@ -2351,7 +2464,6 @@ Pages.OTA = {
 
   load: function () {
     // Always fetch fresh sysinfo when entering OTA page
-    const self = this;
     WS.request("get_sysinfo").then(function (data) {
       // Cache the sysinfo for reuse across pages
       UI.cacheSysInfo(data);
