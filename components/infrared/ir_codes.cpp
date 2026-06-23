@@ -10,6 +10,8 @@
 
 #include "esp_log.h"
 
+#include "ir_Panasonic.h"
+
 static const char *TAG = "IR";
 
 uint32_t parseUint32(const char *number, int *error, int base) {
@@ -257,4 +259,29 @@ uint16_t *globalCacheBufferToArray(const char *msg, uint16_t *codeCount, int *me
 
     *codeCount = codeIndex;
     return codeArray;
+}
+
+uint32_t frequencyFromProtocol(int16_t decode_type, uint16_t bits) {
+    switch (decode_type) {
+        case decode_type_t::DAIKIN2:
+        case decode_type_t::PANASONIC:
+            return kPanasonicFreq;
+        case decode_type_t::DENON:
+            return bits >= kPanasonicBits ? kPanasonicFreq : 38000;
+        case decode_type_t::RC5:
+        case decode_type_t::RC5X:
+        case decode_type_t::RC6:
+        case decode_type_t::RCMM:
+        case decode_type_t::TROTEC:
+            return 36000;
+        case decode_type_t::PIONEER:
+        case decode_type_t::SONY:
+            return 40000;
+        case decode_type_t::DISH:
+            return 57600;
+        case decode_type_t::LUTRON:
+            return 40000;
+        default:
+            return 38000;
+    }
 }

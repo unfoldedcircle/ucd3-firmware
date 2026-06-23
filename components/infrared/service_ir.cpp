@@ -64,6 +64,7 @@ void InfraredService::init(port_map_t ports, uint16_t sendCore, uint16_t sendPri
 
     ports_ = ports;
     m_responseCallback = responseCallback;
+    m_callbackOverride = nullptr;
 
     m_queue = xQueueCreate(1, sizeof(struct IRSendMessage *));
     if (m_queue == nullptr) {
@@ -122,6 +123,7 @@ void InfraredService::setIrLearnPriority(uint16_t priority) {
 
 void InfraredService::startIrLearn(IRFormat irFormat) {
     // Note: UC_EVENT_IR_LEARNING_START event is sent when the learning loop starts
+    m_callbackOverride = nullptr;
     if (m_eventgroup) {
         EventBits_t uxBitsToSet = IR_LEARNING_BIT;
         if (irFormat == IRFormat::RAW) {
@@ -132,11 +134,19 @@ void InfraredService::startIrLearn(IRFormat irFormat) {
     }
 }
 
+void InfraredService::startIrLearn(IrRawResponseCallback callbackOverride) {
+    if (m_eventgroup) {
+        m_callbackOverride = callbackOverride;
+        xEventGroupSetBits(m_eventgroup, IR_LEARNING_BIT | IR_LEARNING_RAW_BIT);
+    }
+}
+
 void InfraredService::stopIrLearn() {
     // Note: UC_EVENT_IR_LEARNING_STOP event is sent after the learning loop stops
     if (m_eventgroup) {
         xEventGroupClearBits(m_eventgroup, IR_LEARNING_BIT | IR_LEARNING_RAW_BIT);
     }
+    m_callbackOverride = nullptr;
 }
 
 bool InfraredService::isIrLearning() {
@@ -657,6 +667,28 @@ static std::string serialize_raw_optimized(const decode_results *results, const 
     return buf;
 }
 
+/// Serialize raw IR timings into an IrRawResponse struct.
+/// Parameters:
+///   results - decoded IR results from IRrecv
+///
+/// Returns heap-allocated IrRawResponse with frequency (default 38000 Hz) and timing values in microseconds.
+/// Caller must free().
+/// Returns NULL on invalid input.
+static IrRawResponse *serialize_raw_response(const decode_results *results) {
+    if (results->rawlen == 0) {
+        return NULL;
+    }
+
+    IrRawResponse *response = new IrRawResponse();
+    // Default carrier frequency. Not possible to get modulation frequency with IRrecv and a TSOP‑style demodulator.
+    // TODO use IR_RECEIVE_ANALOG and custom logic for raw learning.
+    response->frequency = frequencyFromProtocol(results->decode_type, results->bits);
+    response->timings_len = getCorrectedRawLength(results);
+    response->timings_us = resultToRawArray(results);
+
+    return response;
+}
+
 void InfraredService::learn_ir_f(void *param) {
     if (param == nullptr) {
         ESP_LOGE(irLogLearn, "BUG: missing learn_ir_f param");
@@ -760,6 +792,15 @@ void InfraredService::learn_ir_f(void *param) {
                 event_ir.command = results.command;
                 ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(UC_DOCK_EVENTS, UC_EVENT_IR_LEARNING_OK, &event_ir,
                                                              sizeof(event_ir), pdMS_TO_TICKS(500)));
+            }
+
+            if (ir->m_callbackOverride) {
+                struct IrRawResponse *response = serialize_raw_response(&results);
+                if (response) {
+                    ir->m_callbackOverride(response);
+                }
+
+                continue;
             }
 
             struct IrResponse *response = new IrResponse();

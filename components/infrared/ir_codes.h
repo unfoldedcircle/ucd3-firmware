@@ -63,3 +63,7 @@ uint16_t countValuesInCStr(const char *str, char sep);
 uint16_t *prontoBufferToArray(const char *msg, char separator, uint16_t *codeCount, int *memError = NULL);
 
 uint16_t *globalCacheBufferToArray(const char *msg, uint16_t *codeCount, int *memError = NULL);
+
+/// Return the frequency of a given protocol.
+/// Values have been pulled out of the individual IR decoders.
+uint32_t frequencyFromProtocol(int16_t decode_type, uint16_t bits);

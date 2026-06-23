@@ -22,17 +22,22 @@ struct IrResponse {
     std::string message;
 };
 
-typedef std::function<esp_err_t(IrResponse *response)> IrResponseCallback;
+struct IrRawResponse {
+    uint32_t  frequency;
+    uint16_t  timings_len;
+    uint16_t *timings_us;
+};
+
+typedef std::function<esp_err_t(IrResponse *response)>    IrResponseCallback;
+typedef std::function<esp_err_t(IrRawResponse *response)> IrRawResponseCallback;
 
 class InfraredService {
  public:
     static InfraredService &getInstance();
 
-    /**
-     * Initialize and start infrared processing.
-     *
-     * This must be called **once** at startup before using `send` or `startIrLearn`.
-     */
+    /// @brief Initialize and start infrared processing.
+    ///
+    /// This must be called **once** at startup before using `send` or `startIrLearn`.
     void init(port_map_t ports, uint16_t sendCore, uint16_t sendPriority, uint16_t learnCore, uint16_t learnPriority,
               IrResponseCallback responseCallback);
 
@@ -41,34 +46,40 @@ class InfraredService {
 
     uint16_t sendGlobalCache(int16_t clientId, uint32_t msgId, const char *sendir, int socket = 0);
 
-    /**
-     * Asynchronously send an IR code on the 2nd core.
-     *
-     * If there's still an IR code being sent, error 429 (too many requests) is returned.
-     *
-     * @param clientId the WebSocket client identifier to associate the response message.
-     * @param msgId the client send request message identifier to associate the response message with.
-     * @param code  IR code to send, either PRONTO or HEX (UnfoldedCircle) format.
-     * @param format IR code format: "pronto" or "hex".
-     * @param repeat IR repeat count.
-     * @param hold   IR send time in milliseconds. The repeat parameter is ignored if hold > 0.
-     * @param internal_side Send IR signal on internal LEDs.
-     * @param internal_top Send IR signal on internal top LED.
-     * @param external1 Send IR signal on external 1 emitter port.
-     * @param external2 Send IR signal on external 2 emitter port.
-     * @param gcSocket Optional TCP socket if message was received from the GlobalCache TCP server.
-     *
-     * @return 0: asynchronous reply from the the IR send task: don't send a reply to the WS client.
-     * @return 202: extended an IR repeat sequence.
-     * @return otherwise: status code to return to the WS client.
-     */
+    /// @brief Asynchronously send an IR code on the 2nd core.
+    ///
+    /// If there's still an IR code being sent, error 429 (too many requests) is returned.
+    ///
+    /// @param clientId the WebSocket client identifier to associate the response message.
+    /// @param msgId the client send request message identifier to associate the response message with.
+    /// @param code  IR code to send, either PRONTO or HEX (UnfoldedCircle) format.
+    /// @param format IR code format: "pronto" or "hex".
+    /// @param repeat IR repeat count.
+    /// @param hold   IR send time in milliseconds. The repeat parameter is ignored if hold > 0.
+    /// @param internal_side Send IR signal on internal LEDs.
+    /// @param internal_top Send IR signal on internal top LED.
+    /// @param external1 Send IR signal on external 1 emitter port.
+    /// @param external2 Send IR signal on external 2 emitter port.
+    /// @param gcSocket Optional TCP socket if message was received from the GlobalCache TCP server.
+    ///
+    /// @return 0: asynchronous reply from the the IR send task: don't send a reply to the WS client.
+    /// @return 202: extended an IR repeat sequence.
+    /// @return otherwise: status code to return to the WS client.
     uint16_t send(int16_t clientId, uint32_t msgId, const std::string &code, const std::string &format, uint16_t repeat,
                   uint16_t hold, bool internal_side, bool internal_top, bool external1, bool external2,
                   int gcSocket = 0);
 
     void stopSend();
 
+    /// @brief Start IR learning mode
+    /// @param irFormat IR format to return. Only `UNFOLDED_CIRCLE` and `RAW` are supported.
     void startIrLearn(IRFormat irFormat = IRFormat::UNFOLDED_CIRCLE);
+
+    /// @brief Start exclusive RAW IR learning mode
+    /// @param callbackOverride Only send learned codes to this callback.
+    void startIrLearn(IrRawResponseCallback callbackOverride);
+
+    /// @brief Stop IR learning
     void stopIrLearn();
     bool isIrLearning();
 
@@ -102,7 +113,8 @@ class InfraredService {
 
     port_map_t ports_;
 
-    IrResponseCallback m_responseCallback;
+    IrResponseCallback    m_responseCallback;
+    IrRawResponseCallback m_callbackOverride;
 };
 
 extern InfraredService &irService;

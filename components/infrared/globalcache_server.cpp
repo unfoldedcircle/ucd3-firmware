@@ -20,6 +20,7 @@
 
 #include "esp_event.h"
 #include "esp_log.h"
+#include "esp_mac.h"
 
 #include "globalcache.h"
 #include "sdkconfig.h"
@@ -210,7 +211,10 @@ void GlobalCacheServer::tcp_server_task(void *param) {
             continue;
         }
         client->socket = sock;
-        snprintf(client->mac, sizeof(client->mac), "%s", gc->m_config->getHostName() + 9);
+        uint8_t mac[6];
+        esp_read_mac(mac, ESP_MAC_WIFI_STA);
+        snprintf(client->mac, sizeof(client->mac), "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4],
+                 mac[5]);
         client->semaphore = clientCountSemaphore;
         client->irService = gc->m_irService;
         if (xTaskCreatePinnedToCore(socket_task,     // task function
@@ -240,137 +244,186 @@ void GlobalCacheServer::socket_task(void *param) {
     GCClient *client = reinterpret_cast<GCClient *>(param);
 
     int  len = 0;
+    int  total_len = 0;
     char rx_buffer[1024];
 
     while (true) {
-        // Optimistic reading, get as much data as possible, max request message size is limited to 1 KB,
-        // but that should be sufficient for large IR commands.
-        // TODO(zehnm) read until message terminator / buffer full.
-        len = recv(client->socket, rx_buffer, sizeof(rx_buffer) - 1, 0);
+        len = recv(client->socket, rx_buffer + total_len, sizeof(rx_buffer) - total_len - 1, 0);
         if (len <= 0) {
             break;
         }
-        // Null-terminate whatever is received and treat it like a string
-        rx_buffer[len] = 0;
-        ESP_LOGD(TAG_GC, "[%d] Received %d bytes: %s", client->socket, len, rx_buffer);
+        total_len += len;
+        rx_buffer[total_len] = 0;
+        ESP_LOGD(TAG_GC, "[%d] Received %d bytes, total in buffer: %d", client->socket, len, total_len);
 
-        // find message terminator
-        char *end = strchr(rx_buffer, '\r');
-        if (end == NULL) {
+        char *ptr = rx_buffer;
+        char *end_of_cmd;
+        bool  should_break = false;
+
+        while ((end_of_cmd = strchr(ptr, '\r')) != NULL) {
+            *end_of_cmd = 0;
+            char *current_cmd = ptr;
+            ptr = end_of_cmd + 1;
+
+            // find start of message, skip all non graphical representation characters
+            // https://en.cppreference.com/w/c/string/byte/isgraph
+            while (current_cmd != end_of_cmd && !isgraph(*current_cmd)) {
+                current_cmd++;
+            }
+            if (current_cmd == end_of_cmd) {
+                // ignore, no error (as iTach device)
+                continue;
+            }
+
+            GCMsg req;
+            auto  result = parseGcRequest(current_cmd, &req);
+            if (result) {
+                char buf[16];
+                // global cache iTach error code
+                snprintf(buf, sizeof(buf), "ERR_1:1,%03d\r", result);
+                if (!send_string_to_socket(client->socket, buf)) {
+                    should_break = true;
+                    break;
+                }
+                continue;
+            }
+
+            ESP_LOGD(TAG_GC, "Command: %s,%d:%d,%s", req.command, req.module, req.port, req.param ? req.param : "");
+
+            // API spec: disable learning if any other command is sent
+            if (client->irService->isIrLearning() && strcmp(req.command, "stop_IRL") != 0) {
+                client->irService->stopIrLearn();
+            }
+
+            if (strcmp(req.command, "sendir") == 0) {
+                int16_t  clientId = IR_CLIENT_GC;
+                uint32_t msgId = atoi(req.param);  // this _should_ point to ID
+                auto     res = client->irService->sendGlobalCache(clientId, msgId, current_cmd, client->socket);
+                ESP_LOGD(TAG_GC, "[%d] sendGlobalCache result: %d", client->socket, res);
+
+                char        buf[17];
+                const char *msg = nullptr;
+                if (res == 0 || res == 200) {
+                    // OK, async callback over the passed socket (code 200 shouldn't be used anymore)
+                } else if (res == 202) {
+                    // accepted IR repeat. Original iTach device doesn't send a reply, so we do the same!
+                } else if (res > 0 && res < 100) {
+                    // global cache iTach error code
+                    snprintf(buf, sizeof(buf), "ERR_%d:%d,%03d\r", req.module, req.port, res);
+                    msg = buf;
+                } else if (res == 500) {
+                    // invalid parameter
+                    snprintf(buf, sizeof(buf), "ERR_%d:%d,023\r", req.module, req.port);
+                    msg = buf;
+                } else if (res == 429 || res == 503) {
+                    msg = "busyir\r";
+                } else {
+                    // invalid command (unknown)
+                    snprintf(buf, sizeof(buf), "ERR_%d:%d,001\r", req.module, req.port);
+                    msg = buf;
+                }
+
+                if (msg && !send_string_to_socket(client->socket, msg)) {
+                    should_break = true;
+                    break;
+                }
+            } else if (strcmp(req.command, "stopir") == 0) {
+                client->irService->stopSend();
+                char reply[16];
+                snprintf(reply, sizeof(reply), "%.12s\r", current_cmd);
+                if (!send_string_to_socket(client->socket, reply)) {
+                    should_break = true;
+                    break;
+                }
+            } else if (strcmp(req.command, "getdevices") == 0) {
+                if (!send_string_to_socket(client->socket, "device,0,0 ETHERNET\r")) {
+                    should_break = true;
+                    break;
+                }
+                int  ports = 4;
+                char msg[64];
+                snprintf(msg, sizeof(msg), "device,0,0 WIFI\rdevice,1,%d IR\rendlistdevices\r", ports);
+                if (!send_string_to_socket(client->socket, msg)) {
+                    should_break = true;
+                    break;
+                }
+            } else if (strcmp(req.command, "getversion") == 0) {
+                // GlobalCache iHelp doesn't like dots in version string, or device doesn't show up!
+                char version[30];
+                snprintf(version, sizeof(version), "%s\r", DOCK_VERSION[0] == 'v' ? DOCK_VERSION + 1 : DOCK_VERSION);
+                replacechar(version, '.', '-');
+                replacechar(version, '+', '-');
+                if (!send_string_to_socket(client->socket, version)) {
+                    should_break = true;
+                    break;
+                }
+            } else if (strcmp(req.command, "getmac") == 0) {
+                // command discovered with iHelp
+                char mac[30];
+                snprintf(mac, sizeof(mac), "MACaddress,%s\r", client->mac);
+                if (!send_string_to_socket(client->socket, mac)) {
+                    should_break = true;
+                    break;
+                }
+            } else if (strcmp(req.command, "blink") == 0) {
+                ESP_ERROR_CHECK_WITHOUT_ABORT(
+                    esp_event_post(UC_DOCK_EVENTS, UC_ACTION_IDENTIFY, NULL, 0, pdMS_TO_TICKS(200)));
+            } else if (strcmp(req.command, "get_IRL") == 0) {
+                int clientSocket = client->socket;
+                client->irService->startIrLearn([clientSocket](IrRawResponse *response) -> esp_err_t {
+                    if (response) {
+                        char *sendir = raw_timings_to_gc_sendir(response->timings_us, response->timings_len,
+                                                                response->frequency, "1:1", 1);
+                        if (sendir) {
+                            send_string_to_socket(clientSocket, sendir);
+                            free(sendir);
+                        }
+                        free(response->timings_us);
+                        delete response;
+                    }
+                    return ESP_OK;
+                });
+                if (!send_string_to_socket(client->socket, "IR Learner Enabled\r")) {
+                    should_break = true;
+                    break;
+                }
+            } else if (strcmp(req.command, "stop_IRL") == 0) {
+                client->irService->stopIrLearn();
+                if (!send_string_to_socket(client->socket, "IR Learner Disabled\r")) {
+                    should_break = true;
+                    break;
+                }
+            } else {
+                // Command unrecognized
+                char buf[17];
+                snprintf(buf, sizeof(buf), "ERR_%d:%d,001\r", req.module, req.port);
+                if (!send_string_to_socket(client->socket, buf)) {
+                    should_break = true;
+                    break;
+                }
+            }
+        }
+
+        if (should_break) {
+            break;
+        }
+
+        // Move remaining data to the beginning of the buffer
+        int remaining = (rx_buffer + total_len) - ptr;
+        if (remaining > 0) {
+            memmove(rx_buffer, ptr, remaining);
+            total_len = remaining;
+        } else {
+            total_len = 0;
+        }
+
+        if (total_len == sizeof(rx_buffer) - 1) {
             // error: code too long / no carriage return
             const char *msg = (strncmp(rx_buffer, "sendir,", 7) == 0) ? "ERR 020\r" : "ERR 016\r";
             if (!send_string_to_socket(client->socket, msg)) {
                 break;
             }
-            continue;
-        }
-        *end = 0;
-
-        // find start of message, skip all non graphical representation characters
-        // https://en.cppreference.com/w/c/string/byte/isgraph
-        const char *start = rx_buffer;
-        while (start != end && !isgraph(*start)) {
-            start++;
-        }
-        if (start == end) {
-            // ignore, no error (as iTach device)
-            continue;
-        }
-
-        GCMsg req;
-        auto  result = parseGcRequest(rx_buffer, &req);
-        if (result) {
-            char buf[16];
-            // global cache iTach error code
-            snprintf(buf, sizeof(buf), "ERR_1:1,%03d\r", result);
-            if (!send_string_to_socket(client->socket, buf)) {
-                break;
-            }
-            continue;
-        }
-
-        if (strcmp(req.command, "sendir") == 0) {
-            int16_t  clientId = IR_CLIENT_GC;
-            uint32_t msgId = atoi(req.param);  // this _should_ point to ID
-            auto     result = client->irService->sendGlobalCache(clientId, msgId, rx_buffer, client->socket);
-            ESP_LOGD(TAG_GC, "[%d] sendGlobalCache result: %d", client->socket, result);
-
-            char        buf[17];
-            const char *msg = nullptr;
-            if (result == 0 || result == 200) {
-                // OK, async callback over the passed socket (code 200 shouldn't be used anymore)
-            } else if (result == 202) {
-                // accepted IR repeat. Original iTach device doesn't send a reply, so we do the same!
-            } else if (result > 0 && result < 100) {
-                // global cache iTach error code
-                snprintf(buf, sizeof(buf), "ERR_%d:%d,%03d\r", req.module, req.port, result);
-                msg = buf;
-            } else if (result == 500) {
-                // invalid parameter
-                snprintf(buf, sizeof(buf), "ERR_%d:%d,023\r", req.module, req.port);
-                msg = buf;
-            } else if (result == 429 || result == 503) {
-                msg = "busyir\r";
-            } else {
-                // invalid command (unknown)
-                snprintf(buf, sizeof(buf), "ERR_%d:%d,001\r", req.module, req.port);
-                msg = buf;
-            }
-
-            if (msg && !send_string_to_socket(client->socket, msg)) {
-                break;
-            }
-        } else if (strcmp(req.command, "stopir") == 0) {
-            client->irService->stopSend();
-            if (!send_string_to_socket(client->socket, rx_buffer)) {
-                break;
-            }
-        } else if (strcmp(req.command, "getdevices") == 0) {
-            if (!send_string_to_socket(client->socket, "device,0,0 ETHERNET\r")) {
-                break;
-            }
-            int  ports = 4;
-            char msg[64];
-            snprintf(msg, sizeof(msg), "device,0,0 WIFI\rdevice,1,%d IR\rendlistdevices\r", ports);
-            if (!send_string_to_socket(client->socket, msg)) {
-                break;
-            }
-        } else if (strcmp(req.command, "getversion") == 0) {
-            // GlobalCache iHelp doesn't like dots in version string, or device doesn't show up!
-            char version[30];
-            snprintf(version, sizeof(version), "%s\r", DOCK_VERSION[0] == 'v' ? DOCK_VERSION + 1 : DOCK_VERSION);
-            replacechar(version, '.', '-');
-            replacechar(version, '+', '-');
-            if (!send_string_to_socket(client->socket, version)) {
-                break;
-            }
-        } else if (strcmp(req.command, "getmac") == 0) {
-            // command discovered with iHelp
-            char mac[30];
-            snprintf(mac, sizeof(mac), "MACaddress,%s\r", client->mac);
-            if (!send_string_to_socket(client->socket, mac)) {
-                break;
-            }
-        } else if (strcmp(req.command, "blink") == 0) {
-            ESP_ERROR_CHECK_WITHOUT_ABORT(
-                esp_event_post(UC_DOCK_EVENTS, UC_ACTION_IDENTIFY, NULL, 0, pdMS_TO_TICKS(200)));
-        } else if (strcmp(req.command, "get_IRL") == 0) {
-            client->irService->startIrLearn();
-            if (!send_string_to_socket(client->socket, "IR Learner Enabled")) {
-                break;
-            }
-        } else if (strcmp(req.command, "stop_IRL") == 0) {
-            client->irService->stopIrLearn();
-            if (!send_string_to_socket(client->socket, "IR Learner Disabled")) {
-                break;
-            }
-        } else {
-            // Command unrecognized
-            char buf[17];
-            snprintf(buf, sizeof(buf), "ERR_%d:%d,001\r", req.module, req.port);
-            if (!send_string_to_socket(client->socket, buf)) {
-                break;
-            }
+            total_len = 0;
         }
     }
 
@@ -378,6 +431,11 @@ void GlobalCacheServer::socket_task(void *param) {
         ESP_LOGE(TAG_GC, "[%d] Error occurred during receiving: errno %d", client->socket, errno);
     } else if (len == 0) {
         ESP_LOGI(TAG_GC, "[%d] Connection closed", client->socket);
+    }
+
+    // Stop IR learning if active (clears callback override)
+    if (client->irService->isIrLearning()) {
+        client->irService->stopIrLearn();
     }
 
     shutdown(client->socket, 0);
@@ -432,8 +490,11 @@ void GlobalCacheServer::beacon_task(void *param) {
     snprintf(version, sizeof(version), "%s", DOCK_VERSION[0] == 'v' ? DOCK_VERSION + 1 : DOCK_VERSION);
     replacechar(version, '.', '-');
     replacechar(version, '+', '-');
-    char uuid[30];
-    snprintf(uuid, sizeof(uuid), "UnfoldedCircle_%s", gc->m_config->getHostName() + 9);
+    char    uuid[30];
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+    snprintf(uuid, sizeof(uuid), "UnfoldedCircle_%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4],
+             mac[5]);
 
     esp_netif_ip_info_t ipInfo;
 
