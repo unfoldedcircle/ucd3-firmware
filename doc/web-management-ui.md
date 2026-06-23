@@ -129,7 +129,7 @@ This might be changed if more pages are added.
 | General |      Yes      | Device name, LED brightness, access token, system actions                                             |
 | Network |      Yes      | WiFi SSID/password configuration, connection status                                                   |
 | IR      |      Yes      | Send IR codes, IR learning with live output, IR repeat mode with hold-to-repeat, RAW IR learning mode |
-| Ports   |      Yes      | External port mode config, trigger control, RS232 console                                             |
+| Ports   |      Yes      | External port mode config, trigger control, RS232 console with hex encoding and escape sequence input |
 | Logs    |      Yes      | Real-time log streaming with level filtering                                                          |
 | OTA     |      Yes      | Firmware upload with progress                                                                         |
 | Expert  |      Yes      | Experimental features (iTach emulation, AMXB beacon, RS232 TCP)                                       |
@@ -512,7 +512,7 @@ files:
 - Status lists reuse `<ul><li>` pattern from original firmware status page
 - `accent-color` for range inputs and checkboxes (modern browsers only)
 - **Console areas**:
-    - Serial console: 4 lines default, vertically resizable (`.console-resize`)
+  - Serial console: 4 lines default, vertically resizable (`.console-resize`), text wrapping enabled (`.console pre`)
     - Log console: 8 lines default, vertically resizable, horizontal scrolling (`.console-log`)
 - **Info popovers**: Native HTML popover API with custom styling
 
@@ -522,20 +522,22 @@ files:
 
 ```
 app.js
-├── Theme         — Dark/light theme management
-├── I18N          — Internationalization engine
-├── WS            — WebSocket communication layer
-├── Toast         — Notification system
-├── UI            — Page controller, navigation, login
-└── Pages         — Page-specific logic
-    ├── Status    — Auto-refresh every 60s when logged in
+├── Theme              — Dark/light theme management
+├── I18N               — Internationalization engine
+├── WS                 — WebSocket communication layer
+├── Toast              — Notification system
+├── UI                 — Page controller, navigation, login
+├── encodeConsoleData  — Encode non-printable chars as \xHH, handle line breaks
+├── parseInputEscapes  — Parse escape sequences in send input with validation
+└── Pages              — Page-specific logic
+    ├── Status         — Auto-refresh every 60s when logged in
     ├── General
     ├── Network
     ├── IR
-    ├── Ports     — Serial console with timeout config
-    ├── Logs      — Real-time streaming with level filter
+    ├── Ports          — Serial console with encoding, escape input, timeout config
+    ├── Logs           — Real-time streaming with level filter
     ├── OTA
-    └── Expert    — Experimental features
+    └── Expert         — Experimental features
 ```
 
 ### Info Popover API
@@ -568,11 +570,70 @@ Native HTML Popover API for contextual help (no JavaScript required):
 
 - Explicit enable/disable via `enable_serial_events` command
 - Events received via `WS.on("serial_data", handler)`
-- Output buffer limited to 4 KB (oldest data trimmed)
+- Output buffer limited to 32 KB (oldest data trimmed)
 - Send appends terminator character when buffering mode is "line"
 - Terminator displayed/configured as hex value (e.g., `0x0D`)
 - **Line timeout**: Configurable timeout in ms (0 = no timeout)
 - **Validation**: Hex terminator validated with regex `/^0x[0-9A-Fa-f]{1,2}$/`
+
+#### Console Output Encoding
+
+Received RS232 data is processed for display with the following rules:
+
+**Line Break Handling:**
+- CRLF (`\r\n`), CR (`\r`), LF (`\n`), Form Feed (`0x0C`), NEL (`0x85`) all create line breaks
+- CRLF is treated as a single line break (no double spacing)
+- Custom terminator character creates line break in **Line mode only**
+- If custom terminator is printable (0x20-0x7E), it is displayed before the line break
+
+**Non-Printable Character Encoding:**
+- Characters outside printable ASCII range (0x20-0x7E) are encoded as `\xHH` escape sequences
+- Extended ASCII (0x80-0xFF) is encoded (e.g., `0xFF` → `\xFF`)
+- Literal backslashes (0x5C) are escaped as `\\` to avoid ambiguity
+- Examples:
+
+| Received       | Displayed          |
+|----------------|--------------------|
+| `Hello\r\n`    | `Hello` (new line) |
+| `A\x01B\x02`   | `A\x01B\x02`       |
+| `Path\\x`      | `Path\\x`          |
+| `Data\x80\xFF` | `Data\x80\xFF`     |
+
+**Text Wrapping:**
+- Console output wraps automatically when exceeding container width
+- Uses `white-space: pre-wrap` and `word-break: break-word` CSS
+- Minimal horizontal scrolling allowed for very long unbroken sequences
+
+#### Send Input Escape Sequences
+
+The command input field supports escape sequences for sending non-printable characters:
+
+| Escape | Sends | Description                  |
+|--------|-------|------------------------------|
+| `\xHH` | 0xHH  | Hex byte (e.g., `\x0D` = CR) |
+| `\r`   | 0x0D  | Carriage return              |
+| `\n`   | 0x0A  | Line feed                    |
+| `\t`   | 0x09  | Tab                          |
+| `\\`   | 0x5C  | Literal backslash            |
+
+**Examples:**
+
+| Input           | Sends                 |
+|-----------------|-----------------------|
+| `Hello\x0D\x0A` | `Hello` + CR + LF     |
+| `AT\x0D`        | `AT` + CR             |
+| `\\x0D`         | `\x0D` (literal text) |
+| `\xFF\x00`      | 0xFF + 0x00           |
+
+**Validation:**
+- Invalid escape sequences are rejected with error toast
+- Error message includes position and reason (e.g., "Invalid escape sequence at position 5: incomplete hex code")
+- To send literal backslash-x, use double backslash: `\\xHH`
+
+**UI Helper:**
+- Info button (i) next to input field shows escape sequence documentation
+- Popover includes examples and usage instructions
+- Translated into all 11 supported languages
 
 ### Log Streaming
 
@@ -888,5 +949,3 @@ python3 tools/build_lang.py
 
 - **WiFi Scan**: Scan for available networks (API not yet available)
 - **Volume Control**: Speaker volume slider (Dock 3 only, API available but speaker is not yet used)
-- **Expert Page Extensions**:
-    - TBD: RS232 buffer size configuration
