@@ -1,24 +1,26 @@
-## Release 0.10.2 - 2026-06-18
+## Release 0.10.3 - 2026-06-24
 Changes since the last public release, 0.8.2.
 
 ### Fixed
-- Various stability improvements and automatically releasing stuck client connections.
-- Allow IR codes with a data value of 0, such as the digit "0" on Philips TVs that use the RC6 protocol ([bug-tracker#721](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/721)).
-- Improved Ethernet reliability ([#89](https://github.com/unfoldedcircle/ucd3-firmware/pull/89)).
-- Allow changing UART configuration without a restart ([#84](https://github.com/unfoldedcircle/ucd3-firmware/pull/84)).
+- Improved overall stability and automatic cleanup of stuck client connections.
+- Fixed support for IR codes with a data value of `0`, such as the digit “0” on Philips TVs using the RC6 protocol ([bug-tracker#721](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/721)).
+- Improved Ethernet connection reliability ([#89](https://github.com/unfoldedcircle/ucd3-firmware/pull/89)).
+- UART settings can now be changed without restarting the Dock ([#84](https://github.com/unfoldedcircle/ucd3-firmware/pull/84)).
 
 ### Added
-- Embedded web management UI ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
-- Static network configuration ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).
-- Serial bridge (TCP/RS232) support ([#72](https://github.com/unfoldedcircle/ucd3-firmware/pull/72)).
-- New log router for improved diagnostics ([#77](https://github.com/unfoldedcircle/ucd3-firmware/pull/77)).
-- Add RAW IR-learning and sending support ([#85](https://github.com/unfoldedcircle/ucd3-firmware/pull/85), [#87](https://github.com/unfoldedcircle/ucd3-firmware/pull/87)).
+- Added an embedded web management interface for configuring and managing the Dock from a browser ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
+- Added support for static network configuration, allowing manual IP address settings ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).
+- Added RS232 support with an optional TCP serial bridge ([#72](https://github.com/unfoldedcircle/ucd3-firmware/pull/72)).
+  - On current devices, RS232 mode is limited to port 2. Port 1 may send startup output that some connected RS232 devices could interpret as commands.
+  - UART TTL adapters are not supported because they use different signal levels.
+- Added a new log router to improve diagnostics and troubleshooting ([#77](https://github.com/unfoldedcircle/ucd3-firmware/pull/77)).
+- Added support for learning and sending RAW IR commands ([#85](https://github.com/unfoldedcircle/ucd3-firmware/pull/85), [#87](https://github.com/unfoldedcircle/ucd3-firmware/pull/87)).
 
 ### Changed
-- Automatically close the least active client connection if no connections are available anymore ([#58](https://github.com/unfoldedcircle/ucd3-firmware/pull/58)).
-- Disconnect unauthenticated clients after 30s ([#59](https://github.com/unfoldedcircle/ucd3-firmware/pull/59)).
-- Increased max client connections from 7 to 18 ([#60](https://github.com/unfoldedcircle/ucd3-firmware/pull/60)).
-- Unify firmware revisions 4 and 6 ([#66](https://github.com/unfoldedcircle/ucd3-firmware/pull/66)).
+- If the maximum number of client connections is reached, the least active connection is now closed automatically to allow a new connection ([#58](https://github.com/unfoldedcircle/ucd3-firmware/pull/58)).
+- Clients that do not authenticate are now disconnected after 30 seconds ([#59](https://github.com/unfoldedcircle/ucd3-firmware/pull/59)).
+- Increased the maximum number of client connections from 7 to 18 ([#60](https://github.com/unfoldedcircle/ucd3-firmware/pull/60)).
+- Unified support for firmware revisions 4 and 6 ([#66](https://github.com/unfoldedcircle/ucd3-firmware/pull/66)).
 
 ## Beta Release 0.8.2 - 2026-02-14
 ### Fixed

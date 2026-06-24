@@ -1,24 +1,26 @@
-## Release 0.10.2 - 2026-06-18
+## Release 0.10.3 - 2026-06-24
 Änderungen seit der letzten öffentlichen Version 0.8.2.
 
 ### Fehlerbehebungen
-- Verschiedene Stabilitätsverbesserungen und automatisches Trennen von hängenden Client-Verbindungen.
-- IR-Codes mit dem Datenwert 0 zulassen, z.B. die Ziffer "0" bei Philips-Fernsehern, die das RC6-Protokoll verwenden ([bug-tracker#721](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/721)).
-- Zuverlässigkeit von Ethernet verbessert ([#89](https://github.com/unfoldedcircle/ucd3-firmware/pull/89)).
-- Ändern der UART-Konfiguration ohne Neustart ermöglichen ([#84](https://github.com/unfoldedcircle/ucd3-firmware/pull/84)).
+- Allgemeine Stabilitätsverbesserungen und automatische Bereinigung hängender Client-Verbindungen.
+- Unterstützung für IR-Codes mit dem Datenwert `0` korrigiert, z. B. für die Ziffer „0“ bei Philips-Fernsehern mit RC6-Protokoll ([bug-tracker#721](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/721)).
+- Zuverlässigkeit der Ethernet-Verbindung verbessert ([#89](https://github.com/unfoldedcircle/ucd3-firmware/pull/89)).
+- UART-Einstellungen können jetzt ohne Neustart des Geräts geändert werden ([#84](https://github.com/unfoldedcircle/ucd3-firmware/pull/84)).
 
 ### Neue Funktionen
-- Integrierte Web-Management-Benutzeroberfläche ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
-- Statische Netzwerkkonfiguration ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).
-- Unterstützung für Serielle Bridge (TCP/RS232) ([#72](https://github.com/unfoldedcircle/ucd3-firmware/pull/72)).
-- Neuer Log-Router für verbesserte Diagnose ([#77](https://github.com/unfoldedcircle/ucd3-firmware/pull/77)).
-- Unterstützung für RAW IR-Lernen und Senden ([#85](https://github.com/unfoldedcircle/ucd3-firmware/pull/85), [#87](https://github.com/unfoldedcircle/ucd3-firmware/pull/87)).
+- Integrierte Web-Verwaltungsoberfläche hinzugefügt, mit der das Gerät über einen Browser konfiguriert und verwaltet werden kann ([#76](https://github.com/unfoldedcircle/ucd3-firmware/pull/76)).
+- Unterstützung für statische Netzwerkkonfiguration hinzugefügt, um IP-Adressen manuell festlegen zu können ([#81](https://github.com/unfoldedcircle/ucd3-firmware/pull/81)).
+- RS232-Unterstützung mit optionaler TCP-Serial-Bridge hinzugefügt ([#72](https://github.com/unfoldedcircle/ucd3-firmware/pull/72)).
+  - Bei aktuellen Geräten ist der RS232-Modus auf Port 2 beschränkt. Port 1 kann beim Start Systemausgaben senden, die von manchen angeschlossenen RS232-Geräten als Befehle interpretiert werden könnten.
+  - UART-TTL-Adapter werden aufgrund unterschiedlicher Signalpegel nicht unterstützt.
+- Neuer Log-Router hinzugefügt, um Diagnose und Fehlersuche zu verbessern ([#77](https://github.com/unfoldedcircle/ucd3-firmware/pull/77)).
+- Unterstützung für das Lernen und Senden von RAW-IR-Befehlen hinzugefügt ([#85](https://github.com/unfoldedcircle/ucd3-firmware/pull/85), [#87](https://github.com/unfoldedcircle/ucd3-firmware/pull/87)).
 
 ### Geändert
-- Die am wenigsten aktive Client-Verbindung automatisch schließen, wenn keine Verbindungen mehr verfügbar sind ([#58](https://github.com/unfoldedcircle/ucd3-firmware/pull/58)).
-- Nicht authentifizierte Clients nach 30 Sekunden trennen ([#59](https://github.com/unfoldedcircle/ucd3-firmware/pull/59)).
+- Wenn die maximale Anzahl an Client-Verbindungen erreicht ist, wird jetzt automatisch die am wenigsten aktive Verbindung geschlossen, damit eine neue Verbindung hergestellt werden kann ([#58](https://github.com/unfoldedcircle/ucd3-firmware/pull/58)).
+- Nicht authentifizierte Clients werden jetzt nach 30 Sekunden getrennt ([#59](https://github.com/unfoldedcircle/ucd3-firmware/pull/59)).
 - Die maximale Anzahl an Client-Verbindungen wurde von 7 auf 18 erhöht ([#60](https://github.com/unfoldedcircle/ucd3-firmware/pull/60)).
-- Vereinheitlichung der Firmware-Revisionen 4 und 6 ([#66](https://github.com/unfoldedcircle/ucd3-firmware/pull/66)).
+- Unterstützung für die Firmware-Revisionen 4 und 6 vereinheitlicht ([#66](https://github.com/unfoldedcircle/ucd3-firmware/pull/66)).
 
 ## Beta Release 0.8.2 - 2026-02-14
 ### Fehlerbehebungen
