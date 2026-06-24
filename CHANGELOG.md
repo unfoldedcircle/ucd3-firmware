@@ -11,6 +11,20 @@ _Changes in the next release_
 
 ---
 
+## Release 0.10.3 - 2026-06-24
+
+### Fixed
+- Initialize RS232 port mode for proper RS232 signal levels ([#90](https://github.com/unfoldedcircle/ucd3-firmware/pull/90)).
+
+### Changed
+- Enhanced web UI RS232 console with line breaks and hex encoding ([#90](https://github.com/unfoldedcircle/ucd3-firmware/pull/90)).
+- Improved iTach API compatibility, command parsing and beacon data ([#91](https://github.com/unfoldedcircle/ucd3-firmware/pull/91)).
+- Web-UI: dynamically create supported port modes ([#92](https://github.com/unfoldedcircle/ucd3-firmware/pull/92)).
+- Only enable port 1 RS232 mode if the ROM boot log is muted. Port 1 may send startup output that some connected RS232 devices could interpret as commands ([#93](https://github.com/unfoldedcircle/ucd3-firmware/pull/93)).
+
+### Added
+- Support get_IRL iTach API command ([#91](https://github.com/unfoldedcircle/ucd3-firmware/pull/91)).
+
 ## Release 0.10.2 - 2026-06-18
 
 ### Fixed
