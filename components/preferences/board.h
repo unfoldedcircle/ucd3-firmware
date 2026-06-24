@@ -27,8 +27,6 @@
 #define EXTERNAL_IR_EMITTER_STEREO_SUPPORT (BIT0 | BIT1)
 // external port support for 5V triggers: bit flags, bit 0 == port 1, bit 1 == port 2 etc.
 #define EXTERNAL_5V_TRIGGER_SUPPORT (BIT0 | BIT1)
-// external port support for RS232: bit flags, bit 0 == port 1, bit 1 == port 2 etc.
-#define EXTERNAL_RS232_SUPPORT      (BIT0 | BIT1)
 
 #define CHARGE_LED_PWM        GPIO_NUM_40   // turn on leds in charging hole, OUTPUT, PULL DOWN to avoid false on
 // when ESP32 goes haywire it could light up LEDs, or when flashing
@@ -154,6 +152,9 @@ bool board_is_switch_ext_inverted(void);
 
 // GPIO output mode for SWITCH_EXT_1 & SWITCH_EXT_2: open drain or floating
 gpio_mode_t board_switch_ext_gpio_mode(void);
+
+// Check if output port supports RS232 mode
+bool board_port_supports_rs232(uint8_t port);
 
 #ifdef __cplusplus
 }
