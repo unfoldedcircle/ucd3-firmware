@@ -44,7 +44,7 @@ AdcUnit::~AdcUnit() {
 }
 
 std::unique_ptr<AdcChannel> AdcUnit::createChannel(adc_channel_t channel, adc_atten_t attenuation) {
-    esp_err_t              ret = ESP_OK;
+    esp_err_t              ret __attribute__((unused)) = ESP_OK;
     adc_oneshot_chan_cfg_t chan_cfg = {
         .atten = attenuation,
         .bitwidth = ADC_BITWIDTH_DEFAULT,

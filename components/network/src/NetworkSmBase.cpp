@@ -477,7 +477,7 @@ void host_task(void *param) {
 }
 
 void NetworkBase::startImprovWifi() {
-    esp_err_t ret = ESP_OK;
+    esp_err_t ret __attribute__((unused)) = ESP_OK;
 
     if (!improv_init_) {
         ESP_LOGI(TAG, "starting BLE for improv-wifi");

@@ -335,8 +335,6 @@ static void factoryResetHandler(void *arg, esp_event_base_t event_base, int32_t 
 }
 
 extern "C" void app_main(void) {
-    esp_err_t ret = ESP_OK;
-
     board_init_revision();
 
     init_gpios();
@@ -420,7 +418,7 @@ extern "C" void app_main(void) {
                    });
 
     if (cfg.isGcServerEnabled()) {
-        GlobalCacheServer *gcServer = new GlobalCacheServer(&irService, &cfg, cfg.isGcServerBeaconEnabled());
+        new GlobalCacheServer(&irService, &cfg, cfg.isGcServerBeaconEnabled());
     }
 
     start_stats_task();
