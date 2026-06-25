@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- Port 1 initialization at startup. Regression introduced in 0.10.3.
+
 ---
 
 ## Release 0.10.3 - 2026-06-24

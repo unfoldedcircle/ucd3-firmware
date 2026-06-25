@@ -1151,7 +1151,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
     } else if (command == "get_port_mode") {
         code = processGetPortMode(root, responseDoc);
     } else if (command == "set_port_mode") {
-        code = processSetPortMode(root);
+        code = processSetPortMode(root, responseDoc);
     } else if (command == "get_port_trigger") {
         code = processGetPortTrigger(root, responseDoc);
     } else if (command == "set_port_trigger") {
@@ -1938,15 +1938,17 @@ void DockApi::addUartNode(uint8_t port, cJSON *responseDoc) {
     }
 }
 
-uint16_t DockApi::processSetPortMode(const cJSON *root) {
+uint16_t DockApi::processSetPortMode(const cJSON *root, cJSON *responseDoc) {
     uint8_t     port = cjson_get_int(root, "port");
     std::string mode_str = cjson_get_string(root, "mode", "");
     ExtPortMode mode = ExtPortMode_from_str(mode_str.c_str());
 
     if (port == 0 || port > EXTERNAL_PORT_COUNT || mode == ExtPortMode::PORT_MODE_MAX) {
+        cJSON_AddStringToObject(responseDoc, msgError, "Invalid port");
         return 400;
     }
     if (!ports_.contains(port)) {
+        cJSON_AddStringToObject(responseDoc, msgError, "Port not available");
         return 503;
     }
 
@@ -1958,6 +1960,7 @@ uint16_t DockApi::processSetPortMode(const cJSON *root) {
     if (mode == RS232) {
         cJSON *uart = cJSON_GetObjectItem(root, "uart");
         if (!cJSON_IsObject(uart)) {
+            cJSON_AddStringToObject(responseDoc, msgError, "uart obj missing");
             return 400;
         }
 
@@ -1968,6 +1971,7 @@ uint16_t DockApi::processSetPortMode(const cJSON *root) {
 
         auto uart_cfg = UartConfig::fromParams(baud_rate, data_bits, parity, stop_bits);
         if (uart_cfg == nullptr) {
+            cJSON_AddStringToObject(responseDoc, msgError, "Invalid uart configuration");
             return 400;
         }
         std::string uart_str = uart_cfg->toString();
@@ -1990,8 +1994,10 @@ uint16_t DockApi::processSetPortMode(const cJSON *root) {
             }
             return 200;
         case ESP_ERR_NOT_SUPPORTED:
+            cJSON_AddStringToObject(responseDoc, msgError, "mode not supported");
             return 400;
         case ESP_ERR_INVALID_STATE:
+            cJSON_AddStringToObject(responseDoc, msgError, "invalid peripheral detected");
             return 409;  // conflict: invalid peripheral detected
         case ESP_ERR_NOT_FINISHED:
             return 501;  // not yet implemented

@@ -338,10 +338,6 @@ esp_err_t ExternalPort::setUartConfig(std::unique_ptr<UartConfig> config) {
     if (config == nullptr) {
         return ESP_ERR_INVALID_ARG;
     }
-    if (!isModeSupported(RS232)) {
-        ESP_LOGW(tag_, "Output %d does not support RS232 mode", port_);
-        return ESP_ERR_NOT_SUPPORTED;
-    }
 
     if (mode_ == RS232) {
         ESP_LOGW(tag_, "Output is already configured to RS232: new UART cfg will be applied at next init!");

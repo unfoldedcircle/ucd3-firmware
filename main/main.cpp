@@ -293,10 +293,8 @@ port_map_t init_external_ports(Config *cfg, std::shared_ptr<AdcUnit> adc_unit,
             ESP_LOGW(TAG, "Invalid UART configuration for port %d: using default", i);
         }
 
-        esp_err_t ret = ports[i]->setUartConfig(std::move(cfg));
-        if (ret == ESP_OK) {
-            ret = ports[i]->init(port_mode);
-        }
+        ports[i]->setUartConfig(std::move(cfg));  // no check required, invalid uart cfg will fail the init() call below
+        esp_err_t ret = ports[i]->init(port_mode);
         if (ret != ESP_OK) {
             ESP_LOGE(TAG, "External port %d could not be initialized. Error %d", i, ret);
             uc_error_check(ESP_FAIL, i == 1 ? uc_errors::UC_ERROR_INIT_PORT1 : uc_errors::UC_ERROR_INIT_PORT2);
