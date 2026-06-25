@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
-### Fixed
-- Port 1 initialization at startup. Regression introduced in 0.10.3.
-
 ---
+
+## Release 0.10.4 - 2026-06-25
+
+### Fixed
+- Fix Port 1 initialization at startup (regression from 0.10.3) ([#95](https://github.com/unfoldedcircle/ucd3-firmware/pull/95)).
 
 ## Release 0.10.3 - 2026-06-24
 

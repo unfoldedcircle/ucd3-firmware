@@ -1,4 +1,4 @@
-## Release 0.10.3 - 2026-06-24
+## Release 0.10.4 - 2026-06-25
 Änderungen seit der letzten öffentlichen Version 0.8.2.
 
 ### Fehlerbehebungen
