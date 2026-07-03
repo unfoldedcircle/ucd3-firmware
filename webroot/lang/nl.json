@@ -10,7 +10,7 @@
 
   "hdr_device_name": "Apparaatnaam",
   "hdr_led_brightness": "LED-helderheid",
-  "hdr_access_token": "Toegangstoken",
+  "hdr_access_token": "Toegangstoken wijzigen",
   "hdr_actions": "Acties",
   "hdr_conn_status": "Verbindingsstatus",
   "hdr_wifi_net": "WiFi-netwerk",
@@ -92,7 +92,7 @@
   "lbl_reboot_required": "* herstart vereist",
 
   "ph_friendly_name": "Weergavenaam",
-  "ph_token": "Toegangstoken",
+  "ph_token": "Nieuw toegangstoken",
   "ph_send_command": "Commando verzenden",
   "ph_ir_code": "bijv. 4;0x10;12;0 of PRONTO hex",
 
@@ -123,6 +123,7 @@
   "btn_stop_streaming": "Streaming stoppen",
   "btn_copy": "Kopiëren",
 
+  "info_change_token": "Wijzig het WebSocket API toegangstoken voor Remote en beheerinterface (4 - 40 tekens).",
   "info_net_cfg_ipv4": "Alleen IPv4 wordt ondersteund voor statische netwerkconfiguratie.",
   "info_net_cfg_restart": "De dock wordt herstart na het toepassen van netwijzigingen.",
   "info_dns_global": "DNS-instellingen zijn globaal en gelden voor zowel Ethernet als WiFi.",
@@ -145,6 +146,7 @@
   "info_port_esc_header": "Gebruik escape-sequenties om niet-afdrukbare tekens te verzenden:",
   "info_ota_webconfig": "Gebruik voor regelmatige updates in plaats daarvan de <strong>Web-Configurator</strong> op uw Remote-apparaat.<br/>Deze zal u notificeren wanneer een officiële update beschikbaar is en u veilig door het proces leiden.",
 
+  "note_change_token": "⚠️ Het wijzigen van het toegangstoken verbreekt de verbinding met alle clients die deze dock gebruiken totdat ze zijn geherconfigureerd met het nieuwe token.",
   "note_eth_priority": "Ethernet heeft voorrang op WiFi.",
   "note_no_disconnect": "⚠️ <strong>Koppel het dock niet los tijdens de update.</strong>",
   "note_expert_warning": "🧪 <strong>Experimentele functies</strong> – De onderstaande instellingen zijn early-access of ontwikkelingsfuncties die nog niet beschikbaar zijn in het standaardproduct. Ze zijn standaard uitgeschakeld en alleen bedoeld voor testdoeleinden. Ga voorzichtig te werk. We waarderen feedback, maar kunnen geen ondersteuning bieden.",

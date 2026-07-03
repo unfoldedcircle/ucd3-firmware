@@ -10,7 +10,7 @@
 
   "hdr_device_name": "Nom de l'appareil",
   "hdr_led_brightness": "Luminosité LED",
-  "hdr_access_token": "Jeton d'accès",
+  "hdr_access_token": "Modifier le jeton d'accès",
   "hdr_actions": "Actions",
   "hdr_conn_status": "État de la connexion",
   "hdr_wifi_net": "Réseau WiFi",
@@ -92,7 +92,7 @@
   "lbl_ntp_server_2": "Serveur NTP 2",
 
   "ph_friendly_name": "Nom convivial",
-  "ph_token": "Jeton d'accès",
+  "ph_token": "Nouveau jeton d'accès",
   "ph_send_command": "Envoyer commande",
   "ph_ir_code": "ex. 4;0x10;12;0 ou PRONTO hex",
 
@@ -123,6 +123,7 @@
   "btn_stop_streaming": "Arrêter le flux",
   "btn_copy": "Copier",
 
+  "info_change_token": "Modifiez le jeton d'accès de l'API WebSocket pour Remote et l'interface de gestion (4 - 40 caractères).",
   "info_net_cfg_ipv4": "Seul IPv4 est pris en charge pour la configuration réseau statique.",
   "info_net_cfg_restart": "Le dock redémarrera après l'application des modifications réseau.",
   "info_dns_global": "Les paramètres DNS sont globaux et s'appliquent à Ethernet et WiFi.",
@@ -145,6 +146,7 @@
   "info_port_esc_header": "Utilisez des séquences d'échappement pour envoyer des caractères non imprimables :",
   "info_ota_webconfig": "Pour les mises à jour régulières, utilisez plutôt le <strong>Web-Configurator</strong> sur votre appareil Remote.<br/>Il vous notifiera lorsqu'une mise à jour officielle sera disponible et vous guidera en toute sécurité dans le processus.",
 
+  "note_change_token": "⚠️ La modification du jeton d'accès déconnecte tous les clients utilisant ce dock jusqu'à ce qu'ils soient reconfigurés avec le nouveau jeton.",
   "note_eth_priority": "Ethernet a la priorité sur le WiFi.",
   "note_no_disconnect": "⚠️ <strong>Ne déconnectez pas le dock pendant la mise à jour.</strong>",
   "note_expert_warning": "🧪 <strong>Fonctionnalités expérimentales</strong> – Les paramètres ci-dessous sont des fonctionnalités d'accès anticipé ou de développement non encore disponibles dans le produit standard. Elles sont désactivées par défaut et destinées uniquement à des fins de test. Procédez avec prudence. Nous apprécions les retours, mais ne pouvons pas fournir de support.",

@@ -10,7 +10,7 @@
 
   "hdr_device_name": "Enhedsnavn",
   "hdr_led_brightness": "LED-lysstyrke",
-  "hdr_access_token": "Adgangstoken",
+  "hdr_access_token": "Skift adgangstoken",
   "hdr_actions": "Handlinger",
   "hdr_conn_status": "Forbindelsesstatus",
   "hdr_wifi_net": "WiFi-netværk",
@@ -92,7 +92,7 @@
   "lbl_ntp_server_2": "NTP-server 2",
 
   "ph_friendly_name": "Kaldenavn",
-  "ph_token": "Adgangstoken",
+  "ph_token": "Nyt adgangstoken",
   "ph_send_command": "Send kommando",
   "ph_ir_code": "f.eks. 4;0x10;12;0 eller PRONTO hex",
 
@@ -123,6 +123,7 @@
   "btn_stop_streaming": "Stop streaming",
   "btn_copy": "Kopiér",
 
+  "info_change_token": "Skift WebSocket API adgangstoken for Remote og administrations-UI (4 - 40 tegn).",
   "info_net_cfg_ipv4": "Kun IPv4 understøttes til statisk netværkskonfiguration.",
   "info_net_cfg_restart": "Docken genstarter efter anvendelse af netværksændringer.",
   "info_dns_global": "DNS-indstillinger er globale og gælder for både Ethernet og WiFi.",
@@ -145,6 +146,7 @@
   "info_port_esc_header": "Brug escape-sekvenser til at sende ikke-udskrivbare tegn:",
   "info_ota_webconfig": "Brug i stedet <strong>Web-Konfiguratoren</strong> på din Remote-enhed til regelmæssige opdateringer.<br/>Den vil underrette dig, når en officiel opdatering er tilgængelig og guide dig sikkert gennem processen.",
 
+  "note_change_token": "⚠️ Ændring af adgangstoken afbryder alle klienter, der bruger denne dock, indtil de er konfigureret med det nye token.",
   "note_eth_priority": "Ethernet har prioritet over WiFi.",
   "note_no_disconnect": "⚠️ <strong>Afbryd ikke dock'en under opdatering.</strong>",
   "note_expert_warning": "🧪 <strong>Eksperimentelle funktioner</strong> – Indstillingerne nedenfor er early-access eller udviklingsfunktioner, der endnu ikke er tilgængelige i standardproduktet. De er deaktiveret som standard og kun beregnet til testformål. Fortsæt med forsigtighed. Vi sætter pris på feedback, men kan ikke yde support.",

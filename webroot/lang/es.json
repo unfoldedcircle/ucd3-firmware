@@ -10,7 +10,7 @@
 
   "hdr_device_name": "Nombre del dispositivo",
   "hdr_led_brightness": "Brillo LED",
-  "hdr_access_token": "Token de acceso",
+  "hdr_access_token": "Cambiar token de acceso",
   "hdr_actions": "Acciones",
   "hdr_conn_status": "Estado de conexión",
   "hdr_wifi_net": "Red WiFi",
@@ -92,7 +92,7 @@
   "lbl_ntp_server_2": "Servidor NTP 2",
 
   "ph_friendly_name": "Nombre descriptivo",
-  "ph_token": "Token de acceso",
+  "ph_token": "Nuevo token de acceso",
   "ph_send_command": "Enviar comando",
   "ph_ir_code": "ej. 4;0x10;12;0 o PRONTO hex",
 
@@ -123,6 +123,7 @@
   "btn_stop_streaming": "Detener transmisión",
   "btn_copy": "Copiar",
 
+  "info_change_token": "Cambia el token de acceso de la API WebSocket para Remote y la interfaz de gestión (4 - 40 caracteres).",
   "info_net_cfg_ipv4": "Solo IPv4 es compatible con la configuración de red estática.",
   "info_net_cfg_restart": "El dock se reiniciará después de aplicar los cambios de red.",
   "info_dns_global": "La configuración DNS es global y se aplica a Ethernet y WiFi.",
@@ -145,6 +146,7 @@
   "info_port_esc_header": "Use secuencias de escape para enviar caracteres no imprimibles:",
   "info_ota_webconfig": "Para actualizaciones regulares, use el <strong>Web-Configurator</strong> en su dispositivo Remote en su lugar.<br/>Le notificará cuando haya una actualización oficial disponible y le guiará de forma segura a través del proceso.",
 
+  "note_change_token": "⚠️ Cambiar el token de acceso desconecta todos los clientes que usan este dock hasta que se reconfiguran con el nuevo token.",
   "note_eth_priority": "Ethernet tiene prioridad sobre WiFi.",
   "note_no_disconnect": "⚠️ <strong>No desconecte el dock durante la actualización.</strong>",
   "note_expert_warning": "🧪 <strong>Funciones experimentales</strong> – Las configuraciones siguientes son funciones de acceso anticipado o en desarrollo que aún no están disponibles en el producto estándar. Están desactivadas por defecto y destinadas solo para fines de prueba. Proceda con precaución. Apreciamos los comentarios, pero no podemos proporcionar soporte.",
