@@ -10,7 +10,7 @@
 
   "hdr_device_name": "Laitteen nimi",
   "hdr_led_brightness": "LED-kirkkaus",
-  "hdr_access_token": "Käyttöoikeustunnus",
+  "hdr_access_token": "Vaihda käyttöoikeustunnus",
   "hdr_actions": "Toiminnot",
   "hdr_conn_status": "Yhteystila",
   "hdr_wifi_net": "WiFi-verkko",
@@ -92,7 +92,7 @@
   "lbl_ntp_server_2": "NTP-palvelin 2",
 
   "ph_friendly_name": "Kutsumanimi",
-  "ph_token": "Käyttöoikeustunnus",
+  "ph_token": "Uusi käyttöoikeustunnus",
   "ph_send_command": "Lähetä komento",
   "ph_ir_code": "esim. 4;0x10;12;0 tai PRONTO-heks",
 
@@ -123,6 +123,7 @@
   "btn_stop_streaming": "Pysäytä suoratoisto",
   "btn_copy": "Kopioi",
 
+  "info_change_token": "Vaihda WebSocket API:n käyttöoikeustunnus Remote- ja hallintakäyttöliittymää varten (4 - 40 merkkiä).",
   "info_net_cfg_ipv4": "Vain IPv4 on tuettu staattiseen verkkoasetukseen.",
   "info_net_cfg_restart": "Telakka käynnistyy uudelleen verkkoasetusten käytön jälkeen.",
   "info_dns_global": "DNS-asetukset ovat globaaleja ja koskevat sekä Ethernetiä että WiFiä.",
@@ -145,6 +146,7 @@
   "info_port_esc_header": "Käytä escape-merkkijonoja ei-tulostettavien merkkien lähettämiseen:",
   "info_ota_webconfig": "Käytä säännöllisiin päivityksiin sen sijaan Remote-laitteesi <strong>Web-Konfiguraattoria</strong>.<br/>Se ilmoittaa, kun virallinen päivitys on saatavilla, ja opastaa sinut turvallisesti prosessin läpi.",
 
+  "note_change_token": "⚠️ Käyttöoikeustunnuksen vaihtaminen katkaisee yhteyden kaikkiin tätä telakkaa käyttäviin asiakkaisiin, kunnes ne on määritetty uudelleen uudella tunnuksella.",
   "note_eth_priority": "Ethernetillä on etusija WiFiin nähden.",
   "note_no_disconnect": "⚠️ <strong>Älä irrota telakkaa päivityksen aikana.</strong>",
   "note_expert_warning": "🧪 <strong>Kokeelliset ominaisuudet</strong> – Alla olevat asetukset ovat varhaisen pääsyn tai kehitysvaiheen ominaisuuksia, jotka eivät vielä ole saatavilla vakiotuotteessa. Ne on oletusarvoisesti poistettu käytöstä ja tarkoitettu vain testikäyttöön. Jatka varoen. Arvostamme palautetta, mutta emme voi tarjota tukea.",

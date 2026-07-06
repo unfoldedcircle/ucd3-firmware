@@ -10,7 +10,7 @@
 
   "hdr_device_name": "Nome dispositivo",
   "hdr_led_brightness": "Luminosità LED",
-  "hdr_access_token": "Token di accesso",
+  "hdr_access_token": "Cambia token di accesso",
   "hdr_actions": "Azioni",
   "hdr_conn_status": "Stato connessione",
   "hdr_wifi_net": "Rete WiFi",
@@ -92,7 +92,7 @@
   "lbl_ntp_server_2": "Server NTP 2",
 
   "ph_friendly_name": "Nome amichevole",
-  "ph_token": "Token di accesso",
+  "ph_token": "Nuovo token di accesso",
   "ph_send_command": "Invia comando",
   "ph_ir_code": "es. 4;0x10;12;0 o PRONTO hex",
 
@@ -123,6 +123,7 @@
   "btn_stop_streaming": "Arresta streaming",
   "btn_copy": "Copia",
 
+  "info_change_token": "Cambia il token di accesso API WebSocket per Remote e l'interfaccia di gestione (4 - 40 caratteri).",
   "info_net_cfg_ipv4": "Solo IPv4 è supportato per la configurazione di rete statica.",
   "info_net_cfg_restart": "Il dock si riavvierà dopo l'applicazione delle modifiche di rete.",
   "info_dns_global": "Le impostazioni DNS sono globali e si applicano sia a Ethernet che a WiFi.",
@@ -145,6 +146,7 @@
   "info_port_esc_header": "Usa sequenze di escape per inviare caratteri non stampabili:",
   "info_ota_webconfig": "Per gli aggiornamenti regolari, utilizzare invece il <strong>Web-Configurator</strong> sul dispositivo Remote.<br/>Notificherà quando è disponibile un aggiornamento ufficiale e guiderà in modo sicuro attraverso il processo.",
 
+  "note_change_token": "⚠️ La modifica del token di accesso disconnette tutti i client che utilizzano questo dock fino a quando non vengono riconfigurati con il nuovo token.",
   "note_eth_priority": "Ethernet ha priorità su WiFi.",
   "note_no_disconnect": "⚠️ <strong>Non scollegare il dock durante l'aggiornamento.</strong>",
   "note_expert_warning": "🧪 <strong>Funzionalità sperimentali</strong> – Le impostazioni seguenti sono funzionalità di accesso anticipato o di sviluppo non ancora disponibili nel prodotto standard. Sono disabilitate per impostazione predefinita e destinate solo a scopo di test. Procedere con cautela. Apprezziamo i feedback, ma non possiamo fornire supporto.",

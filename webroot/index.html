@@ -90,11 +90,18 @@
         </div>
 
         <div class="card">
-          <h2 data-i18n="hdr_access_token">Access Token</h2>
+          <h2>
+            <span data-i18n="hdr_access_token">Change Access Token</span>
+            <button class="info-trigger" aria-label="Change Access Token info" popovertarget="token-info">i</button>
+          </h2>
+          <div id="token-info" class="info-popover" popover role="dialog" data-i18n="info_change_token">
+            Change the Dock access token (4 - 40 characters).
+          </div>
           <div class="form-row form-inline">
-            <input type="password" id="cfg-token" minlength="4" maxlength="40" data-i18n-ph="ph_token" placeholder="Access Token">
+            <input type="password" id="cfg-token" minlength="4" maxlength="40" data-i18n-ph="ph_token" placeholder="New Access Token">
             <button id="btn-save-token" data-i18n="btn_change">Change</button>
           </div>
+          <p class="note note-warning" data-i18n-html="note_change_token">⚠️ Changing the access token disconnects all clients using this dock until they are reconfigured with the new token.</p>
         </div>
 
         <div class="card">

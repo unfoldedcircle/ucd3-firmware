@@ -10,7 +10,7 @@
 
   "hdr_device_name": "Device Name",
   "hdr_led_brightness": "LED Brightness",
-  "hdr_access_token": "Access Token",
+  "hdr_access_token": "Change Access Token",
   "hdr_actions": "Actions",
   "hdr_conn_status": "Connection Status",
   "hdr_wifi_net": "WiFi Network",
@@ -93,7 +93,7 @@
   "lbl_ntp_server_2": "NTP Server 2",
 
   "ph_friendly_name": "Friendly name",
-  "ph_token": "Access Token",
+  "ph_token": "New Access Token",
   "ph_send_command": "Send command",
   "ph_ir_code": "e.g. 4;0x10;12;0 or PRONTO hex",
 
@@ -124,6 +124,7 @@
   "btn_stop_streaming": "Stop Streaming",
   "btn_copy": "Copy",
 
+  "info_change_token": "Change the WebSocket API access token for the Remote and management UI (4 - 40 characters).",
   "info_net_cfg_ipv4": "Only IPv4 is supported for static network configuration.",
   "info_net_cfg_restart": "The dock will restart after applying network changes.",
   "info_dns_global": "DNS settings are global and apply to both Ethernet and WiFi.",
@@ -146,6 +147,7 @@
   "info_port_esc_header": "Use escape sequences to send non-printable characters:",
   "info_ota_webconfig": "For regular updates, use the <strong>Web-Configurator</strong> on your Remote device instead.<br/>It will notify you when an official update is available and guide you through the process safely.",
 
+  "note_change_token": "⚠️ Changing the access token disconnects all clients using this dock until they are reconfigured with the new token.",
   "note_eth_priority": "Ethernet has priority over WiFi.",
   "note_expert_warning": "🧪 <strong>Experimental Features</strong> – The settings below are early-access or development features not yet available in the standard product. They are disabled by default and intended for testing purposes only. Proceed with caution. We appreciate feedback but can't provide support.",
   "note_no_disconnect": "⚠️ <strong>Do not disconnect the dock during update.</strong>",
