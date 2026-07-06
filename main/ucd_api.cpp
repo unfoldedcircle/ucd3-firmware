@@ -178,6 +178,27 @@ void schedule_restart(WebServer *web, uint16_t delay_ms, bool reset = false) {
     ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, delay_ms * 1000));
 }
 
+static void disconnect_clients(void *arg) {
+    WebServer *web = static_cast<WebServer *>(arg);
+    if (web) {
+        web->disconnectAll();
+    }
+}
+
+void schedule_disconnect_all(WebServer *web, uint16_t delay_ms) {
+    const esp_timer_create_args_t timer_args = {
+        .callback = &disconnect_clients,
+        .arg = web,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "disconnect_all",
+        .skip_unhandled_events = false,
+    };
+
+    esp_timer_handle_t timer;
+    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &timer));
+    ESP_ERROR_CHECK(esp_timer_start_once(timer, delay_ms * 1000));
+}
+
 /// @brief cJSON helper function to read an integer
 /// @param root json object
 /// @param field field name
@@ -747,6 +768,9 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                     cJSON_AddStringToObject(responseDoc, msgError, "Token length must be 4..40");
                 } else {
                     ok = config_->setToken(token);
+                    if (ok) {
+                        schedule_disconnect_all(web, 1000);
+                    }
                 }
             }
         }
