@@ -692,7 +692,7 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         item = cJSON_GetObjectItem(root, msgToken);
         value = cJSON_GetStringValue(item);
 
-        if (value == config_->getToken()) {
+        if (value && config_->getToken() == value) {
             // add client to authorized clients
             if (web->setAuthenticated(sockfd) == ESP_OK) {
                 if (xSemaphoreTake(unauthenticated_fds_mutex_, AUTH_MUTEX_BLOCK_TIME) != pdTRUE) {

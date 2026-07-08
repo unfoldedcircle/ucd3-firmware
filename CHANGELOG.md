@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- Runtime crash for malformed authentication messages.
+
 ### Changed
 - Add a token change warning in web-ui ([#96](https://github.com/unfoldedcircle/ucd3-firmware/pull/96)).
 - Disconnect all WebSocket clients after changing the access token.
