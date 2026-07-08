@@ -219,16 +219,39 @@ uint16_t InfraredService::send(int16_t clientId, uint32_t msgId, const std::stri
         return 400;
     }
 
+    // Safety cap on the client-requested repeat count. The `repeat` field is a uint16_t and is not
+    // range-checked on the WebSocket API, so without this a client could request a very large repeat
+    // value and trigger a runaway transmission (e.g. sending "volume up" dozens of times from a single
+    // request). Press-and-hold is unaffected: a client holds a button by repeatedly extending the
+    // active repeat with the same command (see the matching-extend branch below), not by requesting a
+    // large initial repeat count.
+    if (repeat > MAX_REPEAT) {
+        ESP_LOGW(irLog, "repeat count %u exceeds limit %lu, capping", repeat, MAX_REPEAT);
+    }
+    repeat = static_cast<uint16_t>(std::min<uint32_t>(repeat, MAX_REPEAT));
+
     bool sending = uxQueueMessagesWaiting(m_queue) > 0;
 
-    // #30 handle IR repeat if it's the same command. This is a very simple, initial implementation (ignore repeat val)
+    // #30 A request for the currently-active code extends its repeat/hold ("press-and-hold"): while the
+    // button is held the client keeps re-sending the same command. Re-arm the repeat so the send task
+    // starts another countdown on its next repeat-callback tick.
+    // Notes:
+    // - the repeat value itself is ignored on an extend.
+    // - a genuine stop (IR_REPEAT_STOP_BIT, set only by ir_stop or by the owning client
+    //   disconnecting) is intentionally NOT cleared here. A stop always takes priority in the send-task
+    //   callback, which is the safe default: if the owner asked to stop, the repeat must stop.
     if (sending && repeat > 0 && m_currentSendCode == code) {
         ESP_LOGI(irLog, "repeat req %lu", msgId);
         xEventGroupSetBits(m_eventgroup, IR_REPEAT_BIT);
         return 202;  // extended IR repeat sequence
     }
 
-    // try to save an allocation if still sending an IR code
+    // A request arrived while a different transmission is still active (different code, or repeat == 0).
+    // Only one IR transmission may be active at a time, so this request is rejected with 429. The active
+    // send is deliberately left running: a rejected request from one client must never cancel another
+    // client's in-progress repeat/hold. The active send ends on its own terms — when its owner stops
+    // extending it (the repeat counts down), on an explicit ir_stop, or when the owning client
+    // disconnects (handled in the WebSocket layer). The caller may retry shortly after.
     if (sending) {
         return 429;  // too many requests
     }
