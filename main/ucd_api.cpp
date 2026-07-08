@@ -485,11 +485,7 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
                 }
 #endif
 
-                // send auth request message
-                if (authenticated) {
-                    return ESP_OK;
-                }
-
+                // send auth request message (a new connection always needs to be authenticated)
                 if (xSemaphoreTake(unauthenticated_fds_mutex_, AUTH_MUTEX_BLOCK_TIME) != pdTRUE) {
                     ESP_LOGE(TAG, "Failed to lock FDs in connect");
                     return ESP_FAIL;
