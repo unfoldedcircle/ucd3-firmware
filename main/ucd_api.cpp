@@ -432,21 +432,37 @@ DockApi::DockApi(Config *config, WebServer *web, port_map_t ports)
         switch (type) {
             case WS_CONNECTED: {
 #if CONFIG_LWIP_IPV6
-                struct sockaddr_in6 addr_in;
+                struct sockaddr_storage addr_storage = {};
 #else
-                struct sockaddr_in addr_in;
+                struct sockaddr_in addr_in = {};
 #endif
                 char buf[48] = {0};
-                if (WebServer::getRemoteIp(sockfd, &addr_in) == ESP_OK) {
-                    ESP_LOGI(TAG, "[%s:%d] new WS client connection: %d",
 #if CONFIG_LWIP_IPV6
-                             inet_ntoa_r(addr_in.sin6_addr.un.u32_addr[3], buf, sizeof(buf)), addr_in.sin6_port,
-#else
-                             inet_ntoa_r(((struct sockaddr_in *)&addr_in)->sin_addr, buf, sizeof(buf)),
-                             ntohs(addr_in.sin_port),
-#endif
-                             sockfd);
+                if (WebServer::getRemoteIp(sockfd, reinterpret_cast<struct sockaddr_in6 *>(&addr_storage)) == ESP_OK) {
+                    const char *ip = nullptr;
+                    uint16_t    port = 0;
+
+                    if (addr_storage.ss_family == AF_INET) {
+                        auto *addr4 = reinterpret_cast<struct sockaddr_in *>(&addr_storage);
+                        ip = inet_ntoa_r(addr4->sin_addr, buf, sizeof(buf));
+                        port = ntohs(addr4->sin_port);
+                        ESP_LOGI(TAG, "new WS client connection %d from: %s:%u", sockfd, ip, port);
+                    } else if (addr_storage.ss_family == AF_INET6) {
+                        auto *addr6 = reinterpret_cast<struct sockaddr_in6 *>(&addr_storage);
+                        ip = inet6_ntoa_r(addr6->sin6_addr, buf, sizeof(buf));
+                        port = ntohs(addr6->sin6_port);
+                        ESP_LOGI(TAG, "new WS client connection %d from: [%s]:%u", sockfd, ip, port);
+                    } else {
+                        ESP_LOGW(TAG, "New WS client connection %d with unknown address family: %d", sockfd,
+                                 addr_storage.ss_family);
+                    }
                 }
+#else
+                if (WebServer::getRemoteIp(sockfd, &addr_in) == ESP_OK) {
+                    ESP_LOGI(TAG, "new WS client connection %d from: %s:%u", sockfd,
+                             inet_ntoa_r(addr_in.sin_addr, buf, sizeof(buf)), ntohs(addr_in.sin_port));
+                }
+#endif
 
                 // send auth request message
                 if (authenticated) {
