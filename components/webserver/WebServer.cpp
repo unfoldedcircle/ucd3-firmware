@@ -156,6 +156,7 @@ static bool is_precompressed(const char *path) {
 static esp_err_t rest_common_get_handler(httpd_req_t *req) {
     char filepath[FILE_PATH_MAX];
 
+    // Note: path traversals are already resolved in the IDF httpd server
     rest_server_context_t *rest_context = (rest_server_context_t *)req->user_ctx;
     strlcpy(filepath, rest_context->base_path, sizeof(filepath));
     strlcat(filepath, req->uri, sizeof(filepath));
@@ -606,7 +607,10 @@ void WebServer::disconnectAll() {
 
 void WebServer::forceCloseWs(int id, uint16_t code) {
     struct async_resp_arg *resp_arg = static_cast<async_resp_arg *>(malloc(sizeof(struct async_resp_arg)));
-    assert(resp_arg);
+    if (resp_arg == NULL) {
+        ESP_LOGE(TAG, "No memory: can't close WS, rebooting");
+        esp_restart();  // never returns
+    }
     resp_arg->hd = server_;
     resp_arg->fd = id;
     resp_arg->type = HTTPD_WS_TYPE_CLOSE;
@@ -658,9 +662,15 @@ esp_err_t WebServer::sendWsTxt(int id, std::string &msg) {
 }
 
 esp_err_t WebServer::sendWsTxt(int id, const char *msg) {
-    return sendWsTxt(id, strdup(msg));
+    char *buf = strdup(msg);
+    if (buf == NULL) {
+        ESP_LOGE(TAG, "No memory: can't send WS msg for %d, rebooting", id);
+        esp_restart();
+    }
+    return sendWsTxt(id, buf);
 }
 esp_err_t WebServer::sendWsTxt(int id, char *msg) {
+    assert(msg);
     if (!server_) {
         return ESP_FAIL;
     }
@@ -671,7 +681,10 @@ esp_err_t WebServer::sendWsTxt(int id, char *msg) {
 
     // ESP_LOGI(TAG, "Active client (fd=%d) -> sending async message: %s", id, msg);
     struct async_resp_arg *resp_arg = static_cast<async_resp_arg *>(malloc(sizeof(struct async_resp_arg)));
-    assert(resp_arg);
+    if (resp_arg == NULL) {
+        ESP_LOGE(TAG, "No memory: can't send WS msg for %d, rebooting", id);
+        esp_restart();
+    }
     resp_arg->hd = server_;
     resp_arg->fd = id;
     resp_arg->type = HTTPD_WS_TYPE_TEXT;
