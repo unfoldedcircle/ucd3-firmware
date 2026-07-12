@@ -846,8 +846,6 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
         std::string format = cjson_get_string(root, "format", "");
         uint16_t    response = 400;
 
-        sockfdSendIR_ = -1;
-
         // make sure there are no leading or trailing spaces that could interfere with PRONTO parsing
         trim(ir_code);
 
@@ -867,9 +865,22 @@ esp_err_t DockApi::processRequest(httpd_req_t *req, int sockfd, const char *text
                                                            intTop, ext1, ext2);
             if (response == 0 || (response == 202 && (feature & API_FEATURE_FLAG_IR_REPEAT_NO_RESPONSE))) {
                 // asynchronous reply
-                if (repeat > 1) {
-                    // save client socket to stop IR repeat on WebSocket disconnect
+                //
+                // Remember which client owns a continuously-transmitting send so it can be stopped if
+                // that client disconnects (see the WS_DISCONNECTED handling). A send transmits
+                // continuously whenever `repeat > 0` OR `hold > 0`: the IR send task promotes a
+                // hold-only request (`hold > 0 && repeat == 0`) to `repeat = 1` and keeps transmitting
+                // until the hold timer expires (see InfraredService::send_ir_f). This tracking condition
+                // MUST match that definition — otherwise a press-and-hold started via the `hold`
+                // parameter would keep transmitting after its initiating client vanished.
+                if (repeat > 0 || hold > 0) {
+                    // save client socket to stop the active IR repeat/hold on WebSocket disconnect
                     sockfdSendIR_ = sockfd;
+                } else if (response == 0) {
+                    // response == 0 means a brand new transmission was queued (nothing was active before,
+                    // see InfraredService::send()), and it neither repeats nor holds: nothing is left
+                    // running to track once it completes.
+                    sockfdSendIR_ = -1;
                 }
                 cJSON_Delete(responseDoc);
                 cJSON_Delete(root);
