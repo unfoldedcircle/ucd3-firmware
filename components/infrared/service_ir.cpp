@@ -385,9 +385,9 @@ void InfraredService::rebootIfMemError(int memError) {
     // Check we malloc'ed successfully.
     if (memError == 1) {  // malloc failed, so give up.
         ESP_LOGE(irLog, "FATAL: Can't allocate memory for an array for a new message! Forcing a reboot!");
-        vTaskDelay(2000 / portTICK_PERIOD_MS);  // Enough time for messages to be sent.
+        vTaskDelay(pdMS_TO_TICKS(2000));  // Enough time for messages to be sent.
         esp_restart();
-        vTaskDelay(5000 / portTICK_PERIOD_MS);  // Enough time to ensure we don't return.
+        vTaskDelay(pdMS_TO_TICKS(5000));  // Enough time to ensure we don't return.
     }
 }
 
