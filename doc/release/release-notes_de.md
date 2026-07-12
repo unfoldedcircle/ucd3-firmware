@@ -1,3 +1,15 @@
+## Unreleased
+
+### Fehlerbehebungen
+- Verbesserte Zuverlässigkeit beim Senden wiederholter IR-Befehle oder langer Tastendrücke. Das Dock stoppt das Senden jetzt, sobald die steuernde App die Verbindung trennt ([#99](https://github.com/unfoldedcircle/ucd3-firmware/pull/99)).
+- Verbesserte Genauigkeit und Kompatibilität beim Senden von IR-Befehlen, insbesondere bei wiederholten RAW-IR-Befehlen und zeitkritischen Protokollen ([#100](https://github.com/unfoldedcircle/ucd3-firmware/pull/100), [#101](https://github.com/unfoldedcircle/ucd3-firmware/pull/101)).
+- Absturz behoben, wenn ein Client eine fehlerhafte Anmeldenachricht sendet ([#98](https://github.com/unfoldedcircle/ucd3-firmware/pull/98)).
+- Falsche IP-Adressen in den Logs für bestimmte Client-Verbindungen behoben.
+
+### Geändert
+- Die Weboberfläche zeigt jetzt eine Warnung an, bevor das Zugriffstoken geändert wird, da verbundene Clients danach erneut angemeldet werden müssen ([#96](https://github.com/unfoldedcircle/ucd3-firmware/pull/96)).
+- Nach dem Ändern des Zugriffstokens werden alle verbundenen Clients getrennt, damit sie sich mit dem neuen Token erneut anmelden müssen ([#97](https://github.com/unfoldedcircle/ucd3-firmware/pull/97)).
+
 ## Release 0.10.4 - 2026-06-25
 Änderungen seit der letzten öffentlichen Version 0.8.2.
 

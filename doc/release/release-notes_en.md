@@ -1,3 +1,15 @@
+## Unreleased
+
+### Fixed
+- Improved reliability when sending repeated or long-press IR commands. The Dock now stops sending as soon as the controlling app disconnects ([#99](https://github.com/unfoldedcircle/ucd3-firmware/pull/99)).
+- Improved IR sending accuracy and compatibility, especially for repeated RAW IR commands and protocols that are sensitive to timing ([#100](https://github.com/unfoldedcircle/ucd3-firmware/pull/100), [#101](https://github.com/unfoldedcircle/ucd3-firmware/pull/101)).
+- Fixed a crash that could happen when a client sends an invalid sign-in message ([#98](https://github.com/unfoldedcircle/ucd3-firmware/pull/98)).
+- Fixed incorrect IP addresses shown in logs for some client connections.
+
+### Changed
+- The web interface now shows a warning before changing the access token, since connected clients need to sign in again afterward ([#96](https://github.com/unfoldedcircle/ucd3-firmware/pull/96)).
+- After changing the access token, all connected clients are disconnected, so they have to reconnect with the new token ([#97](https://github.com/unfoldedcircle/ucd3-firmware/pull/97)).
+
 ## Release 0.10.4 - 2026-06-25
 Changes since the last public release, 0.8.2.
 

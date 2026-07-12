@@ -10,11 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 _Changes in the next release_
 
 ### Fixed
-- Runtime crash for malformed authentication messages.
+- Runtime crash for malformed authentication messages ([#98](https://github.com/unfoldedcircle/ucd3-firmware/pull/98)).
+- Log the correct IP address for IPv6 WebSocket client connections.
+- Reliably stop active IR repeat/hold when the initiating WebSocket client disconnects, cap excessive repeat counts ([#99](https://github.com/unfoldedcircle/ucd3-firmware/pull/99)).
+- IR sending edge cases and undefined behavior in the IRremoteESP8266 library ([#100](https://github.com/unfoldedcircle/ucd3-firmware/pull/100)).
 
 ### Changed
 - Add a token change warning in web-ui ([#96](https://github.com/unfoldedcircle/ucd3-firmware/pull/96)).
-- Disconnect all WebSocket clients after changing the access token.
+- Disconnect all WebSocket clients after changing the access token ([#97](https://github.com/unfoldedcircle/ucd3-firmware/pull/97)).
+- Update IRremoteESP8266 library, including raw IR repeat gap support to prevent fused marks ([#100](https://github.com/unfoldedcircle/ucd3-firmware/pull/100)).
+- Improve IR send timing accuracy by increasing the FreeRTOS tick rate to 1000 Hz ([#101](https://github.com/unfoldedcircle/ucd3-firmware/pull/101)).
+- Log WebSocket message memory allocation failures before restarting.
 
 ---
 
