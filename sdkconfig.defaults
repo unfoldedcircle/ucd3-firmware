@@ -8,6 +8,9 @@ CONFIG_UCD_WEB_ENABLE_CORS=y
 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ=240
 
+# Use 1000Hz freertos tick for better IR accuracy with IRremoteESP8266
+CONFIG_FREERTOS_HZ=1000
+
 # disable uart0 log output in 2nd stage bootloader
 CONFIG_BOOTLOADER_LOG_LEVEL_NONE=y
 # only use usb uart

@@ -490,7 +490,7 @@ void Config::reset() {
 
     ESP_LOGD(m_ctx, "Resetting general done.");
 
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(pdMS_TO_TICKS(500));
 
     ESP_LOGD(m_ctx, "Resetting wifi.");
     m_preferences.begin(m_prefWifi, false);
@@ -499,7 +499,7 @@ void Config::reset() {
 
     ESP_LOGD(m_ctx, "Resetting wifi done.");
 
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(pdMS_TO_TICKS(500));
 
     ESP_LOGD(m_ctx, "Erasing flash.");
     int err;
@@ -513,7 +513,7 @@ void Config::reset() {
     // --> see workaround with a timer in the display state machine
     ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(UC_DOCK_EVENTS, UC_EVENT_REBOOT, NULL, 0, pdMS_TO_TICKS(500)));
 
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(pdMS_TO_TICKS(500));
 
     esp_restart();
 }
