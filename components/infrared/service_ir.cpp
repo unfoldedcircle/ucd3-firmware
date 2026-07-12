@@ -435,6 +435,9 @@ void InfraredService::send_ir_f(void *param) {
         if (bits & IR_REPEAT_STOP_BIT) {
             // abort immediately
             repeat = 0;
+            if (holdTimeLimit > 0) {
+                holdTimeLimit = 1;
+            }
             ESP_LOGI(irLogSend, "stopping repeat");
         } else if (bits & IR_REPEAT_BIT) {
             // reset repeat count and start counting down again
@@ -481,8 +484,8 @@ void InfraredService::send_ir_f(void *param) {
         // pIrMsg now points to the struct IRSendMessage variable, but the item still remains on the queue.
         // This blocks the sender from queuing more messages and notify the client with a "busy error".
 
-        ESP_LOGI(irLogSend, "new command: id=%lu, format=%u, repeat=%u, mask_e=%llu, mask_s=%llu, mask_c=%llu",
-                 pIrMsg->msgId, (uint8_t)pIrMsg->format, pIrMsg->repeat, pIrMsg->pin_mask.w1ts_enable,
+        ESP_LOGI(irLogSend, "new command: id=%lu, format=%u, repeat=%u, hold=%u, mask_e=%llu, mask_s=%llu, mask_c=%llu",
+                 pIrMsg->msgId, (uint8_t)pIrMsg->format, pIrMsg->repeat, pIrMsg->hold, pIrMsg->pin_mask.w1ts_enable,
                  pIrMsg->pin_mask.w1ts, pIrMsg->pin_mask.w1tc);
 
         if (pIrMsg->hold > 0 && pIrMsg->repeat == 0) {
@@ -543,7 +546,7 @@ void InfraredService::send_ir_f(void *param) {
                         if (min_repeat > 1) {
                             data.repeat = std::min(static_cast<uint32_t>(data.repeat * min_repeat), MAX_REPEAT);
                             repeatLimit = data.repeat;
-                            ESP_LOGI(irLogSend, "repeat: req=%u, min=%d, ir=%d", pIrMsg->repeat, min_repeat,
+                            ESP_LOGD(irLogSend, "repeat: req=%u, min=%d, ir=%d", pIrMsg->repeat, min_repeat,
                                      data.repeat);
                         }
                     }
