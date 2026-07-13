@@ -1,8 +1,7 @@
-## Unreleased
+## Release 0.10.5 - 2026-07-13
 
 ### Fehlerbehebungen
-- Verbesserte Zuverlässigkeit beim Senden wiederholter IR-Befehle oder langer Tastendrücke. Das Dock stoppt das Senden jetzt, sobald die steuernde App die Verbindung trennt ([#99](https://github.com/unfoldedcircle/ucd3-firmware/pull/99)).
-- Verbesserte Genauigkeit und Kompatibilität beim Senden von IR-Befehlen, insbesondere bei wiederholten RAW-IR-Befehlen und zeitkritischen Protokollen ([#100](https://github.com/unfoldedcircle/ucd3-firmware/pull/100), [#101](https://github.com/unfoldedcircle/ucd3-firmware/pull/101)).
+- Verbesserte Zuverlässigkeit und Kompatibilität beim Senden von IR-Befehlen, insbesondere bei wiederholten Befehlen, langen Tastendrücken und Geräten, die empfindlich auf das Timing reagieren. Das Dock stoppt das Senden, sobald der steuernde Client die Verbindung trennt ([#99](https://github.com/unfoldedcircle/ucd3-firmware/pull/99), [#100](https://github.com/unfoldedcircle/ucd3-firmware/pull/100), [#101](https://github.com/unfoldedcircle/ucd3-firmware/pull/101)).
 - Absturz behoben, wenn ein Client eine fehlerhafte Anmeldenachricht sendet ([#98](https://github.com/unfoldedcircle/ucd3-firmware/pull/98)).
 - Falsche IP-Adressen in den Logs für bestimmte Client-Verbindungen behoben.
 
@@ -57,39 +56,3 @@
 
 ### Geändert
 - Nicht in den WiFi-Einrichtungsmodus wechseln, wenn die Einrichtung der Verbindung fehlgeschlagen ist ([bug-tracker#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612))
-
-## Beta Release 0.7.1 - 2025-08-28
-### Geändert
-- Anhebung der Überstrombegrenzung auf 1850mA ([#30](https://github.com/unfoldedcircle/ucd3-firmware/pull/30)).
-
-## Beta Release 0.7.0 - 2025-07-17
-### Fehlerbehebungen
-- Automatische Erkennung von zwei IR-Blaster.
-- Fehleranzeige auf dem Bildschirm bei Ladeabschaltung aufgrund von Überstromerkennung ([#bug-tracker501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
-- PRONTO-Code-Parsing mit nachgestellten Leerzeichen ([bug-tracker#495](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/495)).
-- Einrichtung mit einem benutzerdefinierten Passwort auf Fernbedienungen mit einer Firmware-Version <= 2.6.1 ([bug-tracker#489](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/489)).
-- Rückgabe des korrekten Netzwerkverbindungstyps (Ethernet oder WiFi).
-- Anzeige der korrekten Ladeinformationen im Info-Bildschirm beim Drücken der Steuerungstaste.
-- Allgemeine Stabilitätsverbesserungen.
-
-### Neue Funktionen
-- Überprüfung des Ladegeräts auf Unterspannung.
-
-### Geändert
-- Verbesserung der Ladestrommessung und der Überstromerkennung zur Vermeidung von Ladeabschaltungen ([bug-tracker#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
-- Bestimmung des Ladespannungs-Offset beim Start, um ein Umschalten zwischen den Lade- und Nichtladebildschirmen zu verhindern.
-
-## Beta Release 0.6.0 - 2025-06-02
-### Fehlerbehebungen
-- Die externen Ports 1 und 2 wurden gemäß Handbuch getauscht: Port 1 befindet sich neben dem Ethernet-Port.
-- Startup-Crash beim Netzwerk-Check, wenn andere Initialisierungen länger dauern als erwartet.
-- Crash beim Durchlaufen der Infobildschirme mit dem Dock-Button.
-- Sendezustand des IR-Senders an den Client weitergeben, z. B. wenn das Senden nicht möglich ist, wenn das IR-Lernen aktiv ist.
-
-### Neue Funktionen
-- Automatische Erkennung von IR-Blaster und -Sender.
-- Anzeige des gelernten IR-Protokollnamens auf dem Display.
-
-### Geändert
-- Verbesserte automatische Erkennung externer IR-Peripheriegeräte, einschließlich des Dock Two IR-Emitters mit Mono-Stecker.
-- Informationsbildschirm: Reihenfolge und Layout, Zusammenfassung der Netzwerkinformationen auf einem Bildschirm.

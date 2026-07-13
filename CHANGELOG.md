@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## Release 0.10.5 - 2026-07-13
 ### Fixed
 - Runtime crash for malformed authentication messages ([#98](https://github.com/unfoldedcircle/ucd3-firmware/pull/98)).
 - Log the correct IP address for IPv6 WebSocket client connections.
@@ -21,8 +24,6 @@ _Changes in the next release_
 - Update IRremoteESP8266 library, including raw IR repeat gap support to prevent fused marks ([#100](https://github.com/unfoldedcircle/ucd3-firmware/pull/100)).
 - Improve IR send timing accuracy by increasing the FreeRTOS tick rate to 1000 Hz ([#101](https://github.com/unfoldedcircle/ucd3-firmware/pull/101)).
 - Log WebSocket message memory allocation failures before restarting.
-
----
 
 ## Release 0.10.4 - 2026-06-25
 

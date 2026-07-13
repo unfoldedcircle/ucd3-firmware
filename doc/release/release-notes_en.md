@@ -1,8 +1,7 @@
-## Unreleased
+## Release 0.10.5 - 2026-07-13
 
 ### Fixed
-- Improved reliability when sending repeated or long-press IR commands. The Dock now stops sending as soon as the controlling app disconnects ([#99](https://github.com/unfoldedcircle/ucd3-firmware/pull/99)).
-- Improved IR sending accuracy and compatibility, especially for repeated RAW IR commands and protocols that are sensitive to timing ([#100](https://github.com/unfoldedcircle/ucd3-firmware/pull/100), [#101](https://github.com/unfoldedcircle/ucd3-firmware/pull/101)).
+- Improved IR sending reliability and compatibility, especially for repeated commands, long button presses, and devices that are sensitive to timing. The Dock now also stops sending as soon as the controlling client disconnects ([#99](https://github.com/unfoldedcircle/ucd3-firmware/pull/99), [#100](https://github.com/unfoldedcircle/ucd3-firmware/pull/100), [#101](https://github.com/unfoldedcircle/ucd3-firmware/pull/101)).
 - Fixed a crash that could happen when a client sends an invalid sign-in message ([#98](https://github.com/unfoldedcircle/ucd3-firmware/pull/98)).
 - Fixed incorrect IP addresses shown in logs for some client connections.
 
@@ -57,39 +56,3 @@ Changes since the last public release, 0.8.2.
 
 ### Changed
 - Not entering WiFi setup mode if connection setup failed ([bug-tracker#612](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/612)).
-
-## Beta Release 0.7.1 - 2025-08-28
-### Changed
-- Increase of overcurrent limitation to 1850mA ([#30](https://github.com/unfoldedcircle/ucd3-firmware/pull/30)).
-
-## Beta Release 0.7.0 - 2025-07-17
-### Bug Fixes
-- External port detection with two blasters.
-- Show charger shut off error on screen caused by over-current detection ([bug-tracker#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
-- PRONTO code parsing with trailing whitespace ([bug-tracker#495](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/495)).
-- Setup with a custom password on Remotes runnig firmware version <= 2.6.1 ([bug-tracker#489](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/489)).
-- Return correct network connection type (Ethernet or WiFi).
-- Show correct charging information in info screen when pressing the control button.
-- General stability improvements.
-
-### New Features
-- Low voltage charger check.
-
-### Changed
-- Improve charging current measurement and over-current detection to prevent charging shutdowns ([#501](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/501)).
-- Determination of the charging voltage offset at startup to prevent switching between the charging and non-charging screens.
-
-## Beta Release 0.6.0 - 2025-06-02
-### Bug Fixes
-- Switch external ports 1 & 2 according to booklet: port 1 is next to ethernet port.
-- Startup crash in network check if other initializations take longer than expected.
-- Crash while cycling through info screens with dock button.
-- Propagate IR-send status code to client, e.g. if sending is not possible when IR learning is active.
-
-### New Features
-- IR-Blaster & -Emitter auto detection.
-- Show learned IR protocol name in display.
-
-### Changed
-- Improve auto-detection of external IR-peripherals, including the Dock Two mono-plug IR-emitter.
-- Info screen order and layout, combine network information into one screen.
