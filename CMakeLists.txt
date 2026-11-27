@@ -106,6 +106,21 @@ add_custom_target(generate_lang ALL
 
 target_add_frogfs(${PROJECT_NAME}.elf)
 
+# FrogFS installs the latest html-minifier from npm. Since 5.x it is ESM-only,
+# which FrogFS can't load and ends in an endless "installing..." loop.
+# Preinstall the last compatible version so FrogFS finds it in node_modules.
+set(HTML_MINIFIER_VERSION 4.0.0)
+set(HTML_MINIFIER_STAMP ${CMAKE_BINARY_DIR}/html-minifier-${HTML_MINIFIER_VERSION}.stamp)
+add_custom_command(
+    OUTPUT ${HTML_MINIFIER_STAMP}
+    COMMAND npm --quiet --no-progress --prefix=${CMAKE_BINARY_DIR} install --save-exact html-minifier@${HTML_MINIFIER_VERSION}
+    COMMAND ${CMAKE_COMMAND} -E touch ${HTML_MINIFIER_STAMP}
+    COMMENT "Installing html-minifier@${HTML_MINIFIER_VERSION} for FrogFS"
+)
+add_custom_target(frogfs_html_minifier DEPENDS ${HTML_MINIFIER_STAMP})
+set_property(TARGET frogfs_html_minifier PROPERTY ADDITIONAL_CLEAN_FILES ${HTML_MINIFIER_STAMP})
+add_dependencies(frogfs_preprocess_frogfs frogfs_html_minifier)
+
 include(CheckGit.cmake)
 CheckGitSetup()
 idf_build_set_property(COMPILE_OPTIONS "-D DOCK_VERSION=\"$ENV{GIT_VERSION}\"" APPEND)
