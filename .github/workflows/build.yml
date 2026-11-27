@@ -87,11 +87,20 @@ jobs:
           echo "Version: $FW_VERSION"
           echo "FW_VERSION=$FW_VERSION" >> $GITHUB_ENV
 
+      # Secrets are not available in Dependabot or fork PRs: use an ephemeral
+      # key to verify the build. Such images can't be used for OTA updates!
       - name: Prepare firmware signing key
+        env:
+          OTA_SIGNING_KEY: ${{ secrets.OTA_SIGNING_KEY }}
         run: |
           pwd
           ls -lah
-          echo "${{ secrets.OTA_SIGNING_KEY }}" > ucd3_firmware_signing_key.pem
+          if [ -n "$OTA_SIGNING_KEY" ]; then
+            echo "$OTA_SIGNING_KEY" > ucd3_firmware_signing_key.pem
+          else
+            echo "::warning::OTA_SIGNING_KEY not available, using ephemeral signing key"
+            openssl genrsa -out ucd3_firmware_signing_key.pem 3072
+          fi
     
       # Adapted from https://github.com/espressif/esp-idf-ci-action/blob/v1/action.yml
       # - disable CCACHE: throw away container, only increased build time!
