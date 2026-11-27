@@ -34,7 +34,7 @@
 #define BUTTON_PIN            GPIO_NUM_0    // INPUT, has physical PULLUP
 #define IR_RECEIVE_ANALOG     GPIO_NUM_1    // INPUT, has physical PULLUP, IR sensor pulls low, usable for receiving 
 //   different frequencies with esp32 RMT peripheral
-#define SPEAKER_GPIO          GPIO_NUM_3    // two functions: 1. physically pulled to 1/2 input vcc, measure input voltage when input (attentuation should be set to 10db)
+#define SPEAKER_GPIO          GPIO_NUM_3    // two functions: 1. physically pulled to 1/2 input vcc, measure input voltage when input (attenuation should be set to 10db)
 // 2. function: turnoff speaker amplifier when use as output low
 #define SCL                   GPIO_NUM_4    // OPEN DRAIN OUTPUT, physically pulled high
 #define SDA                   GPIO_NUM_5    // OPEN DRAIN OUTPUT, physically pulled high
